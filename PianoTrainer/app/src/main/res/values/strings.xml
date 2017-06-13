@@ -3,5 +3,5 @@
     <string name="title_activity_home">HomeActivity</string>
     <string name="title_home">Home</string>
     <string name="title_camera">Camera</string>
-    <string name="settings">settings</string>
+    <string name="summary">Summary</string>
 </resources>

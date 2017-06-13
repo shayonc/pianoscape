@@ -29,7 +29,7 @@ public class HomeActivity extends AppCompatActivity {
                     mTextMessage.setText(R.string.title_camera);
                     return true;
                 case R.id.navigation_settings:
-                    mTextMessage.setText(R.string.settings);
+                    mTextMessage.setText(R.string.summary);
                     return true;
             }
             return false;
