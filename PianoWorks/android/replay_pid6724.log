@@ -1,0 +1,6 @@
+JvmtiExport can_access_local_variables 0
+JvmtiExport can_hotswap_or_post_breakpoint 0
+JvmtiExport can_post_on_exceptions 0
+# 101 ciObject found
+ciMethod java/lang/String indexOf ([CII[CIII)I 1025 41145 128 0 -1
+ciMethodData java/lang/String indexOf ([CII[CIII)I 1 5143 orig 264 8 110 6 101 0 0 0 0 224 87 28 20 0 0 0 0 56 3 0 0 120 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 77 68 79 32 101 120 116 114 97 32 100 97 116 97 32 108 111 99 107 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 23 20 0 0 1 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 2 0 0 0 0 0 0 0 0 0 0 0 224 1 0 0 255 255 255 255 7 0 3 0 0 0 0 0 data 60 0x30007 0x0 0x58 0x0 0x80007 0x0 0x38 0x0 0xc0003 0x0 0x18 0x130007 0x0 0x20 0x0 0x1b0007 0x0 0x20 0x0 0x390007 0x0 0x148 0x0 0x420007 0x0 0x78 0x0 0x4c0007 0x0 0x58 0x0 0x550007 0x0 0x38 0x0 0x580003 0x0 0xffffffffffffffc0 0x5f0007 0x0 0x98 0x0 0x7b0007 0x0 0x58 0x0 0x860007 0x0 0x38 0x0 0x8f0003 0x0 0xffffffffffffffc0 0x960007 0x0 0x20 0x0 0xa10003 0x0 0xfffffffffffffed0
