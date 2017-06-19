@@ -1,4 +1,4 @@
-package piano.pianotrainer;
+package piano.pianotrainer.fragments;
 
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
@@ -8,6 +8,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
 import android.widget.TextView;
 
+import piano.pianotrainer.R;
 import piano.pianotrainer.db.DBHelper;
 
 public class HomeActivity extends AppCompatActivity {

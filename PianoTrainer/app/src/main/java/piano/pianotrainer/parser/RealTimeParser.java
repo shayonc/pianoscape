@@ -5,4 +5,12 @@ package piano.pianotrainer.parser;
  */
 
 public class RealTimeParser {
+
+    private static RealTimeParser realTimeParser;
+    /*
+    * Singleton
+    * */
+    private RealTimeParser() {
+
+    }
 }
