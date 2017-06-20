@@ -1,6 +1,7 @@
 package piano.pianotrainer.parser;
 
 import org.w3c.dom.Document;
+import org.w3c.dom.NodeList;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -28,7 +29,11 @@ public class XMLMusicParser {
             File fXmlFile = new File(filename);     // path to directory
             DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-            Document doc = dBuilder.parse(fXmlFile);
+            Document xmlDoc = dBuilder.parse(fXmlFile);
+            xmlDoc.getDocumentElement().normalize();
+
+            // get root element
+            NodeList scorePart = xmlDoc.getElementsByTagName("score-partwise");
         }
         catch(Exception e) {
             e.printStackTrace();
