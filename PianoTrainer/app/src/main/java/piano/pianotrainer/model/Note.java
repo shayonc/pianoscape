@@ -1,9 +1,17 @@
 package piano.pianotrainer.model;
 
-/**
- * Created by Matthew on 6/19/2017.
- */
-
-public class Note {
-
+// All notes for an octave
+public enum Note {
+    A,
+    Bflat,
+    B,
+    C,
+    Csharp,
+    D,
+    Eflat,
+    E,
+    F,
+    Fsharp,
+    G,
+    Gsharp
 }
