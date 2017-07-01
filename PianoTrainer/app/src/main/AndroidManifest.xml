@@ -3,6 +3,9 @@
     package="piano.pianotrainer">
 
     <!-- http://www.flaticon.com/free-icon/piano-keyboard_65096#term=piano keyboard&page=1&position=38 -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/piano"
