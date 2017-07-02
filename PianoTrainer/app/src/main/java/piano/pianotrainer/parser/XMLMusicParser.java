@@ -23,17 +23,18 @@ public class XMLMusicParser {
     private static final String TAG = "XMLMusicParser";
 
     List<String> fileList;
-    private String filename;
+    private String mxlFilePath;
+    private String xmlFilePath;
     private String outputFolder;
     private ZipInputStream zis;
-    private Context context;
 
     /*
         Constructor
      */
     public XMLMusicParser(String filename, String outputFolder) throws IOException {
-        this.filename = getSdCardPath() + "Piano" + File.separator + filename;
-        this.outputFolder = getSdCardPath() + "Piano" + File.separator +  outputFolder;
+        this.mxlFilePath = getSdCardPath() + "Piano" + File.separator + filename + ".mxl";
+        this.outputFolder = getSdCardPath() + "Piano" + File.separator + outputFolder;
+        this.xmlFilePath = getSdCardPath() + "Piano" + File.separator + "XMLfiles" + File.separator + filename + ".xml";
     }
 
     /*
@@ -59,12 +60,12 @@ public class XMLMusicParser {
                 folder.mkdir();
             }
 
-            FileInputStream fis = new FileInputStream(filename);
+            FileInputStream fis = new FileInputStream(mxlFilePath);
             zis = new ZipInputStream(fis);
             ZipEntry ze = zis.getNextEntry();
             while (ze != null) {
-                String fileName = ze.getName();
-                File newFile = new File(outputFolder + File.separator + fileName);
+                String zeFileName = ze.getName();
+                File newFile = new File(outputFolder + File.separator + zeFileName);
 
                 if (newFile.getAbsolutePath().lastIndexOf('.') == -1) {
                     newFile.mkdirs();
@@ -89,13 +90,18 @@ public class XMLMusicParser {
     }
 
     public void parseXML() {
-        //            File fXmlFile = new File(filename);
-//            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-//            DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-//            Document xmlDoc = dBuilder.parse(fXmlFile);
-//            xmlDoc.getDocumentElement().normalize();
-//
-//            NodeList scorePart = xmlDoc.getElementsByTagName("part");
+        try {
+            File fXmlFile = new File(xmlFilePath);
+            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+            Document xmlDoc = dBuilder.parse(fXmlFile);
+            xmlDoc.getDocumentElement().normalize();
+
+            NodeList scorePart = xmlDoc.getElementsByTagName("part");
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public static String getSdCardPath() {
