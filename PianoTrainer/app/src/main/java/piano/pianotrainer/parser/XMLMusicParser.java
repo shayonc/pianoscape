@@ -6,6 +6,7 @@ import android.util.Log;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -17,6 +18,7 @@ import java.util.zip.ZipInputStream;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.ParserConfigurationException;
 
 public class XMLMusicParser {
 
@@ -97,7 +99,16 @@ public class XMLMusicParser {
             Document xmlDoc = dBuilder.parse(fXmlFile);
             xmlDoc.getDocumentElement().normalize();
 
-            NodeList scorePart = xmlDoc.getElementsByTagName("part");
+            NodeList scorePart = xmlDoc.getElementsByTagName("score-partwise");
+        }
+        catch (ParserConfigurationException pe) {
+            pe.printStackTrace();
+        }
+        catch (SAXException se) {
+            se.printStackTrace();
+        }
+        catch (IOException ie) {
+            ie.printStackTrace();
         }
         catch (Exception e) {
             e.printStackTrace();
