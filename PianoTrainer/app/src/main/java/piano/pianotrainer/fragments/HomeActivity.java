@@ -32,7 +32,7 @@ public class HomeActivity extends AppCompatActivity {
 
     private Context context;
     private XMLMusicParser xmlparser;
-    private String filename = "MozartPianoSonata";
+    private String filename = "Dichterliebe01";
     private static final String OUTPUT_FOLDER = "XMLFiles";
 
     // Storage Permissions
