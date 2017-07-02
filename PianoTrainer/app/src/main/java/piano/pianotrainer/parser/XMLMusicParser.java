@@ -10,7 +10,6 @@ import org.w3c.dom.NodeList;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.FileOutputStream;
 import java.util.List;
 import java.util.zip.ZipEntry;
@@ -18,10 +17,6 @@ import java.util.zip.ZipInputStream;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.DocumentBuilder;
-
-/**
- * Created by Matthew on 6/18/2017.
- */
 
 public class XMLMusicParser {
 
@@ -37,8 +32,8 @@ public class XMLMusicParser {
         Constructor
      */
     public XMLMusicParser(String filename, String outputFolder) throws IOException {
-        this.filename = "/sdcard/" + "Piano" + File.separator + filename;
-        this.outputFolder = "/sdcard/" + "Piano" + File.separator +  outputFolder;
+        this.filename = getSdCardPath() + "Piano" + File.separator + filename;
+        this.outputFolder = getSdCardPath() + "Piano" + File.separator +  outputFolder;
         Log.d(TAG, this.filename);
         Log.d(TAG, this.outputFolder);
     }
@@ -76,7 +71,12 @@ public class XMLMusicParser {
 
                 if (!newFile.exists()) {
                     //create all non exists folders
-                    new File(newFile.getParent()).mkdirs();
+                    Log.d(TAG, newFile.getAbsolutePath());
+                    File parent = new File(newFile.getParent());
+                    if (!parent.exists()) {
+                        parent.mkdir();
+                        Log.d(TAG, parent.getAbsolutePath());
+                    }
                 }
 
                 FileOutputStream fos = new FileOutputStream(newFile);
@@ -108,7 +108,7 @@ public class XMLMusicParser {
     }
 
     public static String getSdCardPath() {
-        return Environment.getExternalStorageDirectory().getPath() + File.separator;
+        return Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator;
     }
 
 }
