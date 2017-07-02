@@ -34,8 +34,6 @@ public class XMLMusicParser {
     public XMLMusicParser(String filename, String outputFolder) throws IOException {
         this.filename = getSdCardPath() + "Piano" + File.separator + filename;
         this.outputFolder = getSdCardPath() + "Piano" + File.separator +  outputFolder;
-        Log.d(TAG, this.filename);
-        Log.d(TAG, this.outputFolder);
     }
 
     /*
@@ -62,30 +60,24 @@ public class XMLMusicParser {
             }
 
             FileInputStream fis = new FileInputStream(filename);
-            Log.d(TAG, fis.toString());
             zis = new ZipInputStream(fis);
             ZipEntry ze = zis.getNextEntry();
             while (ze != null) {
                 String fileName = ze.getName();
                 File newFile = new File(outputFolder + File.separator + fileName);
 
-                if (!newFile.exists()) {
-                    //create all non exists folders
-                    Log.d(TAG, newFile.getAbsolutePath());
-                    File parent = new File(newFile.getParent());
-                    if (!parent.exists()) {
-                        parent.mkdir();
-                        Log.d(TAG, parent.getAbsolutePath());
+                if (newFile.isDirectory()) {
+                    Log.d(TAG, "Create dir");
+                    newFile.mkdirs();
+                }
+                else {
+                    FileOutputStream fos = new FileOutputStream(newFile);
+                    int len;
+                    while ((len = zis.read(buffer)) > 0) {
+                        fos.write(buffer, 0, len);
                     }
+                    fos.close();
                 }
-
-                FileOutputStream fos = new FileOutputStream(newFile);
-
-                int len;
-                while ((len = zis.read(buffer)) > 0) {
-                    fos.write(buffer, 0, len);
-                }
-                fos.close();
                 ze = zis.getNextEntry();
             }
 
