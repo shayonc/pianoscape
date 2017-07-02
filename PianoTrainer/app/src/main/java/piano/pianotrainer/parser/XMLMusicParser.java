@@ -66,8 +66,7 @@ public class XMLMusicParser {
                 String fileName = ze.getName();
                 File newFile = new File(outputFolder + File.separator + fileName);
 
-                if (newFile.isDirectory()) {
-                    Log.d(TAG, "Create dir");
+                if (newFile.getAbsolutePath().lastIndexOf('.') == -1) {
                     newFile.mkdirs();
                 }
                 else {
