@@ -88,6 +88,8 @@ public class HomeActivity extends AppCompatActivity {
 
                         xmlparser = new XMLMusicParser(filename, OUTPUT_FOLDER);
                         xmlparser.parseMXL(); // parse the .mxl file
+                        xmlparser.parseXML();
+
                     }
                     else  {
                         CharSequence text = "External storage not available for read and write.";

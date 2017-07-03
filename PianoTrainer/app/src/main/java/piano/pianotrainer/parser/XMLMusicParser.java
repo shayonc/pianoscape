@@ -5,6 +5,8 @@ import android.os.Environment;
 import android.util.Log;
 
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
@@ -12,6 +14,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.FileOutputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -20,11 +23,13 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.ParserConfigurationException;
 
+import piano.pianotrainer.model.Note;
+
 public class XMLMusicParser {
 
     private static final String TAG = "XMLMusicParser";
 
-    List<String> fileList;
+    List<Note> NoteList = new ArrayList<>();
     private String mxlFilePath;
     private String xmlFilePath;
     private String outputFolder;
@@ -45,7 +50,6 @@ public class XMLMusicParser {
     public void parseMXL() {
         try {
             unzipMXL();
-            parseXML();
         }
         catch(Exception e) {
             e.printStackTrace();
@@ -91,7 +95,7 @@ public class XMLMusicParser {
         }
     }
 
-    public void parseXML() {
+    public List<Note> parseXML() {
         try {
             File fXmlFile = new File(xmlFilePath);
             DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
@@ -99,7 +103,42 @@ public class XMLMusicParser {
             Document xmlDoc = dBuilder.parse(fXmlFile);
             xmlDoc.getDocumentElement().normalize();
 
-            NodeList scorePart = xmlDoc.getElementsByTagName("score-partwise");
+            Log.d(TAG, xmlDoc.getDocumentElement().getNodeName()); // remove this
+
+            // Element names
+            Node scorePartwise;
+            Node part;
+            Element mElement = null;
+            NodeList measures;
+            Node attributes;
+
+            // temp variables for print and attributes
+            String tPrint;
+            int tDivision;
+            int tFifths;
+            String tMode;
+            char tClef;
+            String tSign;
+            int tLine;
+
+            scorePartwise  = xmlDoc.getElementsByTagName("score-partwise").item(0);
+            // should only have 1 node
+            if (scorePartwise.getNodeType() == Node.ELEMENT_NODE) {
+                mElement = (Element) scorePartwise;
+            }
+
+            // only 1 part
+            part = mElement.getElementsByTagName("part").item(0);
+
+            Element temp = (Element) part;
+
+            measures = temp.getElementsByTagName("measures");
+
+            for (int j = 0; j < measures.getLength(); j++) {
+                attributes = measures.item(j);
+            }
+
+
         // TODO - </part> only 1 part plz
             // TODO - </measure>
                 // TODO - </print> - this tells if page number or next line
@@ -129,6 +168,8 @@ public class XMLMusicParser {
                     // TODO - </notation> - slurs, stacattos and stuff
                 // TODO - </backup> -- coordinate multiple voices
 
+            return null;
+
         }
         catch (ParserConfigurationException pe) {
             pe.printStackTrace();
@@ -142,6 +183,7 @@ public class XMLMusicParser {
         catch (Exception e) {
             e.printStackTrace();
         }
+        return null;
     }
 
     public static String getSdCardPath() {
