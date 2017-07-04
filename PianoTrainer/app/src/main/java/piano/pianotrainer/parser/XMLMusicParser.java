@@ -3,12 +3,16 @@ package piano.pianotrainer.parser;
 import android.os.Environment;
 import android.util.Log;
 import org.xml.sax.Attributes;
+import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.ZipEntry;
@@ -38,7 +42,7 @@ public class XMLMusicParser {
     /* First method invocation */
     public void parseMXL() {
         try {
-            unzipMXL();
+//            unzipMXL();
         }
         catch(Exception e) {
             e.printStackTrace();
@@ -91,26 +95,26 @@ public class XMLMusicParser {
 
             DefaultHandler handler = new DefaultHandler() {
 
-                String measureNumber;
-                String print;
-                int divisions;
-                int fifths;
-                String mode;
-                int beats;
-                int beattype;
-                int staves;
-                String sign;
-                int line;
+                String measureNumber = "";
+                String print = "";
+                int divisions = -1;
+                int fifths = -1;
+                String mode = "";
+                int beats = -1;
+                int beattype = -1;
+                int staves = -1;
+                String sign = "";
+                int line = -1;
                 boolean chord = false;
                 boolean grace = false;
-                String step;
-                int alter;
-                int octave;
-                int voice;
-                String stem;
-                String type;
-                String accidental;
-                int staff;
+                String step = "";
+                int alter = -1;
+                int octave = -1;
+                int voice = -1;
+                String stem = "";
+                String type = "";
+                String accidental = "";
+                int staff = -1;
 
                 boolean bmeasure = false;
                 boolean bprint = false;
@@ -246,6 +250,7 @@ public class XMLMusicParser {
                         note.setStaves(staves);
                         note.setSign(sign);
                         note.setLine(line);
+
                         note.setChord(chord);
                         note.setGrace(grace);
                         note.setStep(step);
@@ -255,11 +260,21 @@ public class XMLMusicParser {
                         note.setStem(stem);
                         note.setType(type);
                         note.setAccidental(accidental);
-                        // TODO - if staff is 1 or 2 put in diff array
                         note.setStaff(staff);
 
+                        NoteList.add(note);
+                        // reset note specific attributes
                         chord = false; // set back to false after note object create
                         grace = false; // set back to false after note object create
+                        step = "";
+                        alter = -99;
+                        octave = -99;
+                        voice = -99;
+                        stem = "";
+                        type = "";
+                        accidental = "";
+                        staff = -99;
+                        Log.d(TAG, note.getStep());
                     }
                 }
 
@@ -363,7 +378,14 @@ public class XMLMusicParser {
                 }
             };
 
-            saxParser.parse(xmlFilePath, handler);
+            File file = new File(xmlFilePath);
+            InputStream inputStream= new FileInputStream(file);
+            Reader reader = new InputStreamReader(inputStream,"UTF-8");
+
+            InputSource is = new InputSource(reader);
+            is.setEncoding("UTF-8");
+
+            saxParser.parse(is, handler);
 
         // TODO - </part> only 1 part plz
             // TODO - </measure>
@@ -401,7 +423,7 @@ public class XMLMusicParser {
                 // TODO - </backup> -- coordinate multiple voices
                 // TODO - </forward>
 
-            return null;
+            return NoteList;
         }
         catch (ParserConfigurationException pe) {
             pe.printStackTrace();
@@ -415,7 +437,7 @@ public class XMLMusicParser {
         catch (Exception e) {
             e.printStackTrace();
         }
-        return null;
+        return NoteList;
     }
 
     public static String getSdCardPath() {
