@@ -235,6 +235,28 @@ public class XMLMusicParser {
                         bgrace = true;
                     }
                     if (qName.equalsIgnoreCase("note")) {
+                        Note note = new Note();
+                        note.setMeasureNumber(measureNumber);
+                        note.setPrint(print);
+                        note.setDivisions(divisions);
+                        note.setFifths(fifths);
+                        note.setMode(mode);
+                        note.setBeats(beats);
+                        note.setBeattype(beattype);
+                        note.setStaves(staves);
+                        note.setSign(sign);
+                        note.setLine(line);
+                        note.setChord(chord);
+                        note.setGrace(grace);
+                        note.setStep(step);
+                        note.setAlter(alter);
+                        note.setOctave(octave);
+                        note.setVoice(voice);
+                        note.setStem(stem);
+                        note.setType(type);
+                        note.setAccidental(accidental);
+                        // TODO - if staff is 1 or 2 put in diff array
+                        note.setStaff(staff);
 
                         chord = false; // set back to false after note object create
                         grace = false; // set back to false after note object create
