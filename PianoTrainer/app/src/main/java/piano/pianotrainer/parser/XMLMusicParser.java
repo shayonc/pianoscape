@@ -2,11 +2,9 @@ package piano.pianotrainer.parser;
 
 import android.os.Environment;
 import android.util.Log;
-
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -15,7 +13,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
@@ -25,25 +22,20 @@ import piano.pianotrainer.model.Note;
 public class XMLMusicParser {
 
     private static final String TAG = "XMLMusicParser";
-
     List<Note> NoteList = new ArrayList<>();
     private String mxlFilePath;
     private String xmlFilePath;
     private String outputFolder;
     private ZipInputStream zis;
 
-    /*
-        Constructor
-     */
+    /* Constructor */
     public XMLMusicParser(String filename, String outputFolder) throws IOException {
         this.mxlFilePath = getSdCardPath() + "Piano" + File.separator + filename + ".mxl";
         this.outputFolder = getSdCardPath() + "Piano" + File.separator + outputFolder;
         this.xmlFilePath = getSdCardPath() + "Piano" + File.separator + "XMLfiles" + File.separator + filename + ".xml";
     }
 
-    /*
-        First method invocation
-     */
+    /* First method invocation */
     public void parseMXL() {
         try {
             unzipMXL();
@@ -109,6 +101,16 @@ public class XMLMusicParser {
                 int staves;
                 String sign;
                 int line;
+                boolean chord = false;
+                boolean grace = false;
+                String step;
+                int alter;
+                int octave;
+                int voice;
+                String stem;
+                String type;
+                String accidental;
+                int staff;
 
                 boolean bmeasure = false;
                 boolean bprint = false;
@@ -124,12 +126,20 @@ public class XMLMusicParser {
                 boolean bclef = false;
                 boolean bsign = false;
                 boolean bline = false;
+                boolean bnote = false;
+                boolean bchord = false;
+                boolean bgrace = false;
+                boolean bpitch = false;
+                boolean bstep = false;
+                boolean balter = false;
+                boolean boctave = false;
+                boolean bvoice = false;
+                boolean bstem = false;
+                boolean btype = false;
+                boolean baccidental = false;
+                boolean bstaff = false;
 
-                public void startElement(String uri, String localName,String qName,
-                                         Attributes attributes) throws SAXException {
-
-//                    System.out.println("Start Element :" + qName);
-
+                public void startElement(String uri, String localName,String qName, Attributes attributes) throws SAXException {
                     if (qName.equalsIgnoreCase("measure")) {
                         bmeasure = true;
                         if (attributes.getQName(0).equals("number")) {
@@ -178,11 +188,57 @@ public class XMLMusicParser {
                     if (qName.equalsIgnoreCase("line")) {
                         bline = true;
                     }
+                    if (qName.equalsIgnoreCase("note")) {
+                        bnote = true;
+                    }
+                    if (qName.equalsIgnoreCase("chord")) {
+                        bchord = true;
+                    }
+                    if (qName.equalsIgnoreCase("grace")) {
+                        bgrace = true;
+                    }
+                    if (qName.equalsIgnoreCase("pitch")) {
+                        bpitch = true;
+                    }
+                    if (qName.equalsIgnoreCase("step")) {
+                        bstep = true;
+                    }
+                    if (qName.equalsIgnoreCase("alter")) {
+                        balter = true;
+                    }
+                    if (qName.equalsIgnoreCase("octave")) {
+                        boctave = true;
+                    }
+                    if (qName.equalsIgnoreCase("voice")) {
+                        bvoice = true;
+                    }
+                    if (qName.equalsIgnoreCase("stem")) {
+                        bstem = true;
+                    }
+                    if (qName.equalsIgnoreCase("type")) {
+                        btype = true;
+                    }
+                    if (qName.equalsIgnoreCase("accidental")) {
+                        baccidental = true;
+                    }
+                    if (qName.equalsIgnoreCase("staff")) {
+                        bstaff = true;
+                    }
                 }
 
                 public void endElement(String uri, String localName,
                                        String qName) throws SAXException {
-//                    System.out.println("End Element :" + qName);
+                    if (qName.equalsIgnoreCase("chord")) {
+                        bchord = true;
+                    }
+                    if (qName.equalsIgnoreCase("grace")) {
+                        bgrace = true;
+                    }
+                    if (qName.equalsIgnoreCase("note")) {
+
+                        chord = false; // set back to false after note object create
+                        grace = false; // set back to false after note object create
+                    }
                 }
 
                 public void characters(char ch[], int start, int length) throws SAXException {
@@ -236,8 +292,53 @@ public class XMLMusicParser {
                         line = Integer.parseInt(new String(ch, start, length));
                         bline = false;
                     }
+                    if (bnote) {
+                        bnote = false;
+                    }
+                    if (bchord) {
+                        chord = true;
+                        bchord = false;
+                    }
+                    if (bgrace) {
+                        grace = true;
+                        bgrace = false;
+                    }
+                    if (bpitch) {
+                        bpitch = false;
+                    }
+                    if (bstep) {
+                        step = new String(ch, start, length);
+                        bstep = false;
+                    }
+                    if (balter) {
+                        alter = Integer.parseInt(new String(ch, start, length));
+                        balter = false;
+                    }
+                    if (boctave) {
+                        octave = Integer.parseInt(new String(ch, start, length));
+                        boctave = false;
+                    }
+                    if (bvoice) {
+                        voice = Integer.parseInt(new String(ch, start, length));
+                        bvoice = false;
+                    }
+                    if (bstem) {
+                        stem = new String(ch, start, length);
+                        bstem = false;
+                    }
+                    if (btype) {
+                        type = new String(ch, start, length);
+                        btype = false;
+                    }
+                    if (baccidental) {
+                        accidental = new String(ch, start, length);
+                        baccidental = false;
+                    }
+                    if (bstaff) {
+                        staff = Integer.parseInt(new String(ch, start, length));
+                        bstaff = false;
+                    }
                 }
-
             };
 
             saxParser.parse(xmlFilePath, handler);
@@ -264,18 +365,21 @@ public class XMLMusicParser {
                         // TODO - </step>
                         // TODO - </alter>
                         // TODO - </octave>
-                    // TODO - </duration>
+
+                    // TODO - </duration> watch out!!! nested inside something else
+
                     // TODO - </voice>
                     // TODO - </stem> which way the stick points
                     // TODO - </type>
                     // TODO - </accidental> sharps and flats
                     // TODO - </staff> treble 1 and bass 2
+
                     // TODO - </beam>
                     // TODO - </notation> - slurs, stacattos and stuff
                 // TODO - </backup> -- coordinate multiple voices
+                // TODO - </forward>
 
             return null;
-
         }
         catch (ParserConfigurationException pe) {
             pe.printStackTrace();
@@ -295,5 +399,4 @@ public class XMLMusicParser {
     public static String getSdCardPath() {
         return Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator;
     }
-
 }
