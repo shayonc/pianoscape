@@ -1,55 +1,48 @@
 package piano.pianotrainer.parser;
 
-import android.content.Context;
 import android.os.Environment;
 import android.util.Log;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
+import org.xml.sax.Attributes;
+import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
-
+import org.xml.sax.helpers.DefaultHandler;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
 
 import piano.pianotrainer.model.Note;
 
 public class XMLMusicParser {
 
     private static final String TAG = "XMLMusicParser";
-
     List<Note> NoteList = new ArrayList<>();
     private String mxlFilePath;
     private String xmlFilePath;
     private String outputFolder;
     private ZipInputStream zis;
 
-    /*
-        Constructor
-     */
+    /* Constructor */
     public XMLMusicParser(String filename, String outputFolder) throws IOException {
         this.mxlFilePath = getSdCardPath() + "Piano" + File.separator + filename + ".mxl";
         this.outputFolder = getSdCardPath() + "Piano" + File.separator + outputFolder;
         this.xmlFilePath = getSdCardPath() + "Piano" + File.separator + "XMLfiles" + File.separator + filename + ".xml";
     }
 
-    /*
-        First method invocation
-     */
+    /* First method invocation */
     public void parseMXL() {
         try {
-            unzipMXL();
+//            unzipMXL();
         }
         catch(Exception e) {
             e.printStackTrace();
@@ -97,47 +90,302 @@ public class XMLMusicParser {
 
     public List<Note> parseXML() {
         try {
-            File fXmlFile = new File(xmlFilePath);
-            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-            Document xmlDoc = dBuilder.parse(fXmlFile);
-            xmlDoc.getDocumentElement().normalize();
+            SAXParserFactory factory = SAXParserFactory.newInstance();
+            SAXParser saxParser = factory.newSAXParser();
 
-            Log.d(TAG, xmlDoc.getDocumentElement().getNodeName()); // remove this
+            DefaultHandler handler = new DefaultHandler() {
 
-            // Element names
-            Node scorePartwise;
-            Node part;
-            Element mElement = null;
-            NodeList measures;
-            Node attributes;
+                String measureNumber = "";
+                String print = "";
+                int divisions = -1;
+                int fifths = -1;
+                String mode = "";
+                int beats = -1;
+                int beattype = -1;
+                int staves = -1;
+                String sign = "";
+                int line = -1;
+                boolean chord = false;
+                boolean grace = false;
+                String step = "";
+                int alter = -1;
+                int octave = -1;
+                int voice = -1;
+                String stem = "";
+                String type = "";
+                String accidental = "";
+                int staff = -1;
 
-            // temp variables for print and attributes
-            String tPrint;
-            int tDivision;
-            int tFifths;
-            String tMode;
-            char tClef;
-            String tSign;
-            int tLine;
+                boolean bmeasure = false;
+                boolean bprint = false;
+                boolean battributes = false;
+                boolean bdivision = false;
+                boolean bkey = false;
+                boolean bfifths = false;
+                boolean bmode = false;
+                boolean btime = false;
+                boolean bbeats = false;
+                boolean bbeattype = false;
+                boolean bstaves = false;
+                boolean bclef = false;
+                boolean bsign = false;
+                boolean bline = false;
+                boolean bnote = false;
+                boolean bchord = false;
+                boolean bgrace = false;
+                boolean bpitch = false;
+                boolean bstep = false;
+                boolean balter = false;
+                boolean boctave = false;
+                boolean bvoice = false;
+                boolean bstem = false;
+                boolean btype = false;
+                boolean baccidental = false;
+                boolean bstaff = false;
 
-            scorePartwise  = xmlDoc.getElementsByTagName("score-partwise").item(0);
-            // should only have 1 node
-            if (scorePartwise.getNodeType() == Node.ELEMENT_NODE) {
-                mElement = (Element) scorePartwise;
-            }
+                public void startElement(String uri, String localName,String qName, Attributes attributes) throws SAXException {
+                    if (qName.equalsIgnoreCase("measure")) {
+                        bmeasure = true;
+                        if (attributes.getQName(0).equals("number")) {
+                           measureNumber = attributes.getValue(0);
+                        }
+                    }
+                    if (qName.equalsIgnoreCase("print")) {
+                        bprint = true;
+                        if (attributes.getQName(0).equals("new-system") || attributes.getQName(0).equals("page-number")) {
+                            print = attributes.getValue(0);
+                        }
+                    }
+                    if (qName.equalsIgnoreCase("attributes")) {
+                        battributes = true;
+                    }
+                    if (qName.equalsIgnoreCase("division")) {
+                        bdivision = true;
+                    }
+                    if (qName.equalsIgnoreCase("key")) {
+                        bkey = true;
+                    }
+                    if (qName.equalsIgnoreCase("fifths")) {
+                        bfifths = true;
+                    }
+                    if (qName.equalsIgnoreCase("mode")) {
+                        bmode = true;
+                    }
+                    if (qName.equalsIgnoreCase("time")) {
+                        btime = true;
+                    }
+                    if (qName.equalsIgnoreCase("beats")) {
+                        bbeats = true;
+                    }
+                    if (qName.equalsIgnoreCase("beat-type")) {
+                        bbeattype = true;
+                    }
+                    if (qName.equalsIgnoreCase("staves")) {
+                        bstaves = true;
+                    }
+                    if (qName.equalsIgnoreCase("clef")) {
+                        bclef = true;
+                    }
+                    if (qName.equalsIgnoreCase("sign")) {
+                        bsign = true;
+                    }
+                    if (qName.equalsIgnoreCase("line")) {
+                        bline = true;
+                    }
+                    if (qName.equalsIgnoreCase("note")) {
+                        bnote = true;
+                    }
+                    if (qName.equalsIgnoreCase("chord")) {
+                        bchord = true;
+                    }
+                    if (qName.equalsIgnoreCase("grace")) {
+                        bgrace = true;
+                    }
+                    if (qName.equalsIgnoreCase("pitch")) {
+                        bpitch = true;
+                    }
+                    if (qName.equalsIgnoreCase("step")) {
+                        bstep = true;
+                    }
+                    if (qName.equalsIgnoreCase("alter")) {
+                        balter = true;
+                    }
+                    if (qName.equalsIgnoreCase("octave")) {
+                        boctave = true;
+                    }
+                    if (qName.equalsIgnoreCase("voice")) {
+                        bvoice = true;
+                    }
+                    if (qName.equalsIgnoreCase("stem")) {
+                        bstem = true;
+                    }
+                    if (qName.equalsIgnoreCase("type")) {
+                        btype = true;
+                    }
+                    if (qName.equalsIgnoreCase("accidental")) {
+                        baccidental = true;
+                    }
+                    if (qName.equalsIgnoreCase("staff")) {
+                        bstaff = true;
+                    }
+                }
 
-            // only 1 part
-            part = mElement.getElementsByTagName("part").item(0);
+                public void endElement(String uri, String localName,
+                                       String qName) throws SAXException {
+                    if (qName.equalsIgnoreCase("chord")) {
+                        bchord = true;
+                    }
+                    if (qName.equalsIgnoreCase("grace")) {
+                        bgrace = true;
+                    }
+                    if (qName.equalsIgnoreCase("note")) {
+                        Note note = new Note();
+                        note.setMeasureNumber(measureNumber);
+                        note.setPrint(print);
+                        note.setDivisions(divisions);
+                        note.setFifths(fifths);
+                        note.setMode(mode);
+                        note.setBeats(beats);
+                        note.setBeattype(beattype);
+                        note.setStaves(staves);
+                        note.setSign(sign);
+                        note.setLine(line);
 
-            Element temp = (Element) part;
+                        note.setChord(chord);
+                        note.setGrace(grace);
+                        note.setStep(step);
+                        note.setAlter(alter);
+                        note.setOctave(octave);
+                        note.setVoice(voice);
+                        note.setStem(stem);
+                        note.setType(type);
+                        note.setAccidental(accidental);
+                        note.setStaff(staff);
 
-            measures = temp.getElementsByTagName("measures");
+                        NoteList.add(note);
+                        // reset note specific attributes
+                        chord = false; // set back to false after note object create
+                        grace = false; // set back to false after note object create
+                        step = "";
+                        alter = -99;
+                        octave = -99;
+                        voice = -99;
+                        stem = "";
+                        type = "";
+                        accidental = "";
+                        staff = -99;
+                        Log.d(TAG, note.getStep());
+                    }
+                }
 
-            for (int j = 0; j < measures.getLength(); j++) {
-                attributes = measures.item(j);
-            }
+                public void characters(char ch[], int start, int length) throws SAXException {
+                    if (bmeasure) {
+                        bmeasure = false;
+                    }
+                    if (bprint) {
+                        bprint = false;
+                    }
+                    if (battributes) {
+                        battributes = false;
+                    }
+                    if (bdivision) {
+                        divisions = Integer.parseInt(new String(ch, start, length));
+                        bdivision = false;
+                    }
+                    if (bkey) {
+                        bkey = false;
+                    }
+                    if (bfifths) {
+                        fifths = Integer.parseInt(new String(ch, start, length));
+                        bfifths = false;
+                    }
+                    if (bmode) {
+                        mode = new String(ch, start, length);
+                        bmode = false;
+                    }
+                    if (btime) {
+                        btime = false;
+                    }
+                    if (bbeats) {
+                        beats = Integer.parseInt(new String(ch, start, length));
+                        bbeats = false;
+                    }
+                    if (bbeattype) {
+                        beattype = Integer.parseInt(new String(ch, start, length));
+                        bbeattype = false;
+                    }
+                    if (bstaves) {
+                        staves = Integer.parseInt(new String(ch, start, length));
+                        bstaves = false;
+                    }
+                    if (bclef) {
+                        bclef = false;
+                    }
+                    if (bsign) {
+                        sign = new String(ch, start, length);
+                        bsign = false;
+                    }
+                    if (bline) {
+                        line = Integer.parseInt(new String(ch, start, length));
+                        bline = false;
+                    }
+                    if (bnote) {
+                        bnote = false;
+                    }
+                    if (bchord) {
+                        chord = true;
+                        bchord = false;
+                    }
+                    if (bgrace) {
+                        grace = true;
+                        bgrace = false;
+                    }
+                    if (bpitch) {
+                        bpitch = false;
+                    }
+                    if (bstep) {
+                        step = new String(ch, start, length);
+                        bstep = false;
+                    }
+                    if (balter) {
+                        alter = Integer.parseInt(new String(ch, start, length));
+                        balter = false;
+                    }
+                    if (boctave) {
+                        octave = Integer.parseInt(new String(ch, start, length));
+                        boctave = false;
+                    }
+                    if (bvoice) {
+                        voice = Integer.parseInt(new String(ch, start, length));
+                        bvoice = false;
+                    }
+                    if (bstem) {
+                        stem = new String(ch, start, length);
+                        bstem = false;
+                    }
+                    if (btype) {
+                        type = new String(ch, start, length);
+                        btype = false;
+                    }
+                    if (baccidental) {
+                        accidental = new String(ch, start, length);
+                        baccidental = false;
+                    }
+                    if (bstaff) {
+                        staff = Integer.parseInt(new String(ch, start, length));
+                        bstaff = false;
+                    }
+                }
+            };
 
+            File file = new File(xmlFilePath);
+            InputStream inputStream= new FileInputStream(file);
+            Reader reader = new InputStreamReader(inputStream,"UTF-8");
+
+            InputSource is = new InputSource(reader);
+            is.setEncoding("UTF-8");
+
+            saxParser.parse(is, handler);
 
         // TODO - </part> only 1 part plz
             // TODO - </measure>
@@ -147,10 +395,13 @@ public class XMLMusicParser {
                     // TODO - </key>
                         // TODO - </fifths>
                         // TODO - </mode>
+                    // TODO - </time>
+                        // TODO - </beats>
+                        // TODO - </beat-type>
                     // TODO - </staves>
                     // TODO - </clef>
-                    // TODO - </sign>
-                    // TODO - </line>
+                        // TODO - </sign>
+                        // TODO - </line>
                 // TODO - </note>
                     // TODO - <chord/>
                     // TODO - <grace/>
@@ -158,18 +409,21 @@ public class XMLMusicParser {
                         // TODO - </step>
                         // TODO - </alter>
                         // TODO - </octave>
-                    // TODO - </duration>
+
+                    // TODO - </duration> watch out!!! nested inside something else
+
                     // TODO - </voice>
                     // TODO - </stem> which way the stick points
                     // TODO - </type>
                     // TODO - </accidental> sharps and flats
                     // TODO - </staff> treble 1 and bass 2
+
                     // TODO - </beam>
                     // TODO - </notation> - slurs, stacattos and stuff
                 // TODO - </backup> -- coordinate multiple voices
+                // TODO - </forward>
 
-            return null;
-
+            return NoteList;
         }
         catch (ParserConfigurationException pe) {
             pe.printStackTrace();
@@ -183,11 +437,10 @@ public class XMLMusicParser {
         catch (Exception e) {
             e.printStackTrace();
         }
-        return null;
+        return NoteList;
     }
 
     public static String getSdCardPath() {
         return Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator;
     }
-
 }
