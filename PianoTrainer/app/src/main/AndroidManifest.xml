@@ -3,8 +3,8 @@
     package="piano.pianotrainer">
 
     <!-- http://www.flaticon.com/free-icon/piano-keyboard_65096#term=piano keyboard&page=1&position=38 -->
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <application
         android:allowBackup="true"
@@ -13,7 +13,6 @@
         android:roundIcon="@mipmap/piano"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-
         <activity
             android:name=".fragments.HomeActivity"
             android:label="@string/app_name">
@@ -23,6 +22,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".fragments.MusicScoreImportActivity"></activity>
     </application>
 
 </manifest>
