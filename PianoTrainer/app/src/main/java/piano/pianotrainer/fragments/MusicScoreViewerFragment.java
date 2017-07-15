@@ -141,7 +141,7 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
      * @param index The page index.
      */
     private void showPage(int index) {
-        Bitmap curPageBitmap = mPdfHelper.toImg(index);
+        Bitmap curPageBitmap = mPdfHelper.toBinImg(index);
         // We are ready to show the Bitmap to user.
         mImageView.setImageBitmap(curPageBitmap);
         updateUi();

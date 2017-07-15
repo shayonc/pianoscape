@@ -12,7 +12,6 @@ import java.io.IOException;
 
 public class PDFHelper {
     private PdfRenderer mPdfRenderer;
-    private ParcelFileDescriptor mFileDescriptor;
     private PdfRenderer.Page mCurrentPage;
     private int mPageIndex;
 
@@ -23,6 +22,33 @@ public class PDFHelper {
             e.printStackTrace();
             //logging
         }
+    }
+
+    public Bitmap toBinImg(int index){
+        //close current page
+        if(mCurrentPage != null){
+            mCurrentPage.close();
+        }
+        // Use `openPage` to open a specific page in PDF.
+        mCurrentPage = mPdfRenderer.openPage(index);
+        // Important: the destination bitmap must be ARGB (not RGB).
+        Bitmap bitmap = Bitmap.createBitmap(mCurrentPage.getWidth(), mCurrentPage.getHeight(),
+                Bitmap.Config.ARGB_8888);
+        ScoreImgProc scoreProc = new ScoreImgProc(bitmap);
+        scoreProc.detectStaffLines();
+        Bitmap binBitmap = scoreProc.getBinImg();
+        // Here, we render the page onto the Bitmap.
+        // To render a portion of the page, use the second and third parameter. Pass nulls to get
+        // the default result.
+        // Pass either RENDER_MODE_FOR_DISPLAY or RENDER_MODE_FOR_PRINT for the last parameter.
+        mCurrentPage.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY);
+        //pass the return bitmap to imageview if needed/opencv
+        // Here, we render the page onto the Bitmap.
+        // To render a portion of the page, use the second and third parameter. Pass nulls to get
+        // the default result.
+        // Pass either RENDER_MODE_FOR_DISPLAY or RENDER_MODE_FOR_PRINT for the last parameter.
+        mCurrentPage.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY);
+        return bitmap;
     }
 
     public Bitmap toImg(int index){
@@ -59,7 +85,6 @@ public class PDFHelper {
             mCurrentPage.close();
         }
         mPdfRenderer.close();
-        mFileDescriptor.close();
     }
 
     public int getPageCount() {
