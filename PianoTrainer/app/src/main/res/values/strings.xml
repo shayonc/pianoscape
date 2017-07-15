@@ -4,4 +4,8 @@
     <string name="title_home">Home</string>
     <string name="title_camera">Camera</string>
     <string name="summary">Summary</string>
+    <string name="next">Next</string>
+    <string name="previous">Previous</string>
+    <string name="music_score_name_with_index">Music Score (%1$d/%2$d)</string>
+    <string name="info">Info</string>
 </resources>

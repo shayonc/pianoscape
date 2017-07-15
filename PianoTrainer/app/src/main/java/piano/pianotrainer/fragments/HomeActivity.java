@@ -3,6 +3,7 @@ package piano.pianotrainer.fragments;
 import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
@@ -12,19 +13,34 @@ import android.support.design.widget.BottomNavigationView;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.opencv.android.OpenCVLoader;
+
 import java.io.IOException;
 
 import piano.pianotrainer.R;
 import piano.pianotrainer.db.DBHelper;
 import piano.pianotrainer.parser.XMLMusicParser;
+import piano.pianotrainer.score_importing.PDFHelper;
 
 public class HomeActivity extends AppCompatActivity {
+
+    private static final String TAG = "HomeActivity";
+
+    static{
+        if(!OpenCVLoader.initDebug()){
+            Log.d(TAG,"OpenCV not loaded");
+        }
+        else{
+            Log.d(TAG,"OpenCV loaded");
+        }
+    }
 
     private TextView mTextMessage;
     private DBHelper dbHelper;
@@ -34,6 +50,8 @@ public class HomeActivity extends AppCompatActivity {
     private XMLMusicParser xmlparser;
     private String filename = "Dichterliebe01";
     private static final String OUTPUT_FOLDER = "XMLFiles";
+
+
 
     // Storage Permissions
     private static final int REQUEST_EXTERNAL_STORAGE = 1;
@@ -76,6 +94,7 @@ public class HomeActivity extends AppCompatActivity {
         dbHelper = new DBHelper(this);
         db = dbHelper.getWritableDatabase(); // get writable
 
+
         Button button = (Button) findViewById(R.id.button);
         button.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
@@ -103,8 +122,24 @@ public class HomeActivity extends AppCompatActivity {
                 }
             }
         });
+        Button buttonImport = (Button) findViewById(R.id.button_import);
+        buttonImport.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
 
+                try {
+                    importMusicScore(v);
+                }
+                catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
 
+    /** Called when the user taps the Send button */
+    public void importMusicScore(View view) {
+        Intent intent = new Intent(this, MusicScoreImportActivity.class);
+        startActivity(intent);
     }
 
     /* Checks if external storage is available for read and write */
