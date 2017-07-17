@@ -14,6 +14,7 @@ public class PDFHelper {
     private PdfRenderer mPdfRenderer;
     private PdfRenderer.Page mCurrentPage;
     private int mPageIndex;
+    private Bitmap curPageBmp; //will be used for multi-page scores
 
     public PDFHelper(ParcelFileDescriptor fileDescriptor) {
         try {
@@ -24,6 +25,7 @@ public class PDFHelper {
         }
     }
 
+    //USED FOR IMG PROCESSING TESTING: can apply any algorithms on the bmp of pdf and output it
     public Bitmap toBinImg(int index){
         //close current page
         if(mCurrentPage != null){
@@ -34,23 +36,22 @@ public class PDFHelper {
         // Important: the destination bitmap must be ARGB (not RGB).
         Bitmap bitmap = Bitmap.createBitmap(mCurrentPage.getWidth(), mCurrentPage.getHeight(),
                 Bitmap.Config.ARGB_8888);
+        // Here, we render the page onto the Bitmap.
+        // To render a portion of the page, use the second and third parameter. Pass nulls to get
+        // the default result.
+        // Pass either RENDER_MODE_FOR_DISPLAY or RENDER_MODE_FOR_PRINT for the last parameter.
+        mCurrentPage.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY);
+        //IMG PROCESSING:
+        //feed in the bitmap to be binarized
         ScoreImgProc scoreProc = new ScoreImgProc(bitmap);
-        scoreProc.detectStaffLines();
-        Bitmap binBitmap = scoreProc.getBinImg();
-        // Here, we render the page onto the Bitmap.
-        // To render a portion of the page, use the second and third parameter. Pass nulls to get
-        // the default result.
-        // Pass either RENDER_MODE_FOR_DISPLAY or RENDER_MODE_FOR_PRINT for the last parameter.
-        mCurrentPage.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY);
-        //pass the return bitmap to imageview if needed/opencv
-        // Here, we render the page onto the Bitmap.
-        // To render a portion of the page, use the second and third parameter. Pass nulls to get
-        // the default result.
-        // Pass either RENDER_MODE_FOR_DISPLAY or RENDER_MODE_FOR_PRINT for the last parameter.
-        mCurrentPage.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY);
-        return bitmap;
+        scoreProc.binarize();
+        scoreProc.removeStaffLines(true);
+        //after binarization and staff line elimination
+        Bitmap binBitmap = scoreProc.getNoStaffLinesImg();
+        return binBitmap;
     }
 
+    //Can be used for just displaying the actual Bitmaps for the PDFs generated with no processing
     public Bitmap toImg(int index){
         //close current page
         if(mCurrentPage != null){

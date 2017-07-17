@@ -6,7 +6,6 @@ package piano.pianotrainer.fragments;
 
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.pdf.PdfRenderer;
 import android.os.Bundle;
 import android.os.ParcelFileDescriptor;
 import android.support.v4.app.Fragment;
@@ -23,6 +22,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import piano.pianotrainer.R;
+import piano.pianotrainer.score_importing.ImageUtils;
 import piano.pianotrainer.score_importing.PDFHelper;
 
 public class MusicScoreViewerFragment extends Fragment implements View.OnClickListener{
@@ -48,7 +48,21 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
      */
     private Button mButtonNext;
 
+    //store appContext which is helpful for accessing internal file storage if we go that route
+    private Context appContext;
+
     public MusicScoreViewerFragment() {
+    }
+
+    // The onCreate method is called when the Fragment instance is being created, or re-created.
+    // Use onCreate for any standard setup that does not require the activity to be fully created
+    //Use this to set vars
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        //Pass variables
+        //fragment is already tied to an activity
+        this.appContext = getActivity().getApplicationContext();
     }
 
     @Override
@@ -144,6 +158,9 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
         Bitmap curPageBitmap = mPdfHelper.toBinImg(index);
         // We are ready to show the Bitmap to user.
         mImageView.setImageBitmap(curPageBitmap);
+
+        //Save img internally - help analyze pixels
+        ImageUtils.saveImageToExternal(curPageBitmap,"testImg.png");
         updateUi();
     }
 
