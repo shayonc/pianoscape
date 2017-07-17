@@ -42,7 +42,7 @@ public class XMLMusicParser {
     /* First method invocation */
     public void parseMXL() {
         try {
-//            unzipMXL();
+            unzipMXL();
         }
         catch(Exception e) {
             e.printStackTrace();
@@ -410,7 +410,6 @@ public class XMLMusicParser {
                         // TODO - </alter>
                         // TODO - </octave>
 
-                    // TODO - </duration> watch out!!! nested inside something else
 
                     // TODO - </voice>
                     // TODO - </stem> which way the stick points
@@ -420,7 +419,9 @@ public class XMLMusicParser {
 
                     // TODO - </beam>
                     // TODO - </notation> - slurs, stacattos and stuff
-                // TODO - </backup> -- coordinate multiple voices
+
+            // TODO - </duration> watch out!!! nested inside something else
+            // TODO - </backup> -- coordinate multiple voices
                 // TODO - </forward>
 
             return NoteList;
