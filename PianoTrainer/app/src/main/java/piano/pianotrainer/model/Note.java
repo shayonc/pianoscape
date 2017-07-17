@@ -22,9 +22,35 @@ public class Note {
     String type;
     String accidental;
     int staff;
+    int duration;
+    boolean rest;
+    boolean forward;
 
     public Note() {
 
+    }
+    public boolean isForward() {
+        return forward;
+    }
+
+    public void setForward(boolean forward) {
+        this.forward = forward;
+    }
+
+    public boolean isRest() {
+        return rest;
+    }
+
+    public void setRest(boolean rest) {
+        this.rest = rest;
+    }
+
+    public int getDuration() {
+        return duration;
+    }
+
+    public void setDuration(int duration) {
+        this.duration = duration;
     }
 
     public String getMeasureNumber() {
@@ -188,9 +214,6 @@ public class Note {
     }
 
     public enum Key {
-        A,
-        Bflat,
-        B,
         C,
         Csharp,
         D,
@@ -199,7 +222,10 @@ public class Note {
         F,
         Fsharp,
         G,
-        Gsharp
+        Gsharp,
+        A,
+        Bflat,
+        B
     }
 
 }

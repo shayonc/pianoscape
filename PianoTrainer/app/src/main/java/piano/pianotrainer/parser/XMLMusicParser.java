@@ -42,7 +42,7 @@ public class XMLMusicParser {
     /* First method invocation */
     public void parseMXL() {
         try {
-//            unzipMXL();
+            unzipMXL();
         }
         catch(Exception e) {
             e.printStackTrace();
@@ -108,13 +108,16 @@ public class XMLMusicParser {
                 boolean chord = false;
                 boolean grace = false;
                 String step = "";
-                int alter = -1;
+                int alter = 0;
                 int octave = -1;
                 int voice = -1;
                 String stem = "";
                 String type = "";
                 String accidental = "";
                 int staff = -1;
+                int duration = -1;
+                boolean rest = false;
+                boolean forward = false;
 
                 boolean bmeasure = false;
                 boolean bprint = false;
@@ -142,12 +145,15 @@ public class XMLMusicParser {
                 boolean btype = false;
                 boolean baccidental = false;
                 boolean bstaff = false;
+                boolean bduration = false;
+                boolean brest = false;
+                boolean bforward = false;
 
                 public void startElement(String uri, String localName,String qName, Attributes attributes) throws SAXException {
                     if (qName.equalsIgnoreCase("measure")) {
                         bmeasure = true;
                         if (attributes.getQName(0).equals("number")) {
-                           measureNumber = attributes.getValue(0);
+                            measureNumber = attributes.getValue(0);
                         }
                     }
                     if (qName.equalsIgnoreCase("print")) {
@@ -228,6 +234,9 @@ public class XMLMusicParser {
                     if (qName.equalsIgnoreCase("staff")) {
                         bstaff = true;
                     }
+                    if (qName.equalsIgnoreCase("duration")) {
+                        bduration = true;
+                    }
                 }
 
                 public void endElement(String uri, String localName,
@@ -238,8 +247,18 @@ public class XMLMusicParser {
                     if (qName.equalsIgnoreCase("grace")) {
                         bgrace = true;
                     }
-                    if (qName.equalsIgnoreCase("note")) {
+                    if (qName.equalsIgnoreCase("rest")) {
+                        brest = true;
+                    }
+
+                    if (qName.equalsIgnoreCase("note")||qName.equalsIgnoreCase("forward")) {
                         Note note = new Note();
+
+                        //check own type, forward counts as note (invisible rest)
+                        if (qName.equalsIgnoreCase("forward")) {
+                            forward = true;
+                        }
+
                         note.setMeasureNumber(measureNumber);
                         note.setPrint(print);
                         note.setDivisions(divisions);
@@ -261,11 +280,16 @@ public class XMLMusicParser {
                         note.setType(type);
                         note.setAccidental(accidental);
                         note.setStaff(staff);
+                        note.setDuration(duration);
+                        note.setRest(rest);
+                        note.setForward(forward);
 
                         NoteList.add(note);
                         // reset note specific attributes
                         chord = false; // set back to false after note object create
                         grace = false; // set back to false after note object create
+                        rest = false;
+                        forward = false;
                         step = "";
                         alter = -99;
                         octave = -99;
@@ -274,6 +298,7 @@ public class XMLMusicParser {
                         type = "";
                         accidental = "";
                         staff = -99;
+                        duration = -99;
                         Log.d(TAG, note.getStep());
                     }
                 }
@@ -375,6 +400,18 @@ public class XMLMusicParser {
                         staff = Integer.parseInt(new String(ch, start, length));
                         bstaff = false;
                     }
+                    if (bduration) {
+                        duration = Integer.parseInt(new String(ch, start, length));
+                        bduration = false;
+                    }
+                    if (brest) {
+                        rest = true;
+                        brest = false;
+                    }
+                    if (bforward){
+                        forward=true;
+                        bforward=false;
+                    }
                 }
             };
 
@@ -387,41 +424,42 @@ public class XMLMusicParser {
 
             saxParser.parse(is, handler);
 
-        // TODO - </part> only 1 part plz
+            // TODO - </part> only 1 part plz
             // TODO - </measure>
-                // TODO - </print> - this tells if page number or next line
-                // TODO - </attributes>
-                    // TODO - </division>
-                    // TODO - </key>
-                        // TODO - </fifths>
-                        // TODO - </mode>
-                    // TODO - </time>
-                        // TODO - </beats>
-                        // TODO - </beat-type>
-                    // TODO - </staves>
-                    // TODO - </clef>
-                        // TODO - </sign>
-                        // TODO - </line>
-                // TODO - </note>
-                    // TODO - <chord/>
-                    // TODO - <grace/>
-                    // TODO - </pitch>
-                        // TODO - </step>
-                        // TODO - </alter>
-                        // TODO - </octave>
+            // TODO - </print> - this tells if page number or next line
+            // TODO - </attributes>
+            // TODO - </division>
+            // TODO - </key>
+            // TODO - </fifths>
+            // TODO - </mode>
+            // TODO - </time>
+            // TODO - </beats>
+            // TODO - </beat-type>
+            // TODO - </staves>
+            // TODO - </clef>
+            // TODO - </sign>
+            // TODO - </line>
+            // TODO - </note>
+            // TODO - <chord/>
+            // TODO - <grace/>
+            // TODO - </pitch>
+            // TODO - </step>
+            // TODO - </alter>
+            // TODO - </octave>
 
-                    // TODO - </duration> watch out!!! nested inside something else
 
-                    // TODO - </voice>
-                    // TODO - </stem> which way the stick points
-                    // TODO - </type>
-                    // TODO - </accidental> sharps and flats
-                    // TODO - </staff> treble 1 and bass 2
+            // TODO - </voice>
+            // TODO - </stem> which way the stick points
+            // TODO - </type>
+            // TODO - </accidental> sharps and flats
+            // TODO - </staff> treble 1 and bass 2
 
-                    // TODO - </beam>
-                    // TODO - </notation> - slurs, stacattos and stuff
-                // TODO - </backup> -- coordinate multiple voices
-                // TODO - </forward>
+            // TODO - </beam>
+            // TODO - </notation> - slurs, stacattos and stuff
+
+            // TODO - </duration> watch out!!! nested inside something else
+            // TODO - </backup> -- coordinate multiple voices
+            // TODO - </forward>
 
             return NoteList;
         }

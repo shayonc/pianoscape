@@ -12,17 +12,25 @@ import android.support.design.widget.BottomNavigationView;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.text.method.ScrollingMovementMethod;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.Console;
 import java.io.IOException;
 
 import piano.pianotrainer.R;
 import piano.pianotrainer.db.DBHelper;
 import piano.pianotrainer.parser.XMLMusicParser;
+
+//Temporary Imports
+import piano.pianotrainer.model.Note;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class HomeActivity extends AppCompatActivity {
 
@@ -32,7 +40,7 @@ public class HomeActivity extends AppCompatActivity {
 
     private Context context;
     private XMLMusicParser xmlparser;
-    private String filename = "Dichterliebe01";
+    private String filename = "Dichterliebe01edit";
     private static final String OUTPUT_FOLDER = "XMLFiles";
 
     // Storage Permissions
@@ -41,6 +49,9 @@ public class HomeActivity extends AppCompatActivity {
             Manifest.permission.READ_EXTERNAL_STORAGE,
             Manifest.permission.WRITE_EXTERNAL_STORAGE
     };
+
+    //Parsed Xml
+
 
     private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
             = new BottomNavigationView.OnNavigationItemSelectedListener() {
@@ -72,6 +83,10 @@ public class HomeActivity extends AppCompatActivity {
         BottomNavigationView navigation = (BottomNavigationView) findViewById(R.id.navigation);
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
 
+        final TextView buttonResult = (TextView)findViewById(R.id.simpleTextView);
+        buttonResult.setText("Button not yet clicked");
+        buttonResult.setMovementMethod(new ScrollingMovementMethod());
+
         context = getApplicationContext();
         dbHelper = new DBHelper(this);
         db = dbHelper.getWritableDatabase(); // get writable
@@ -84,11 +99,65 @@ public class HomeActivity extends AppCompatActivity {
                     if (isExternalStorageWritable()) {
                         verifyStoragePermissions(HomeActivity.this);
                         int permissionCheck = ContextCompat.checkSelfPermission(HomeActivity.this,
-                                Manifest.permission.WRITE_CALENDAR);
+                                Manifest.permission.WRITE_EXTERNAL_STORAGE);
 
                         xmlparser = new XMLMusicParser(filename, OUTPUT_FOLDER);
                         xmlparser.parseMXL(); // parse the .mxl file
-                        xmlparser.parseXML(); // parse the .xml file
+                        List<Note> parsedNotes = xmlparser.parseXML(); // parse the .xml file
+
+                        //**********************************************
+                        // test code for note syncing
+
+                        String toPrint = "";
+
+                        //buffer for processing each measure separately
+                        List<Note> MeasureBuffer = new ArrayList();
+                        int measureDivs = 16;
+
+                        //loop through each note
+                        for (int ii = 0; ii < parsedNotes.size(); ii++) {
+                            MeasureBuffer.add(parsedNotes.get(ii));
+
+                            //check if next note is in same measure. If not, process measure and flush buffer.
+                            if (ii == parsedNotes.size()-1 || parsedNotes.get(ii).getMeasureNumber() != parsedNotes.get(ii+1).getMeasureNumber()){
+                                //initialize voicesPlace keeping track of position all voices
+                                int voicesPlace[] = new int[10];
+                                for(int jj=0;jj<voicesPlace.length;jj++){voicesPlace[jj]=0;}
+
+                                String playNotes[] = new String[measureDivs];
+                                for(int jj=0;jj<playNotes.length;jj++){playNotes[jj]="";}
+
+                                //For every note in the measure...
+                                for (Note note:MeasureBuffer){
+                                    if (!note.isRest() && !note.isForward()){
+                                        //if out of measure, revert voice position to latest that note duration can fit in.
+                                        if ((voicesPlace[note.getVoice()]+note.getDuration()) >= measureDivs){
+                                            voicesPlace[note.getVoice()] = measureDivs-note.getDuration();
+                                        }
+                                        //format new note to add
+                                        String toNotes = "_" + note.getStep()+ note.getOctave()+(note.getAlter()==-99?"(0)":"("+note.getAlter()+")");
+                                        //check for redundancy
+                                        if (!playNotes[voicesPlace[note.getVoice()]].contains(toNotes)) {
+                                            playNotes[voicesPlace[note.getVoice()]] += toNotes;
+                                        }
+                                    }
+                                    voicesPlace[note.getVoice()] += note.getDuration();
+                                }
+                                for(int jj=0;jj<playNotes.length;jj++){
+                                    if (playNotes[jj] == ""){
+                                        playNotes[jj] = "-";
+                                    }
+                                    toPrint+=playNotes[jj]+"\n";
+                                }
+                                toPrint+=parsedNotes.get(ii).getMeasureNumber()+"=============\n";
+                                MeasureBuffer.clear();
+                            }
+                        }
+
+
+                        buttonResult.setText(toPrint);
+                        // END test code for note syncing
+                        //**********************************************
 
                     }
                     else  {
