@@ -10,10 +10,10 @@ import org.opencv.core.Size;
 import org.opencv.core.Mat;
 import org.opencv.imgproc.Imgproc;
 
-import static org.opencv.imgproc.Imgproc.ADAPTIVE_THRESH_MEAN_C;
+import java.util.ArrayList;
+
 import static org.opencv.imgproc.Imgproc.MORPH_RECT;
 import static org.opencv.imgproc.Imgproc.THRESH_BINARY;
-import static org.opencv.imgproc.Imgproc.threshold;
 
 /**
  * Created by Ekteshaf Chowdhury on 2017-07-15.
@@ -26,8 +26,12 @@ public class ScoreImgProc {
     private Mat grayImg;
     private Mat binarizedImg;
     private Mat noStaffLinesImg;
+    private final int MAX_STAFF_LINE_THICKNESS = 2; //TODO detect this dynamically
+    //something to store rows of stafflines
+    private ArrayList<Integer> staffLineRowIndicies;
 
     public ScoreImgProc(Bitmap bmpImg){
+        staffLineRowIndicies = new ArrayList<Integer>();
         originalImg = new Mat();
         grayImg = new Mat();
         binarizedImg = new Mat();
@@ -59,16 +63,17 @@ public class ScoreImgProc {
         // Create structure element for extracting vertical lines through morphology operations
         Point pt = new Point(-1,-1); //"default"
         //via paint max staff line width is 2
-        Size kernelHeight = new Size(1,3);
+        Size kernelHeight = new Size(1,5);
         Mat verticalStructure = Imgproc.getStructuringElement(MORPH_RECT, kernelHeight);
         //erode out the lines
         Imgproc.erode(binarizedImg,noStaffLinesImg,verticalStructure,pt,1);
         //should re-amp the blackness of remaining black things in the picture
-        Imgproc.dilate(noStaffLinesImg,noStaffLinesImg,verticalStructure,pt,1);
+        //Imgproc.dilate(noStaffLinesImg,noStaffLinesImg,verticalStructure,pt,1);
     }
 
     //Uses horizontal morphology and subtracts from the original img
     public void removeStaffLines(boolean horzMorph){
+        Mat isoStaffLinesImg = new Mat();
         // Relative measure which seemed ok
         int horizontalsize = binarizedImg.cols() / 30;
         Size kernelWidth = new Size(horizontalsize,1);
@@ -76,12 +81,59 @@ public class ScoreImgProc {
         // Create structure element for extracting horizontal lines through morphology operations
         Mat horizontalStructure = Imgproc.getStructuringElement(MORPH_RECT, kernelWidth);
         // Apply morphology operations
-        Imgproc.erode(binarizedImg, noStaffLinesImg, horizontalStructure, pt,1);
-        // "reamps" the remaining elements on the page as their contours were previously eroded
-        Imgproc.dilate(noStaffLinesImg, noStaffLinesImg, horizontalStructure, pt,1);
+        Imgproc.erode(binarizedImg, isoStaffLinesImg, horizontalStructure, pt,1);
+        // "reamps" the remaining elements on the page (trailing parts of staffline_
+        Imgproc.dilate(isoStaffLinesImg, noStaffLinesImg, horizontalStructure, pt,1);
+
         //ideally the image after morphology only contains staff lines which are no subtracted out
         Core.subtract(binarizedImg,noStaffLinesImg,noStaffLinesImg);
+        //now lets try vertically dilating it to stich gaps
+        Point pt2 = new Point(-1,-1); //"default"
+        //via paint max staff line width is 2
+        Size kernelHeight = new Size(1,2);
+        Mat verticalStructure = Imgproc.getStructuringElement(MORPH_RECT, kernelHeight);
+        //vertical dilate will look 1 pixel away vertically and take max
+        Imgproc.dilate(noStaffLinesImg,noStaffLinesImg,verticalStructure,pt,2);
+
+        //gapstich
+        staffLineDetect(isoStaffLinesImg);
     }
+
+    public void staffLineDetect(Mat staffLinesImg){
+        Mat curRow;
+        //TODO: Make structured val not hacky estimate
+        int thresholdForStaffline = binarizedImg.cols()/2;
+        double[] rowTotalVals;
+        int curRowTotal;
+        int y;
+        double[] mVal;
+        for(int i = 0; i<staffLinesImg.rows(); i++){
+            mVal = staffLinesImg.get(i,150);
+            rowTotalVals = Core.sumElems(staffLinesImg.row(i)).val;
+            curRowTotal = (int) rowTotalVals[rowTotalVals.length-1]/255;
+            if(curRowTotal > thresholdForStaffline){
+                staffLineRowIndicies.add(i);
+            }
+        }
+        //Note due to inconsistent staff line thickness the length isn't guarenteed to be mod 5
+        //TODO: Loop through and cluster adjacent stafflines
+        Log.d(TAG,String.format("Detected %d staff line positions!", staffLineRowIndicies.size()));
+    }
+
+//    public void vertGapStich(Mat staffLinesImg){
+//        double[] curStaffImgValVec;
+//        int curStaffImgVal;
+//        for(int rowIndex : staffLineRowIndicies){
+//            for(int colIndex = 0; colIndex < staffLinesImg.cols(); colIndex++){
+//                curStaffImgValVec = staffLinesImg.get(rowIndex,colIndex);
+//                curStaffImgVal = (int) curStaffImgValVec[curStaffImgValVec.length - 1];
+//                //white
+//                if(curStaffImgVal == 0){
+//
+//                }
+//            }
+//        }
+//    }
 
     //Returns the image after staff line removal
     public Bitmap getNoStaffLinesImg(){

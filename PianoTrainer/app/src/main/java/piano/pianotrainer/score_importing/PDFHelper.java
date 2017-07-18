@@ -16,6 +16,7 @@ public class PDFHelper {
     private int mPageIndex;
     private Bitmap curPageBmp; //will be used for multi-page scores
 
+
     public PDFHelper(ParcelFileDescriptor fileDescriptor) {
         try {
             mPdfRenderer = new PdfRenderer(fileDescriptor);
