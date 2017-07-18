@@ -158,8 +158,10 @@ public class XMLMusicParser {
                     }
                     if (qName.equalsIgnoreCase("print")) {
                         bprint = true;
-                        if (attributes.getQName(0).equals("new-system") || attributes.getQName(0).equals("page-number")) {
-                            print = attributes.getValue(0);
+                        if (attributes.getQName(0) != null) {
+                            if (attributes.getQName(0).equals("new-system") || attributes.getQName(0).equals("page-number")) {
+                                print = attributes.getValue(0);
+                            }
                         }
                     }
                     if (qName.equalsIgnoreCase("attributes")) {
@@ -299,7 +301,7 @@ public class XMLMusicParser {
                         accidental = "";
                         staff = -99;
                         duration = -99;
-                        Log.d(TAG, note.getStep());
+//                        Log.d(TAG, note.getStep());
                     }
                 }
 
@@ -424,80 +426,7 @@ public class XMLMusicParser {
 
             saxParser.parse(is, handler);
 
-            // TODO - </part> only 1 part plz
-            // TODO - </measure>
-<<<<<<< HEAD
-            // TODO - </print> - this tells if page number or next line
-            // TODO - </attributes>
-            // TODO - </division>
-            // TODO - </key>
-            // TODO - </fifths>
-            // TODO - </mode>
-            // TODO - </time>
-            // TODO - </beats>
-            // TODO - </beat-type>
-            // TODO - </staves>
-            // TODO - </clef>
-            // TODO - </sign>
-            // TODO - </line>
-            // TODO - </note>
-            // TODO - <chord/>
-            // TODO - <grace/>
-            // TODO - </pitch>
-            // TODO - </step>
-            // TODO - </alter>
-            // TODO - </octave>
-
-
-            // TODO - </voice>
-            // TODO - </stem> which way the stick points
-            // TODO - </type>
-            // TODO - </accidental> sharps and flats
-            // TODO - </staff> treble 1 and bass 2
-
-            // TODO - </beam>
-            // TODO - </notation> - slurs, stacattos and stuff
-
-            // TODO - </duration> watch out!!! nested inside something else
-            // TODO - </backup> -- coordinate multiple voices
-            // TODO - </forward>
-=======
-                // TODO - </print> - this tells if page number or next line
-                // TODO - </attributes>
-                    // TODO - </division>
-                    // TODO - </key>
-                        // TODO - </fifths>
-                        // TODO - </mode>
-                    // TODO - </time>
-                        // TODO - </beats>
-                        // TODO - </beat-type>
-                    // TODO - </staves>
-                    // TODO - </clef>
-                        // TODO - </sign>
-                        // TODO - </line>
-                // TODO - </note>
-                    // TODO - <chord/>
-                    // TODO - <grace/>
-                    // TODO - </pitch>
-                        // TODO - </step>
-                        // TODO - </alter>
-                        // TODO - </octave>
-
-
-                    // TODO - </voice>
-                    // TODO - </stem> which way the stick points
-                    // TODO - </type>
-                    // TODO - </accidental> sharps and flats
-                    // TODO - </staff> treble 1 and bass 2
-
-                    // TODO - </beam>
-                    // TODO - </notation> - slurs, stacattos and stuff
-
-            // TODO - </duration> watch out!!! nested inside something else
-            // TODO - </backup> -- coordinate multiple voices
-                // TODO - </forward>
->>>>>>> 33a18d89606a32c8c601c5f0d087439a98e326ac
-
+            Log.d(TAG, String.valueOf(NoteList.size()));
             return NoteList;
         }
         catch (ParserConfigurationException pe) {
