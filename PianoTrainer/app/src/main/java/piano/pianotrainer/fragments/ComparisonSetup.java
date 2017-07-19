@@ -63,7 +63,7 @@ public class ComparisonSetup {
 
         //For every note in the measure...
         for (Note note : MeasureBuffer) {
-            if (!note.isRest() && !note.isForward()) {
+            if (!note.isRest() && !note.isForward()) {  //if not rest or forward, plot note
                 //if out of measure, revert voice position to latest that note duration can fit in.
                 if ((voicesPlace[note.getVoice()] + note.getDuration()) >= measureDivs) {
                     voicesPlace[note.getVoice()] = measureDivs - note.getDuration();

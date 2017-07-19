@@ -20,10 +20,19 @@
             android:paddingLeft="16dp"
             android:paddingRight="16dp" >
 
+            <Spinner
+                android:id="@+id/mxlFileSpinner"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:textSize="14sp"
+                android:background="@android:drawable/btn_dropdown"
+                android:spinnerMode="dropdown" />
+
             <Button
                 android:id="@+id/printSyncButton"
                 android:layout_width="96dp"
                 android:layout_height="wrap_content"
+                android:layout_below="@id/mxlFileSpinner"
                 android:textSize="10sp"
                 android:text="Print Sync DEBUG" />
 
@@ -41,10 +50,12 @@
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
                 android:layout_toRightOf="@id/printSyncButton"
+                android:layout_below="@id/mxlFileSpinner"
                 android:text="Placeholder"
                 android:textSize="14sp"
                 android:scrollbars = "vertical"
                 android:gravity="center_horizontal"/> <!--center horizontal gravity-->
+
         </RelativeLayout>
         <TextView
             android:id="@+id/message"

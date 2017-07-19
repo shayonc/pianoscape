@@ -14,6 +14,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.ArrayList;
+import java.util.Dictionary;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -27,6 +28,7 @@ public class XMLMusicParser {
 
     private static final String TAG = "XMLMusicParser";
     List<Note> NoteList = new ArrayList<>();
+    private String directoryPath;
     private String mxlFilePath;
     private String xmlFilePath;
     private String outputFolder;
@@ -34,9 +36,30 @@ public class XMLMusicParser {
 
     /* Constructor */
     public XMLMusicParser(String filename, String outputFolder) throws IOException {
+        this.directoryPath = getSdCardPath() + "Piano";
         this.mxlFilePath = getSdCardPath() + "Piano" + File.separator + filename + ".mxl";
         this.outputFolder = getSdCardPath() + "Piano" + File.separator + outputFolder;
-        this.xmlFilePath = getSdCardPath() + "Piano" + File.separator + "XMLfiles" + File.separator + filename + ".xml";
+        this.xmlFilePath = getSdCardPath() + "Piano" + File.separator + outputFolder + File.separator + filename + ".xml";
+    }
+
+    public List<String> getMxlFiles(){
+        List<String> mxlFiles = new ArrayList<String>();
+        try {
+            File directory = new File(directoryPath);
+            if (!directory.exists()) {
+                directory.mkdir();
+            }
+            File[] files = directory.listFiles();
+            for (File file: files){
+                if (file.isFile() && file.getPath().endsWith(".mxl")) {
+                    mxlFiles.add(file.getName().substring(0, file.getName().lastIndexOf(".")));
+                }
+            }
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+        }
+        return mxlFiles;
     }
 
     /* First method invocation */

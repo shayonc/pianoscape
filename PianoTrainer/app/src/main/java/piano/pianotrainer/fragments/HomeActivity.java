@@ -7,6 +7,7 @@ import android.content.pm.PackageManager;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.os.Environment;
+import java.io.File;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v4.app.ActivityCompat;
@@ -17,7 +18,12 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Spinner;
 import android.widget.Toast;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.AdapterView.OnItemSelectedListener;
+import android.widget.ArrayAdapter;
 
 import java.io.Console;
 import java.io.IOException;
@@ -45,7 +51,9 @@ public class HomeActivity extends AppCompatActivity {
     private String filename = "Dichterliebe01edit";
     private static final String OUTPUT_FOLDER = "XMLFiles";
 
+    // Variables for helping with evaluation
     private final String state = "";
+    private int evalPosition;
 
     // Storage Permissions
     private static final int REQUEST_EXTERNAL_STORAGE = 1;
@@ -95,6 +103,20 @@ public class HomeActivity extends AppCompatActivity {
         dbHelper = new DBHelper(this);
         db = dbHelper.getWritableDatabase(); // get writable
 
+        //Setup file Dropdown
+        Spinner mxlDropdown = (Spinner)findViewById(R.id.mxlFileSpinner);
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(getApplicationContext(), android.R.layout.simple_spinner_item, GetMxlFiles());
+        mxlDropdown.setAdapter(adapter);
+        mxlDropdown.setOnItemSelectedListener(new OnItemSelectedListener() {
+            public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
+                filename = parent.getItemAtPosition(pos).toString();
+                Toast.makeText(parent.getContext(),parent.getItemAtPosition(pos).toString(), Toast.LENGTH_LONG).show();
+            }
+            public void onNothingSelected(AdapterView<?> parent) {
+                // Do Nothing
+            }
+        });
+
         Button printSyncButton = (Button) findViewById(R.id.printSyncButton);
         printSyncButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
@@ -110,6 +132,7 @@ public class HomeActivity extends AppCompatActivity {
                         comparison.SyncNotes(parsedNotes);
                         String toPrint = comparison.DebugPrintSync();
                         buttonResult.setText(toPrint);
+
                     }
                     else  {
                         CharSequence text = "External storage not available for read and write.";
@@ -136,8 +159,7 @@ public class HomeActivity extends AppCompatActivity {
                         List<Note> parsedNotes = xmlparser.parseXML(); // parse the .xml file
                         comparison = new ComparisonSetup();
                         comparison.SyncNotes(parsedNotes);
-                        String toPrint = comparison.DebugPrintSync();
-                        buttonResult.setText(toPrint);
+                        buttonResult.setText("");
                     }
                     else  {
                         CharSequence text = "External storage not available for read and write.";
@@ -155,6 +177,30 @@ public class HomeActivity extends AppCompatActivity {
 
     }
 
+    public String[] GetMxlFiles(){
+        try {
+            if (isExternalStorageWritable()) {
+                verifyStoragePermissions(HomeActivity.this);
+                int permissionCheck = ContextCompat.checkSelfPermission(HomeActivity.this,
+                        Manifest.permission.WRITE_EXTERNAL_STORAGE);
+                xmlparser = new XMLMusicParser(filename, OUTPUT_FOLDER);
+                //setup dropdown
+                String mxlItems[] = xmlparser.getMxlFiles().toArray(new String[0]);
+                return mxlItems;
+            }
+            else  {
+                CharSequence text = "External storage not available for read and write.";
+                int duration = Toast.LENGTH_SHORT;
+                Toast toast = Toast.makeText(context, text, duration);
+                toast.show();
+            }
+        }
+        catch (IOException ie) {
+            ie.printStackTrace();
+        }
+        return null;
+    }
+
     /* Checks if external storage is available for read and write */
     public boolean isExternalStorageWritable() {
         String state = Environment.getExternalStorageState();
@@ -163,6 +209,8 @@ public class HomeActivity extends AppCompatActivity {
         }
         return false;
     }
+
+
 
     public static void verifyStoragePermissions(Activity activity) {
         // Check if we have write permission
@@ -177,5 +225,5 @@ public class HomeActivity extends AppCompatActivity {
             );
         }
     }
-
 }
+
