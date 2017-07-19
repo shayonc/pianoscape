@@ -120,11 +120,11 @@ public class XMLMusicParser {
 
                 String measureNumber = "";
                 String print = "";
-                int divisions = -1;
+                int divisions = 1;
                 int fifths = -1;
                 String mode = "";
-                int beats = -1;
-                int beattype = -1;
+                int beats = 4;
+                int beattype = 4;
                 int staves = -1;
                 String sign = "";
                 int line = -1;
@@ -147,7 +147,7 @@ public class XMLMusicParser {
                 boolean bmeasure = false;
                 boolean bprint = false;
                 boolean battributes = false;
-                boolean bdivision = false;
+                boolean bdivisions = false;
                 boolean bkey = false;
                 boolean bfifths = false;
                 boolean bmode = false;
@@ -204,8 +204,8 @@ public class XMLMusicParser {
                     if (qName.equalsIgnoreCase("attributes")) {
                         battributes = true;
                     }
-                    if (qName.equalsIgnoreCase("division")) {
-                        bdivision = true;
+                    if (qName.equalsIgnoreCase("divisions")) {
+                        bdivisions = true;
                     }
                     if (qName.equalsIgnoreCase("key")) {
                         bkey = true;
@@ -356,9 +356,9 @@ public class XMLMusicParser {
                     if (battributes) {
                         battributes = false;
                     }
-                    if (bdivision) {
+                    if (bdivisions) {
                         divisions = Integer.parseInt(new String(ch, start, length));
-                        bdivision = false;
+                        bdivisions = false;
                     }
                     if (bkey) {
                         bkey = false;

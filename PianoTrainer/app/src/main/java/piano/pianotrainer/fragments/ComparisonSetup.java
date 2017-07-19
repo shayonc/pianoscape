@@ -12,20 +12,20 @@ import piano.pianotrainer.model.Note;
 
 public class ComparisonSetup {
 
-    private int measureDivs = 16;   // Time Divisions per measure
+    private int measureDivs;   // Time Divisions per measure
     private int maxVoices = 8;   // Maximum voice channels per measure
-    private final List<Note[]> syncedNotes;
+    private final ArrayList<List<Note>> syncedNotes;
 
     // Constructor
     public ComparisonSetup(){
-        syncedNotes = new ArrayList<Note[]>();
+        syncedNotes = new ArrayList<List<Note>>();
     }
 
     /*
      * Takes in list of notes after XML parsing and tries to sync them based on note durations.
      * Processing individual measures ensures integrity of timing.
      */
-    public List<Note[]> SyncNotes(List<Note> parsedNotes) {
+    public ArrayList<List<Note>> SyncNotes(List<Note> parsedNotes) {
         String toPrint = "";
         // Keeps track of special case for first measure
         boolean firstMeasure = true;
@@ -39,6 +39,7 @@ public class ComparisonSetup {
 
             //check if last element OR next note is not in same measure. If so, process measure and flush buffer.
             if (ii == parsedNotes.size() - 1 || parsedNotes.get(ii).getMeasureNumber() != parsedNotes.get(ii + 1).getMeasureNumber()) {
+                measureDivs = measureBuffer.get(0).getBeats()*measureBuffer.get(0).getDivisions();
                 SyncMeasure(measureBuffer, firstMeasure);
                 measureBuffer.clear();
                 firstMeasure = false;
@@ -54,24 +55,38 @@ public class ComparisonSetup {
     public void SyncMeasure(List<Note> MeasureBuffer, boolean isFirstMeasure){
         //initialize voicesPlace keeping track of position all voices
         int voicesPlace[] = new int[maxVoices];
-        for (int jj = 0; jj < voicesPlace.length; jj++) {
-            voicesPlace[jj] = 0;
+        int lastPlace[] = new int[maxVoices];
+        for (int ii = 0; ii < voicesPlace.length; ii++) {
+            voicesPlace[ii] = 0;
         }
 
-        Note playNotes[][] = new Note[measureDivs][maxVoices];
+        List<List<Note>> playNotes = new ArrayList<List<Note>>();
         // playNotes[Position in measure][Voice Channel]
+        // populate with number of measures
+        for (int ii = 0; ii < measureDivs; ii++) {
+            playNotes.add(new ArrayList<Note>());
+        }
 
         //For every note in the measure...
         for (Note note : MeasureBuffer) {
             if (!note.isRest() && !note.isForward()) {  //if not rest or forward, plot note
                 //if out of measure, revert voice position to latest that note duration can fit in.
-                if ((voicesPlace[note.getVoice()] + note.getDuration()) >= measureDivs) {
-                    voicesPlace[note.getVoice()] = measureDivs - note.getDuration();
-                }
+                //if ((voicesPlace[note.getVoice()] + note.getDuration()) >= measureDivs && !note.isGrace()) {
+                //    voicesPlace[note.getVoice()] = measureDivs - note.getDuration();
+                //}
                 // Add new note to voice channel
-                playNotes[voicesPlace[note.getVoice()]][note.getVoice()] = note;
+                if (!note.isChord()) {
+                    playNotes.get(voicesPlace[note.getVoice()]).add(note);
+                }
+                else {
+                    playNotes.get(lastPlace[note.getVoice()]).add(note);
+                }
             }
-            voicesPlace[note.getVoice()] += note.getDuration();
+            //if not grace note, change position.
+            if (!note.isGrace() && !note.isChord()) {
+                lastPlace = voicesPlace.clone();
+                voicesPlace[note.getVoice()] += note.getDuration();
+            }
         }
 
         // Handles special case of first measure,
@@ -79,27 +94,22 @@ public class ComparisonSetup {
         if (isFirstMeasure){
             //get the smallest shift possible to move all notes to end of measure without violating duration
             int shiftDivs = measureDivs;
-            for (int ii = 0; ii < playNotes.length; ii++){
-                for (int jj = 0; jj < playNotes[ii].length; jj++){
-                    if ((playNotes[ii][jj] != null) && ((measureDivs-playNotes[ii][jj].getDuration()-ii) < measureDivs)){
-                        shiftDivs = measureDivs-playNotes[ii][jj].getDuration()-ii;
+            for (int ii = 0; ii < playNotes.size(); ii++){
+                for (Note note: playNotes.get(ii)){
+                    if ((measureDivs-note.getDuration()-ii) < shiftDivs){
+                        shiftDivs = measureDivs-note.getDuration()-ii;
                     }
                 }
             }
             //start shifting
-            for (int ii = measureDivs-shiftDivs-1; ii >= 0; ii--) {
-                playNotes[shiftDivs+ii] = playNotes[ii].clone();
-                for(int jj = 0; jj < playNotes[ii].length; jj++){
-                    playNotes[ii][jj] = null;
-                }
+            for (int ii = shiftDivs-1; ii >= 0; ii--) {
+                playNotes.remove(measureDivs-1);
+                playNotes.add(0, new ArrayList<Note>());
             }
         }
 
         // Setup returning the measure
-        for (int ii = 0; ii < playNotes.length; ii++) { //for each position
-            //append notes array
-            syncedNotes.add(playNotes[ii]);
-        }
+        syncedNotes.addAll(playNotes);
     }
 
     /******************************************************************
@@ -115,7 +125,7 @@ public class ComparisonSetup {
         String divPrint = "";
         String lastMeasureNumber = "";
 
-        for (Note[] posNotes: syncedNotes){
+        for (List<Note> posNotes: syncedNotes){
 
             for (Note note: posNotes){
                 if (note != null){
