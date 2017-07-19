@@ -25,10 +25,28 @@ public class Note {
     int duration;
     boolean rest;
     boolean forward;
+    boolean tieStart;
+    boolean tieStop;
 
     public Note() {
 
     }
+    public boolean isTieStart() {
+        return tieStart;
+    }
+
+    public void setTieStart(boolean tieStart) {
+        this.tieStart = tieStart;
+    }
+
+    public boolean isTieStop() {
+        return tieStop;
+    }
+
+    public void setTieStop(boolean tieStop) {
+        this.tieStop = tieStop;
+    }
+
     public boolean isForward() {
         return forward;
     }

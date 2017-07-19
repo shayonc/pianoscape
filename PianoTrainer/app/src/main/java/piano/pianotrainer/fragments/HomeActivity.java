@@ -96,13 +96,11 @@ public class HomeActivity extends AppCompatActivity {
         Button printSyncButton = (Button) findViewById(R.id.printSyncButton);
         printSyncButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-
                 try {
                     if (isExternalStorageWritable()) {
                         verifyStoragePermissions(HomeActivity.this);
                         int permissionCheck = ContextCompat.checkSelfPermission(HomeActivity.this,
                                 Manifest.permission.WRITE_EXTERNAL_STORAGE);
-
                         xmlparser = new XMLMusicParser(filename, OUTPUT_FOLDER);
                         xmlparser.parseMXL(); // parse the .mxl file
                         List<Note> parsedNotes = xmlparser.parseXML(); // parse the .xml file
@@ -110,7 +108,34 @@ public class HomeActivity extends AppCompatActivity {
                         comparison.SyncNotes(parsedNotes);
                         String toPrint = comparison.DebugPrintSync();
                         buttonResult.setText(toPrint);
-
+                    }
+                    else  {
+                        CharSequence text = "External storage not available for read and write.";
+                        int duration = Toast.LENGTH_SHORT;
+                        Toast toast = Toast.makeText(context, text, duration);
+                        toast.show();
+                    }
+                }
+                catch (IOException ie) {
+                    ie.printStackTrace();
+                }
+            }
+        });
+        Button startAtPaceEvalButton = (Button) findViewById(R.id.startAtPaceEvalButton);
+        startAtPaceEvalButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                try {
+                    if (isExternalStorageWritable()) {
+                        verifyStoragePermissions(HomeActivity.this);
+                        int permissionCheck = ContextCompat.checkSelfPermission(HomeActivity.this,
+                                Manifest.permission.WRITE_EXTERNAL_STORAGE);
+                        xmlparser = new XMLMusicParser(filename, OUTPUT_FOLDER);
+                        xmlparser.parseMXL(); // parse the .mxl file
+                        List<Note> parsedNotes = xmlparser.parseXML(); // parse the .xml file
+                        comparison = new ComparisonSetup();
+                        comparison.SyncNotes(parsedNotes);
+                        String toPrint = comparison.DebugPrintSync();
+                        buttonResult.setText(toPrint);
                     }
                     else  {
                         CharSequence text = "External storage not available for read and write.";

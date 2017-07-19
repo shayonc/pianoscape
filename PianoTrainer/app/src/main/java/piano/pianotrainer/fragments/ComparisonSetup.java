@@ -95,7 +95,12 @@ public class ComparisonSetup {
 
             for (Note note: posNotes){
                 if (note != null){
+
                     notePrint = "_"+note.getStep()+note.getOctave()+"("+(note.getAlter()==-99?0:note.getAlter())+")";
+                    if (note.isTieStart()&&note.isTieStop()){notePrint+="{sp}";}
+                    else if (note.isTieStart()){notePrint+="{s}";}
+                    else if (note.isTieStop()){notePrint+="{p}";}
+                    else {notePrint+="{ }";}
                     lastMeasureNumber = note.getMeasureNumber();
                     // check for redundancy
                     if (!divPrint.contains(notePrint)){

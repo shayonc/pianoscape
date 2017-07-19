@@ -118,6 +118,8 @@ public class XMLMusicParser {
                 int duration = -1;
                 boolean rest = false;
                 boolean forward = false;
+                boolean tieStart = false;
+                boolean tieStop = false;
 
                 boolean bmeasure = false;
                 boolean bprint = false;
@@ -148,19 +150,31 @@ public class XMLMusicParser {
                 boolean bduration = false;
                 boolean brest = false;
                 boolean bforward = false;
+                boolean btieStart = false;
+                boolean btieStop = false;
 
                 public void startElement(String uri, String localName,String qName, Attributes attributes) throws SAXException {
                     if (qName.equalsIgnoreCase("measure")) {
                         bmeasure = true;
-                        if (attributes.getQName(0).equals("number")) {
-                            measureNumber = attributes.getValue(0);
+                        for (int ii = 0; ii < attributes.getLength(); ii++) {
+                            if (attributes.getQName(ii).equals("number")) {
+                                measureNumber = attributes.getValue(ii);
+                            }
                         }
                     }
                     if (qName.equalsIgnoreCase("print")) {
                         bprint = true;
-                        if (attributes.getQName(0) != null) {
-                            if (attributes.getQName(0).equals("new-system") || attributes.getQName(0).equals("page-number")) {
-                                print = attributes.getValue(0);
+                        for (int ii = 0; ii < attributes.getLength(); ii++) {
+                            if (attributes.getQName(ii).equals("new-system") || attributes.getQName(ii).equals("page-number")) {
+                                print = attributes.getValue(ii);
+                            }
+                        }
+                    }
+                    if (qName.equalsIgnoreCase("tie")) {
+                        for (int ii = 0; ii < attributes.getLength(); ii++) {
+                            if (attributes.getQName(ii).equals("type")) {
+                                if (attributes.getValue(ii).equals("start")){tieStart = true;}
+                                if (attributes.getValue(ii).equals("stop")){tieStop = true;}
                             }
                         }
                     }
@@ -285,6 +299,8 @@ public class XMLMusicParser {
                         note.setDuration(duration);
                         note.setRest(rest);
                         note.setForward(forward);
+                        note.setTieStart(tieStart);
+                        note.setTieStop(tieStop);
 
                         NoteList.add(note);
                         // reset note specific attributes
@@ -292,6 +308,8 @@ public class XMLMusicParser {
                         grace = false; // set back to false after note object create
                         rest = false;
                         forward = false;
+                        tieStart = false;
+                        tieStop = false;
                         step = "";
                         alter = -99;
                         octave = -99;
@@ -413,6 +431,14 @@ public class XMLMusicParser {
                     if (bforward){
                         forward=true;
                         bforward=false;
+                    }
+                    if (btieStart){
+                        tieStart = true;
+                        btieStart = false;
+                    }
+                    if (btieStop){
+                        tieStop = true;
+                        btieStop = false;
                     }
                 }
             };
