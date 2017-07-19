@@ -15,10 +15,10 @@
         android:layout_weight="1">
 
         <Button
-            android:id="@+id/button"
+            android:id="@+id/printSyncButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Button" />
+            android:text="Print Sync\nDEBUG" />
 
         <TextView
             android:id="@+id/message"

@@ -25,6 +25,7 @@ import java.io.IOException;
 import piano.pianotrainer.R;
 import piano.pianotrainer.db.DBHelper;
 import piano.pianotrainer.parser.XMLMusicParser;
+import piano.pianotrainer.fragments.ComparisonSetup;
 
 //Temporary Imports
 import piano.pianotrainer.model.Note;
@@ -40,6 +41,7 @@ public class HomeActivity extends AppCompatActivity {
 
     private Context context;
     private XMLMusicParser xmlparser;
+    private ComparisonSetup comparison;
     private String filename = "Dichterliebe01edit";
     private static final String OUTPUT_FOLDER = "XMLFiles";
 
@@ -91,8 +93,8 @@ public class HomeActivity extends AppCompatActivity {
         dbHelper = new DBHelper(this);
         db = dbHelper.getWritableDatabase(); // get writable
 
-        Button button = (Button) findViewById(R.id.button);
-        button.setOnClickListener(new View.OnClickListener() {
+        Button printSyncButton = (Button) findViewById(R.id.printSyncButton);
+        printSyncButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
 
                 try {
@@ -104,60 +106,10 @@ public class HomeActivity extends AppCompatActivity {
                         xmlparser = new XMLMusicParser(filename, OUTPUT_FOLDER);
                         xmlparser.parseMXL(); // parse the .mxl file
                         List<Note> parsedNotes = xmlparser.parseXML(); // parse the .xml file
-
-                        //**********************************************
-                        // test code for note syncing
-
-                        String toPrint = "";
-
-                        //buffer for processing each measure separately
-                        List<Note> MeasureBuffer = new ArrayList();
-                        int measureDivs = 16;
-
-                        //loop through each note
-                        for (int ii = 0; ii < parsedNotes.size(); ii++) {
-                            MeasureBuffer.add(parsedNotes.get(ii));
-
-                            //check if next note is in same measure. If not, process measure and flush buffer.
-                            if (ii == parsedNotes.size()-1 || parsedNotes.get(ii).getMeasureNumber() != parsedNotes.get(ii+1).getMeasureNumber()){
-                                //initialize voicesPlace keeping track of position all voices
-                                int voicesPlace[] = new int[10];
-                                for(int jj=0;jj<voicesPlace.length;jj++){voicesPlace[jj]=0;}
-
-                                String playNotes[] = new String[measureDivs];
-                                for(int jj=0;jj<playNotes.length;jj++){playNotes[jj]="";}
-
-                                //For every note in the measure...
-                                for (Note note:MeasureBuffer){
-                                    if (!note.isRest() && !note.isForward()){
-                                        //if out of measure, revert voice position to latest that note duration can fit in.
-                                        if ((voicesPlace[note.getVoice()]+note.getDuration()) >= measureDivs){
-                                            voicesPlace[note.getVoice()] = measureDivs-note.getDuration();
-                                        }
-                                        //format new note to add
-                                        String toNotes = "_" + note.getStep()+ note.getOctave()+(note.getAlter()==-99?"(0)":"("+note.getAlter()+")");
-                                        //check for redundancy
-                                        if (!playNotes[voicesPlace[note.getVoice()]].contains(toNotes)) {
-                                            playNotes[voicesPlace[note.getVoice()]] += toNotes;
-                                        }
-                                    }
-                                    voicesPlace[note.getVoice()] += note.getDuration();
-                                }
-                                for(int jj=0;jj<playNotes.length;jj++){
-                                    if (playNotes[jj] == ""){
-                                        playNotes[jj] = "-";
-                                    }
-                                    toPrint+=playNotes[jj]+"\n";
-                                }
-                                toPrint+=parsedNotes.get(ii).getMeasureNumber()+"=============\n";
-                                MeasureBuffer.clear();
-                            }
-                        }
-
-
+                        comparison = new ComparisonSetup();
+                        comparison.SyncNotes(parsedNotes);
+                        String toPrint = comparison.DebugPrintSync();
                         buttonResult.setText(toPrint);
-                        // END test code for note syncing
-                        //**********************************************
 
                     }
                     else  {
