@@ -45,6 +45,8 @@ public class HomeActivity extends AppCompatActivity {
     private String filename = "Dichterliebe01edit";
     private static final String OUTPUT_FOLDER = "XMLFiles";
 
+    private final String state = "";
+
     // Storage Permissions
     private static final int REQUEST_EXTERNAL_STORAGE = 1;
     private static String[] PERMISSIONS_STORAGE = {
