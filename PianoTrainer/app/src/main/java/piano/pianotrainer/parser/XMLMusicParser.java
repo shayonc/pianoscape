@@ -77,7 +77,7 @@ public class XMLMusicParser {
     public void unzipMXL() {
 
         byte[] buffer = new byte[1024];
-
+        NoteList.clear();
         try {
             File folder = new File(outputFolder);
             if (!folder.exists()) {
@@ -344,7 +344,6 @@ public class XMLMusicParser {
                         accidental = "";
                         staff = -99;
                         duration = -99;
-//                        Log.d(TAG, note.getStep());
                     }
                 }
 

@@ -58,6 +58,8 @@ public class HomeActivity extends AppCompatActivity {
     private static final String OUTPUT_FOLDER = "XMLFiles";
     private static final String ROOT_FOLDER = "Piano";
     private static final String WRONG_NOTES_FOLDER = "WrongPianoNotes";
+    private ArrayList<List<Note>> correctSyncedNotes = new ArrayList<List<Note>>();
+    private ArrayList<List<Note>> wrongSyncedNotes = new ArrayList<List<Note>>();
 
     // Variables for helping with evaluation
     private final String state = "";
@@ -193,12 +195,13 @@ public class HomeActivity extends AppCompatActivity {
             public void onClick(View v) {
                 try {
                     if (isExternalStorageWritable()) {
-                        ArrayList<List<Note>> correctSyncedNotes;
-                        ArrayList<List<Note>> wrongSyncedNotes;
+                        correctSyncedNotes.clear();
+                        wrongSyncedNotes.clear();
 
                         verifyStoragePermissions(HomeActivity.this);
                         int permissionCheck = ContextCompat.checkSelfPermission(HomeActivity.this,
                                 Manifest.permission.WRITE_EXTERNAL_STORAGE);
+                        rightxmlparser = null;
                         rightxmlparser = new XMLMusicParser(filename, ROOT_FOLDER, OUTPUT_FOLDER);
                         rightxmlparser.parseMXL(); // parse the .mxl file
                         List<Note> parsedNotes = xmlparser.parseXML(); // parse the .xml file
@@ -211,6 +214,7 @@ public class HomeActivity extends AppCompatActivity {
                         verifyStoragePermissions(HomeActivity.this);
                         int permissionCheck2 = ContextCompat.checkSelfPermission(HomeActivity.this,
                                 Manifest.permission.WRITE_EXTERNAL_STORAGE);
+                        wrongxmlparser = null;
                         wrongxmlparser = new XMLMusicParser(filename, WRONG_NOTES_FOLDER, OUTPUT_FOLDER);
                         wrongxmlparser.parseMXL(); // parse the .mxl file
                         List<Note> WrongParsedNotes = wrongxmlparser.parseXML(); // parse the .xml file
