@@ -45,6 +45,15 @@
                 android:textSize="10sp"
                 android:text="At-Pace Eval" />
 
+            <Button
+                android:id="@+id/compareNotesButton"
+                android:layout_width="96dp"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/startAtPaceEvalButton"
+                android:layout_alignParentLeft="true"
+                android:textSize="10sp"
+                android:text="Compare wrong notes" />
+
             <TextView
                 android:id="@+id/simpleTextView"
                 android:layout_width="fill_parent"

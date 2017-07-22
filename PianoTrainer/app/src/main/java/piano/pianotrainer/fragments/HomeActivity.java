@@ -14,6 +14,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.text.method.ScrollingMovementMethod;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
@@ -47,9 +48,15 @@ public class HomeActivity extends AppCompatActivity {
 
     private Context context;
     private XMLMusicParser xmlparser;
+    private XMLMusicParser rightxmlparser;
+    private XMLMusicParser wrongxmlparser;
     private ComparisonSetup comparison;
-    private String filename = "Dichterliebe01edit";
+    private ComparisonSetup rightComparison;
+    private ComparisonSetup wrongComparison;
+    private String filename = "twinkle";
     private static final String OUTPUT_FOLDER = "XMLFiles";
+    private static final String ROOT_FOLDER = "Piano";
+    private static final String WRONG_NOTES_FOLDER = "WrongPianoNotes";
 
     // Variables for helping with evaluation
     private final String state = "";
@@ -125,7 +132,7 @@ public class HomeActivity extends AppCompatActivity {
                         verifyStoragePermissions(HomeActivity.this);
                         int permissionCheck = ContextCompat.checkSelfPermission(HomeActivity.this,
                                 Manifest.permission.WRITE_EXTERNAL_STORAGE);
-                        xmlparser = new XMLMusicParser(filename, OUTPUT_FOLDER);
+                        xmlparser = new XMLMusicParser(filename, ROOT_FOLDER, OUTPUT_FOLDER);
                         xmlparser.parseMXL(); // parse the .mxl file
                         List<Note> parsedNotes = xmlparser.parseXML(); // parse the .xml file
                         comparison = new ComparisonSetup();
@@ -154,7 +161,7 @@ public class HomeActivity extends AppCompatActivity {
                         verifyStoragePermissions(HomeActivity.this);
                         int permissionCheck = ContextCompat.checkSelfPermission(HomeActivity.this,
                                 Manifest.permission.WRITE_EXTERNAL_STORAGE);
-                        xmlparser = new XMLMusicParser(filename, OUTPUT_FOLDER);
+                        xmlparser = new XMLMusicParser(filename, ROOT_FOLDER, OUTPUT_FOLDER);
                         xmlparser.parseMXL(); // parse the .mxl file
                         List<Note> parsedNotes = xmlparser.parseXML(); // parse the .xml file
                         comparison = new ComparisonSetup();
@@ -174,6 +181,52 @@ public class HomeActivity extends AppCompatActivity {
             }
         });
 
+        Button compareNotes = (Button) findViewById(R.id.compareNotesButton);
+        compareNotes.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                try {
+                    if (isExternalStorageWritable()) {
+                        ArrayList<List<Note>> correctSyncedNotes;
+                        ArrayList<List<Note>> wrongSyncedNotes;
+
+                        verifyStoragePermissions(HomeActivity.this);
+                        int permissionCheck = ContextCompat.checkSelfPermission(HomeActivity.this,
+                                Manifest.permission.WRITE_EXTERNAL_STORAGE);
+                        rightxmlparser = new XMLMusicParser(filename, ROOT_FOLDER, OUTPUT_FOLDER);
+                        rightxmlparser.parseMXL(); // parse the .mxl file
+                        List<Note> parsedNotes = xmlparser.parseXML(); // parse the .xml file
+                        Log.d("HomeActivity1", String.valueOf(parsedNotes.size()));
+                        rightComparison = new ComparisonSetup();
+                        correctSyncedNotes = rightComparison.SyncNotes(parsedNotes);
+//                        rightComparison.SyncNotes(parsedNotes);
+
+
+                        verifyStoragePermissions(HomeActivity.this);
+                        int permissionCheck2 = ContextCompat.checkSelfPermission(HomeActivity.this,
+                                Manifest.permission.WRITE_EXTERNAL_STORAGE);
+                        wrongxmlparser = new XMLMusicParser(filename, WRONG_NOTES_FOLDER, OUTPUT_FOLDER);
+                        wrongxmlparser.parseMXL(); // parse the .mxl file
+                        List<Note> WrongParsedNotes = wrongxmlparser.parseXML(); // parse the .xml file
+                        Log.d("HomeActivity2", String.valueOf(WrongParsedNotes.size()));
+                        wrongComparison = new ComparisonSetup();
+                        wrongSyncedNotes = wrongComparison.SyncNotes(WrongParsedNotes);
+//                        wrongComparison.SyncNotes(WrongParsedNotes);
+                        String WrongtoPrint = wrongComparison.CompareDebugPrintSync(correctSyncedNotes, wrongSyncedNotes);
+                        buttonResult.setText(WrongtoPrint);
+
+                    }
+                    else  {
+                        CharSequence text = "External storage not available for read and write.";
+                        int duration = Toast.LENGTH_SHORT;
+                        Toast toast = Toast.makeText(context, text, duration);
+                        toast.show();
+                    }
+                }
+                catch (IOException ie) {
+                    ie.printStackTrace();
+                }
+            }
+        });
 
     }
 
@@ -183,7 +236,7 @@ public class HomeActivity extends AppCompatActivity {
                 verifyStoragePermissions(HomeActivity.this);
                 int permissionCheck = ContextCompat.checkSelfPermission(HomeActivity.this,
                         Manifest.permission.WRITE_EXTERNAL_STORAGE);
-                xmlparser = new XMLMusicParser(filename, OUTPUT_FOLDER);
+                xmlparser = new XMLMusicParser(filename, ROOT_FOLDER, OUTPUT_FOLDER);
                 //setup dropdown
                 String mxlItems[] = xmlparser.getMxlFiles().toArray(new String[0]);
                 return mxlItems;

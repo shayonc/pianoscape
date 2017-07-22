@@ -35,11 +35,13 @@ public class XMLMusicParser {
     private ZipInputStream zis;
 
     /* Constructor */
-    public XMLMusicParser(String filename, String outputFolder) throws IOException {
-        this.directoryPath = getSdCardPath() + "Piano";
-        this.mxlFilePath = getSdCardPath() + "Piano" + File.separator + filename + ".mxl";
-        this.outputFolder = getSdCardPath() + "Piano" + File.separator + outputFolder;
-        this.xmlFilePath = getSdCardPath() + "Piano" + File.separator + outputFolder + File.separator + filename + ".xml";
+    public XMLMusicParser(String filename, String rootFolder, String outputFolder) throws IOException {
+        this.directoryPath = getSdCardPath() + rootFolder;
+        this.mxlFilePath = getSdCardPath() + rootFolder + File.separator + filename + ".mxl";
+        this.outputFolder = getSdCardPath() + rootFolder + File.separator + outputFolder;
+//        this.xmlFilePath = getSdCardPath() + rootFolder + File.separator + outputFolder + File.separator + filename + ".xml";
+        this.xmlFilePath = getSdCardPath() + rootFolder + File.separator + outputFolder + File.separator + "lg-546911650138541891" + ".xml";
+
     }
 
     public List<String> getMxlFiles(){

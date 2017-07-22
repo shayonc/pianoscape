@@ -1,6 +1,8 @@
 package piano.pianotrainer.fragments;
 
 
+import android.util.Log;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -136,6 +138,87 @@ public class ComparisonSetup {
                     else if (note.isTieStop()){notePrint+="{p}";}
                     else {notePrint+="{ }";}
                     lastMeasureNumber = note.getMeasureNumber();
+                    // check for redundancy
+                    if (!divPrint.contains(notePrint)){
+                        divPrint+=notePrint;
+                    }
+                }
+            }
+            if (divCounter%measureDivs == 0){
+                toPrint += lastMeasureNumber+"=================\n";
+            }
+            divCounter++;
+            if (divPrint == ""){divPrint = "-";}
+            toPrint += divPrint+"\n";
+            divPrint = "";
+        }
+        return toPrint;
+    }
+
+    /**
+     *
+     */
+    public String CompareDebugPrintSync(ArrayList<List<Note>> correctSyncedNotes, ArrayList<List<Note>> wrongSyncedNotes){
+        String toPrint = "";
+        int divCounter = 0;
+        String notePrint;
+        String divPrint = "";
+        String lastMeasureNumber = "";
+
+//        for (List<Note> posNotes: syncedNotes){
+//
+//            for (Note note: posNotes){
+//                if (note != null){
+//
+//                    notePrint = "_"+note.getStep()+note.getOctave()+"("+(note.getAlter()==-99?0:note.getAlter())+")";
+//                    if (note.isTieStart()&&note.isTieStop()){notePrint+="{sp}";}
+//                    else if (note.isTieStart()){notePrint+="{s}";}
+//                    else if (note.isTieStop()){notePrint+="{p}";}
+//                    else {notePrint+="{ }";}
+//                    lastMeasureNumber = note.getMeasureNumber();
+//                    // check for redundancy
+//                    if (!divPrint.contains(notePrint)){
+//                        divPrint+=notePrint;
+//                    }
+//                }
+//            }
+//            if (divCounter%measureDivs == 0){
+//                toPrint += lastMeasureNumber+"=================\n";
+//            }
+//            divCounter++;
+//            if (divPrint == ""){divPrint = "-";}
+//            toPrint += divPrint+"\n";
+//            divPrint = "";
+//        }
+
+        Log.d("ComparisonSet1", String.valueOf(correctSyncedNotes.size()));
+        Log.d("ComparisonSet2", String.valueOf(wrongSyncedNotes.size()));
+
+        for (int i = 0; i < correctSyncedNotes.size(); i++) {
+            for (int j = 0; j < correctSyncedNotes.get(i).size(); j++) {
+                if (correctSyncedNotes.get(i).get(j) != null && wrongSyncedNotes.get(i).get(j) != null){
+                    // ✓  ✘
+
+                    if (!correctSyncedNotes.get(i).get(j).getStep().equals(wrongSyncedNotes.get(i).get(j).getStep()) || correctSyncedNotes.get(i).get(j).getOctave() != wrongSyncedNotes.get(i).get(j).getOctave()) {
+                        notePrint = " ✘ ";
+                        //notePrint += wrongSyncedNotes.get(i).get(j).getStep() +  wrongSyncedNotes.get(i).get(j).getOctave();
+                        notePrint += "_"+wrongSyncedNotes.get(i).get(j).getStep()+wrongSyncedNotes.get(i).get(j).getOctave()+"("+(wrongSyncedNotes.get(i).get(j).getAlter()==-99?0:wrongSyncedNotes.get(i).get(j).getAlter())+")";
+                        if (wrongSyncedNotes.get(i).get(j).isTieStart()&&wrongSyncedNotes.get(i).get(j).isTieStop()){notePrint+="{sp}";}
+                        else if (wrongSyncedNotes.get(i).get(j).isTieStart()){notePrint+="{s}";}
+                        else if (wrongSyncedNotes.get(i).get(j).isTieStop()){notePrint+="{p}";}
+                        else {notePrint+="{ }";}
+
+                    }
+                    else {
+                        notePrint = " ✓";
+                    }
+                    notePrint += "_"+correctSyncedNotes.get(i).get(j).getStep()+correctSyncedNotes.get(i).get(j).getOctave()+"("+(correctSyncedNotes.get(i).get(j).getAlter()==-99?0:correctSyncedNotes.get(i).get(j).getAlter())+")";
+//                    notePrint = "_"+correctSyncedNotes.get(i).get(j).getStep()+correctSyncedNotes.get(i).get(j).getOctave()+"("+(correctSyncedNotes.get(i).get(j).getAlter()==-99?0:correctSyncedNotes.get(i).get(j).getAlter())+")";
+                    if (correctSyncedNotes.get(i).get(j).isTieStart()&&correctSyncedNotes.get(i).get(j).isTieStop()){notePrint+="{sp}";}
+                    else if (correctSyncedNotes.get(i).get(j).isTieStart()){notePrint+="{s}";}
+                    else if (correctSyncedNotes.get(i).get(j).isTieStop()){notePrint+="{p}";}
+                    else {notePrint+="{ }";}
+                    lastMeasureNumber = correctSyncedNotes.get(i).get(j).getMeasureNumber();
                     // check for redundancy
                     if (!divPrint.contains(notePrint)){
                         divPrint+=notePrint;
