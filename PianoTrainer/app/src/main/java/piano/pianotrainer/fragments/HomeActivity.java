@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Environment;
 import java.io.File;
@@ -125,6 +126,8 @@ public class HomeActivity extends AppCompatActivity {
         });
 
         Button printSyncButton = (Button) findViewById(R.id.printSyncButton);
+        printSyncButton.setBackgroundColor(Color.rgb(0, 91, 170));
+        printSyncButton.setTextColor(Color.WHITE);
         printSyncButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 try {
@@ -154,6 +157,8 @@ public class HomeActivity extends AppCompatActivity {
             }
         });
         Button startAtPaceEvalButton = (Button) findViewById(R.id.startAtPaceEvalButton);
+        startAtPaceEvalButton.setBackgroundColor(Color.rgb(0, 91, 170));
+        startAtPaceEvalButton.setTextColor(Color.WHITE);
         startAtPaceEvalButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 try {
@@ -182,6 +187,8 @@ public class HomeActivity extends AppCompatActivity {
         });
 
         Button compareNotes = (Button) findViewById(R.id.compareNotesButton);
+        compareNotes.setBackgroundColor(Color.rgb(0, 91, 170));
+        compareNotes.setTextColor(Color.WHITE);
         compareNotes.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 try {
