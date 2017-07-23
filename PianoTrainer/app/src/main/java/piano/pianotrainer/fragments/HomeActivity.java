@@ -205,13 +205,15 @@ public class HomeActivity extends AppCompatActivity {
                         rightxmlparser = null;
                         rightxmlparser = new XMLMusicParser(filename, ROOT_FOLDER, OUTPUT_FOLDER);
                         rightxmlparser.parseMXL(); // parse the .mxl file
-                        List<Note> parsedNotes = xmlparser.parseXML(); // parse the .xml file
-                        Log.d("HomeActivity1", String.valueOf(parsedNotes.size()));
+                        /**
+                        *   if called again, the value of the reference will keep adding.
+                         *   Needs to be cleared at end or else will keep adding to same mem space.
+                        * */
+                        List<Note> correctParsedNotes = xmlparser.parseXML(); // parse the .xml file
+                        Log.d("HomeActivity1", String.valueOf(correctParsedNotes.size()));
                         rightComparison = new ComparisonSetup();
-                        correctSyncedNotes = rightComparison.SyncNotes(parsedNotes);
-                        parsedNotes.clear();
-//                        rightComparison.SyncNotes(parsedNotes);
-
+                        correctSyncedNotes = rightComparison.SyncNotes(correctParsedNotes);
+                        correctParsedNotes.clear();
 
                         verifyStoragePermissions(HomeActivity.this);
                         int permissionCheck2 = ContextCompat.checkSelfPermission(HomeActivity.this,

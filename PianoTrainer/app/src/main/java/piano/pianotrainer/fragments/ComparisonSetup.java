@@ -165,32 +165,6 @@ public class ComparisonSetup {
         String divPrint = "";
         String lastMeasureNumber = "";
 
-//        for (List<Note> posNotes: syncedNotes){
-//
-//            for (Note note: posNotes){
-//                if (note != null){
-//
-//                    notePrint = "_"+note.getStep()+note.getOctave()+"("+(note.getAlter()==-99?0:note.getAlter())+")";
-//                    if (note.isTieStart()&&note.isTieStop()){notePrint+="{sp}";}
-//                    else if (note.isTieStart()){notePrint+="{s}";}
-//                    else if (note.isTieStop()){notePrint+="{p}";}
-//                    else {notePrint+="{ }";}
-//                    lastMeasureNumber = note.getMeasureNumber();
-//                    // check for redundancy
-//                    if (!divPrint.contains(notePrint)){
-//                        divPrint+=notePrint;
-//                    }
-//                }
-//            }
-//            if (divCounter%measureDivs == 0){
-//                toPrint += lastMeasureNumber+"=================\n";
-//            }
-//            divCounter++;
-//            if (divPrint == ""){divPrint = "-";}
-//            toPrint += divPrint+"\n";
-//            divPrint = "";
-//        }
-
         Log.d("ComparisonSet1", String.valueOf(correctSyncedNotes.size()));
         Log.d("ComparisonSet2", String.valueOf(wrongSyncedNotes.size()));
 
