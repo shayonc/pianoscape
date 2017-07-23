@@ -6,6 +6,7 @@ package piano.pianotrainer.fragments;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.pdf.PdfRenderer;
 import android.os.Bundle;
 import android.os.ParcelFileDescriptor;
 import android.support.v4.app.Fragment;
@@ -14,6 +15,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
@@ -24,6 +26,7 @@ import java.io.InputStream;
 import piano.pianotrainer.R;
 import piano.pianotrainer.score_importing.ImageUtils;
 import piano.pianotrainer.score_importing.PDFHelper;
+import piano.pianotrainer.score_importing.ScoreImgProc;
 
 public class MusicScoreViewerFragment extends Fragment implements View.OnClickListener{
     /**
@@ -42,7 +45,8 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
      * {@link android.widget.Button} to move to the previous page.
      */
     private Button mButtonPrevious;
-
+    private Button mButtonImport;
+    private TextView mDebugView;
     /**
      * {@link android.widget.Button} to move to the next page.
      */
@@ -76,10 +80,13 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
         super.onViewCreated(view, savedInstanceState);
         // Retain view references.
         mImageView = (ImageView) view.findViewById(R.id.image);
+        mDebugView = (TextView) view.findViewById(R.id.debug_view);
         mButtonPrevious = (Button) view.findViewById(R.id.previous);
+        mButtonImport = (Button) view.findViewById(R.id.import_sheet);
         mButtonNext = (Button) view.findViewById(R.id.next);
         // Bind events.
         mButtonPrevious.setOnClickListener(this);
+        mButtonImport.setOnClickListener(this);
         mButtonNext.setOnClickListener(this);
         mPageIndexSaved = 0;
         // If there is a savedInstanceState (screen orientations, etc.), we restore the page index.
@@ -160,7 +167,7 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
         mImageView.setImageBitmap(curPageBitmap);
 
         //Save img internally - help analyze pixels
-        ImageUtils.saveImageToExternal(curPageBitmap,"testImg.png");
+        mDebugView.setText(ImageUtils.saveImageToExternal(curPageBitmap,"testImg.png"));
         updateUi();
     }
 
@@ -195,6 +202,53 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
             case R.id.next: {
                 // Move to the next page
                 showPage(mPdfHelper.getCurPage().getIndex() + 1);
+                break;
+            }
+            case R.id.import_sheet: {
+                // import sheet workflow
+
+                File file = new File(getActivity().getCacheDir(), FILENAME);
+                ParcelFileDescriptor pfd = null;
+                PdfRenderer pdfRenderer = null;
+                try {
+                    pfd = ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY);
+                    pdfRenderer = new PdfRenderer(pfd);
+                }
+                catch(Exception e) {
+                    mDebugView.setText("pfd not instantiated.");
+                }
+
+                if (pfd != null && pdfRenderer != null) {
+                    PDFHelper pdfHelper = new PDFHelper(pfd);
+                    pdfHelper.setCurPage(mPageIndexSaved);
+
+                    //Bitmap curPageBitmap = pdfHelper.toBinImg(pdfHelper.getCurPage().getIndex());
+                    PdfRenderer.Page curPage = pdfRenderer.openPage(pdfHelper.getCurPage().getIndex());
+
+                    mDebugView.setText(String.format("width: %d, height: %d", curPage.getWidth(), curPage.getHeight()));
+                    Bitmap bitmap = Bitmap.createBitmap(curPage.getWidth()*3, curPage.getHeight()*3,
+                            Bitmap.Config.ARGB_8888);
+                    curPage.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY);
+
+
+                    //ScoreImgProc scoreProc = new ScoreImgProc(bitmap);
+                    //scoreProc.binarize();
+                    //scoreProc.removeStaffLines(true);
+                    //Bitmap binBitmap = scoreProc.getNoStaffLinesImg();
+
+
+
+
+
+
+
+
+                    mImageView.setImageBitmap(bitmap);
+                }
+                else {
+                    mDebugView.setText("pfd or pdfRenderer not instantiated.");
+                }
+
                 break;
             }
         }

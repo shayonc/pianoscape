@@ -81,9 +81,9 @@ public class ScoreImgProc {
         // Create structure element for extracting horizontal lines through morphology operations
         Mat horizontalStructure = Imgproc.getStructuringElement(MORPH_RECT, kernelWidth);
         // Apply morphology operations
-        Imgproc.erode(binarizedImg, isoStaffLinesImg, horizontalStructure, pt,1);
+        Imgproc.erode(binarizedImg, isoStaffLinesImg, horizontalStructure, pt,2);
         // "reamps" the remaining elements on the page (trailing parts of staffline_
-        Imgproc.dilate(isoStaffLinesImg, noStaffLinesImg, horizontalStructure, pt,1);
+        Imgproc.dilate(isoStaffLinesImg, noStaffLinesImg, horizontalStructure, pt,2);
 
         //ideally the image after morphology only contains staff lines which are no subtracted out
         Core.subtract(binarizedImg,noStaffLinesImg,noStaffLinesImg);
@@ -94,6 +94,13 @@ public class ScoreImgProc {
         Mat verticalStructure = Imgproc.getStructuringElement(MORPH_RECT, kernelHeight);
         //vertical dilate will look 1 pixel away vertically and take max
         Imgproc.dilate(noStaffLinesImg,noStaffLinesImg,verticalStructure,pt,2);
+
+        horizontalsize = 2; //Try this for neighbours
+        kernelWidth = new Size(horizontalsize,1);
+        pt = new Point(-1,-1); //current pixel is the 'center' when applying operations
+        // Create structure element for extracting horizontal lines through morphology operations
+        horizontalStructure = Imgproc.getStructuringElement(MORPH_RECT, kernelWidth);
+        Imgproc.dilate(noStaffLinesImg, noStaffLinesImg, horizontalStructure, pt,2); //you can play around with iterations here
 
         //gapstich
         staffLineDetect(isoStaffLinesImg);

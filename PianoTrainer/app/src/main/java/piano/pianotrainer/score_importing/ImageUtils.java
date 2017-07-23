@@ -48,7 +48,7 @@ public final class ImageUtils {
         return imgMat;
     }
 
-    public static void saveImageToExternal(Bitmap finalBitmap, String imgName) {
+    public static String saveImageToExternal(Bitmap finalBitmap, String imgName) {
         String root = Environment.getExternalStorageDirectory().toString();
         File myDir = new File(root + "/Piano/Images");
         myDir.mkdirs();
@@ -63,6 +63,7 @@ public final class ImageUtils {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return root + "/Piano/Images";
     }
 
     //TODO: Generalize for saving across the app
