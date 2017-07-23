@@ -54,7 +54,7 @@ public class HomeActivity extends AppCompatActivity {
     private ComparisonSetup comparison;
     private ComparisonSetup rightComparison;
     private ComparisonSetup wrongComparison;
-    private String filename = "twinkle";
+    private String filename = "";
     private static final String OUTPUT_FOLDER = "XMLFiles";
     private static final String ROOT_FOLDER = "Piano";
     private static final String WRONG_NOTES_FOLDER = "WrongPianoNotes";
@@ -108,11 +108,10 @@ public class HomeActivity extends AppCompatActivity {
         final TextView buttonResult = (TextView)findViewById(R.id.simpleTextView);
         buttonResult.setText("Button not yet clicked");
         buttonResult.setMovementMethod(new ScrollingMovementMethod());
-
+        filename = GetFirstFilename();
         context = getApplicationContext();
         dbHelper = new DBHelper(this);
         db = dbHelper.getWritableDatabase(); // get writable
-
         //Setup file Dropdown
         Spinner mxlDropdown = (Spinner)findViewById(R.id.mxlFileSpinner);
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(getApplicationContext(), android.R.layout.simple_spinner_item, GetMxlFiles());
@@ -171,10 +170,10 @@ public class HomeActivity extends AppCompatActivity {
                                 Manifest.permission.WRITE_EXTERNAL_STORAGE);
                         xmlparser = new XMLMusicParser(filename, ROOT_FOLDER, OUTPUT_FOLDER);
                         xmlparser.parseMXL(); // parse the .mxl file
-                        List<Note> parsedNotes = xmlparser.parseXML(); // parse the .xml file
+                        List<Note> atPaceParsedNotes = xmlparser.parseXML(); // parse the .xml file
                         comparison = new ComparisonSetup();
-                        comparison.SyncNotes(parsedNotes);
-                        parsedNotes.clear();
+                        comparison.SyncNotes(atPaceParsedNotes);
+                        atPaceParsedNotes.clear();
                         buttonResult.setText("");
                     }
                     else  {
@@ -256,6 +255,33 @@ public class HomeActivity extends AppCompatActivity {
                 //setup dropdown
                 String mxlItems[] = xmlparser.getMxlFiles().toArray(new String[0]);
                 return mxlItems;
+            }
+            else  {
+                CharSequence text = "External storage not available for read and write.";
+                int duration = Toast.LENGTH_SHORT;
+                Toast toast = Toast.makeText(context, text, duration);
+                toast.show();
+            }
+        }
+        catch (IOException ie) {
+            ie.printStackTrace();
+        }
+        return null;
+    }
+
+    public String GetFirstFilename() {
+        try {
+            if (isExternalStorageWritable()) {
+                verifyStoragePermissions(HomeActivity.this);
+                int permissionCheck = ContextCompat.checkSelfPermission(HomeActivity.this,
+                        Manifest.permission.WRITE_EXTERNAL_STORAGE);
+                xmlparser = new XMLMusicParser(filename, ROOT_FOLDER, OUTPUT_FOLDER);
+                //setup dropdown
+                String mxlItems[] = xmlparser.getMxlFiles().toArray(new String[0]);
+                if (mxlItems.length > 0) {
+                    filename = mxlItems[0];
+                }
+                return filename;
             }
             else  {
                 CharSequence text = "External storage not available for read and write.";

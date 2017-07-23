@@ -39,8 +39,7 @@ public class XMLMusicParser {
         this.directoryPath = getSdCardPath() + rootFolder;
         this.mxlFilePath = getSdCardPath() + rootFolder + File.separator + filename + ".mxl";
         this.outputFolder = getSdCardPath() + rootFolder + File.separator + outputFolder;
-//        this.xmlFilePath = getSdCardPath() + rootFolder + File.separator + outputFolder + File.separator + filename + ".xml";
-        this.xmlFilePath = getSdCardPath() + rootFolder + File.separator + outputFolder + File.separator + "lg-546911650138541891" + ".xml";
+        this.xmlFilePath = getSdCardPath() + rootFolder + File.separator + outputFolder + File.separator + filename + ".xml";
 
     }
 
