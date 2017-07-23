@@ -15,10 +15,14 @@
         android:scaleType="fitCenter"
         android:contentDescription="@null"/>
 
-    <TextView
-        android:id="@+id/debug_view"
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="30dp" />
+        android:layout_height="120dp">
+        <TextView
+            android:id="@+id/debug_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+    </ScrollView>
 
     <LinearLayout
         style="?android:attr/buttonBarStyle"

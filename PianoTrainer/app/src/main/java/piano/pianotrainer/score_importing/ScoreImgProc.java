@@ -1,7 +1,9 @@
 package piano.pianotrainer.score_importing;
 
 import android.graphics.Bitmap;
+import android.graphics.Rect;
 import android.util.Log;
+import android.widget.ArrayAdapter;
 
 import org.opencv.android.Utils;
 import org.opencv.core.Core;
@@ -29,6 +31,16 @@ public class ScoreImgProc {
     private final int MAX_STAFF_LINE_THICKNESS = 2; //TODO detect this dynamically
     //something to store rows of stafflines
     private ArrayList<Integer> staffLineRowIndicies;
+
+    private ArrayList<ArrayList<Integer>> staffs;
+    private int staffLineDiff;
+    private ArrayList<ArrayList<Rect>> staffObjects;
+    private boolean[][] staffsVisited;
+    private int curObjectTop;
+    private int curObjectBottom;
+    private int curObjectLeft;
+    private int curObjectRight;
+
 
     public ScoreImgProc(Bitmap bmpImg){
         staffLineRowIndicies = new ArrayList<Integer>();
@@ -95,12 +107,12 @@ public class ScoreImgProc {
         //vertical dilate will look 1 pixel away vertically and take max
         Imgproc.dilate(noStaffLinesImg,noStaffLinesImg,verticalStructure,pt,2);
 
-        horizontalsize = 2; //Try this for neighbours
-        kernelWidth = new Size(horizontalsize,1);
-        pt = new Point(-1,-1); //current pixel is the 'center' when applying operations
-        // Create structure element for extracting horizontal lines through morphology operations
-        horizontalStructure = Imgproc.getStructuringElement(MORPH_RECT, kernelWidth);
-        Imgproc.dilate(noStaffLinesImg, noStaffLinesImg, horizontalStructure, pt,2); //you can play around with iterations here
+//        horizontalsize = 2; //Try this for neighbours
+//        kernelWidth = new Size(horizontalsize,1);
+//        pt = new Point(-1,-1); //current pixel is the 'center' when applying operations
+//        // Create structure element for extracting horizontal lines through morphology operations
+//        horizontalStructure = Imgproc.getStructuringElement(MORPH_RECT, kernelWidth);
+//        Imgproc.dilate(noStaffLinesImg, noStaffLinesImg, horizontalStructure, pt,2); //you can play around with iterations here
 
         //gapstich
         staffLineDetect(isoStaffLinesImg);
@@ -155,5 +167,151 @@ public class ScoreImgProc {
         Utils.matToBitmap(binarizedImg,bmp);
         Log.d(TAG,String.format("Creating binarized %d by %d img",bmp.getWidth(),bmp.getHeight()));
         return bmp;
+    }
+
+    public ArrayList<ArrayList<Integer>> refineStaffLines() {
+        staffs = new ArrayList<ArrayList<Integer>>();
+        staffs.add(new ArrayList<Integer>());
+
+        int lineAvg = 0;
+        int rowCountPerLine = 0;
+        int prevRow = staffLineRowIndicies.get(0)-1;
+        int lineCount = 0;
+        int staffCount = 0;
+        for (int i = 0; i < staffLineRowIndicies.size(); i++) {
+            int curRow = staffLineRowIndicies.get(i);
+            if (curRow == prevRow+1) {
+                lineAvg += curRow;
+                rowCountPerLine++;
+                prevRow = curRow;
+            }
+            else {
+                lineAvg = lineAvg / rowCountPerLine;
+                staffs.get(staffCount).add(lineAvg);
+                lineCount++;
+                if (lineCount % 10 == 0 && lineCount != 0) {
+                    staffCount++;
+                    staffs.add(new ArrayList<Integer>());
+                }
+                if (i+1 < staffLineRowIndicies.size()) {
+                    prevRow = staffLineRowIndicies.get(i+1)-1;
+                }
+                lineAvg = 0;
+                rowCountPerLine = 0;
+            }
+        }
+
+        //TODO: get an average from all staff lines instead of from one set of lines
+        staffLineDiff = staffs.get(0).get(3)-staffs.get(0).get(2);
+
+        //TODO: instead of this hack, we need to fix the bug of why the last staff line is not detected
+        int lastSize = staffs.get(staffCount).size();
+        staffs.get(staffCount).add( staffs.get(staffCount).get(lastSize-1) + staffLineDiff );
+
+        return staffs;
+    }
+
+    public ArrayList<ArrayList<Rect>> detectObjects() {
+        //TODO: iterate through all staffs
+        staffObjects = new ArrayList<ArrayList<Rect>>();
+        staffsVisited = new boolean[noStaffLinesImg.height()][noStaffLinesImg.width()];
+
+        int i = 0;
+        ArrayList<Integer> staffLines = staffs.get(i);
+        staffObjects.add(new ArrayList<Rect>());
+        int topBound = staffLines.get(0);
+        int bottomBound = staffLines.get(9);
+        int leftBound = 225;
+        int rightBound = 1610;
+
+        //ArrayList<Rect> tabuRects = new ArrayList<Rect>();
+        curObjectTop = noStaffLinesImg.height();
+        curObjectBottom = 0;
+        curObjectLeft = noStaffLinesImg.width();
+        curObjectRight = 0;
+        for (int col = leftBound; col < rightBound; col++) {
+            for (int row = topBound; row < bottomBound; row++) {
+
+                if (!staffsVisited[row][col]) {
+                    double[] data = noStaffLinesImg.get(row, col);
+
+                    if (data[data.length-1] == 255.0) {
+                        fillSearch(row, col);
+                        staffObjects.get(i).add(new Rect(curObjectLeft, curObjectTop, curObjectRight, curObjectBottom));
+                        //tabuRects.add(new Rect(curObjectLeft, curObjectTop, curObjectRight, curObjectBottom));
+                        markObjectRects();
+                        curObjectTop = noStaffLinesImg.height();
+                        curObjectBottom = 0;
+                        curObjectLeft = noStaffLinesImg.width();
+                        curObjectRight = 0;
+                        //cleanTabuRects(row, col, tabuRects);
+                    }
+                }
+            }
+        }
+
+        return staffObjects;
+    }
+
+    public void fillSearch(int row, int col) {
+
+        if (row > curObjectBottom) {
+            curObjectBottom = row;
+        }
+        if (row < curObjectTop) {
+            curObjectTop = row;
+        }
+        if (col > curObjectRight) {
+            curObjectRight = col;
+        }
+        if (col < curObjectLeft) {
+            curObjectLeft = col;
+        }
+        staffsVisited[row][col] = true;
+
+        if (!staffsVisited[row-1][col] && noStaffLinesImg.get(row-1, col)[3] == 255.0) {
+            fillSearch(row-1, col);
+        }
+        if (!staffsVisited[row+1][col] && noStaffLinesImg.get(row+1, col)[3] == 255.0) {
+            fillSearch(row+1, col);
+        }
+        if (!staffsVisited[row][col-1] && noStaffLinesImg.get(row, col-1)[3] == 255.0) {
+            fillSearch(row, col-1);
+        }
+        if (!staffsVisited[row][col+1] && noStaffLinesImg.get(row, col+1)[3] == 255.0) {
+            fillSearch(row, col+1);
+        }
+    }
+
+    public double[] getImageData(int row, int col) {
+        return noStaffLinesImg.get(row, col);
+    }
+
+    public void markObjectRects() {
+        for (int row = curObjectTop; row < curObjectBottom; row++) {
+            for (int col = curObjectLeft; col < curObjectRight; col++) {
+                staffsVisited[row][col] = true;
+            }
+        }
+    }
+
+    public boolean inTabuRects(int row, int col, ArrayList<Rect> tabuRects) {
+        for (Rect rect : tabuRects) {
+            if (row >= rect.top && row <= rect.bottom
+                    && col >= rect.left && col <= rect.right) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public void cleanTabuRects(int row, int col, ArrayList<Rect> tabuRects) {
+        ArrayList<Integer> toDelete = new ArrayList<Integer>();
+        for (int i = 0; i < tabuRects.size(); i++) {
+            if (col > tabuRects.get(i).right) {
+                tabuRects.remove(i);
+                i--;
+            }
+        }
     }
 }
