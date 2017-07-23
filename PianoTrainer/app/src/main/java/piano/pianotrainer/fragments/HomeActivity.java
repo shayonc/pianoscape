@@ -174,6 +174,7 @@ public class HomeActivity extends AppCompatActivity {
                         List<Note> parsedNotes = xmlparser.parseXML(); // parse the .xml file
                         comparison = new ComparisonSetup();
                         comparison.SyncNotes(parsedNotes);
+                        parsedNotes.clear();
                         buttonResult.setText("");
                     }
                     else  {

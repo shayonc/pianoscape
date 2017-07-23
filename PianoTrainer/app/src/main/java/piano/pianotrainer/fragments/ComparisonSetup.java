@@ -155,9 +155,6 @@ public class ComparisonSetup {
         return toPrint;
     }
 
-    /**
-     *
-     */
     public String CompareDebugPrintSync(ArrayList<List<Note>> correctSyncedNotes, ArrayList<List<Note>> wrongSyncedNotes){
         String toPrint = "";
         int divCounter = 0;
@@ -171,7 +168,6 @@ public class ComparisonSetup {
         for (int i = 0; i < correctSyncedNotes.size(); i++) {
             for (int j = 0; j < correctSyncedNotes.get(i).size(); j++) {
                 if (correctSyncedNotes.get(i).get(j) != null && wrongSyncedNotes.get(i).get(j) != null){
-                    // ✓  ✘
 
                     if (!correctSyncedNotes.get(i).get(j).getStep().equals(wrongSyncedNotes.get(i).get(j).getStep()) || correctSyncedNotes.get(i).get(j).getOctave() != wrongSyncedNotes.get(i).get(j).getOctave()) {
                         notePrint = " ✘ ";
