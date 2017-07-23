@@ -473,10 +473,9 @@ public class XMLMusicParser {
 
             InputSource is = new InputSource(reader);
             is.setEncoding("UTF-8");
-
+            Log.d(TAG, String.valueOf(NoteList.size()));
             saxParser.parse(is, handler);
 
-            Log.d(TAG, String.valueOf(NoteList.size()));
             return NoteList;
         }
         catch (ParserConfigurationException pe) {

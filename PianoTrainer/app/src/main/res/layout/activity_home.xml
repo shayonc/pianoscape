@@ -34,6 +34,7 @@
                 android:layout_height="wrap_content"
                 android:layout_below="@id/mxlFileSpinner"
                 android:textSize="10sp"
+                android:textAllCaps="false"
                 android:text="Print Sync DEBUG" />
 
             <Button
@@ -43,6 +44,7 @@
                 android:layout_below="@id/printSyncButton"
                 android:layout_alignParentLeft="true"
                 android:textSize="10sp"
+                android:textAllCaps="false"
                 android:text="At-Pace Eval" />
 
             <Button
@@ -52,6 +54,7 @@
                 android:layout_below="@id/startAtPaceEvalButton"
                 android:layout_alignParentLeft="true"
                 android:textSize="10sp"
+                android:textAllCaps="false"
                 android:text="Compare wrong notes" />
 
             <TextView
