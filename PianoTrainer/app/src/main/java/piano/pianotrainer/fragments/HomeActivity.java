@@ -143,6 +143,7 @@ public class HomeActivity extends AppCompatActivity {
                         comparison = new ComparisonSetup();
                         comparison.SyncNotes(parsedNotes);
                         String toPrint = comparison.DebugPrintSync();
+                        parsedNotes.clear();
                         buttonResult.setText(toPrint);
 
                     }
@@ -208,6 +209,7 @@ public class HomeActivity extends AppCompatActivity {
                         Log.d("HomeActivity1", String.valueOf(parsedNotes.size()));
                         rightComparison = new ComparisonSetup();
                         correctSyncedNotes = rightComparison.SyncNotes(parsedNotes);
+                        parsedNotes.clear();
 //                        rightComparison.SyncNotes(parsedNotes);
 
 
@@ -221,7 +223,7 @@ public class HomeActivity extends AppCompatActivity {
                         Log.d("HomeActivity2", String.valueOf(WrongParsedNotes.size()));
                         wrongComparison = new ComparisonSetup();
                         wrongSyncedNotes = wrongComparison.SyncNotes(WrongParsedNotes);
-//                        wrongComparison.SyncNotes(WrongParsedNotes);
+                        WrongParsedNotes.clear();
                         String WrongtoPrint = wrongComparison.CompareDebugPrintSync(correctSyncedNotes, wrongSyncedNotes);
                         buttonResult.setText(WrongtoPrint);
 
