@@ -158,36 +158,36 @@ public class HomeActivity extends AppCompatActivity {
                 }
             }
         });
-        Button startAtPaceEvalButton = (Button) findViewById(R.id.startAtPaceEvalButton);
-        startAtPaceEvalButton.setBackgroundColor(Color.rgb(0, 91, 170));
-        startAtPaceEvalButton.setTextColor(Color.WHITE);
-        startAtPaceEvalButton.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                try {
-                    if (isExternalStorageWritable()) {
-                        verifyStoragePermissions(HomeActivity.this);
-                        int permissionCheck = ContextCompat.checkSelfPermission(HomeActivity.this,
-                                Manifest.permission.WRITE_EXTERNAL_STORAGE);
-                        xmlparser = new XMLMusicParser(filename, ROOT_FOLDER, OUTPUT_FOLDER);
-                        xmlparser.parseMXL(); // parse the .mxl file
-                        List<Note> atPaceParsedNotes = xmlparser.parseXML(); // parse the .xml file
-                        comparison = new ComparisonSetup();
-                        comparison.SyncNotes(atPaceParsedNotes);
-                        atPaceParsedNotes.clear();
-                        buttonResult.setText("");
-                    }
-                    else  {
-                        CharSequence text = "External storage not available for read and write.";
-                        int duration = Toast.LENGTH_SHORT;
-                        Toast toast = Toast.makeText(context, text, duration);
-                        toast.show();
-                    }
-                }
-                catch (IOException ie) {
-                    ie.printStackTrace();
-                }
-            }
-        });
+//        Button startAtPaceEvalButton = (Button) findViewById(R.id.startAtPaceEvalButton);
+//        startAtPaceEvalButton.setBackgroundColor(Color.rgb(0, 91, 170));
+//        startAtPaceEvalButton.setTextColor(Color.WHITE);
+//        startAtPaceEvalButton.setOnClickListener(new View.OnClickListener() {
+//            public void onClick(View v) {
+//                try {
+//                    if (isExternalStorageWritable()) {
+//                        verifyStoragePermissions(HomeActivity.this);
+//                        int permissionCheck = ContextCompat.checkSelfPermission(HomeActivity.this,
+//                                Manifest.permission.WRITE_EXTERNAL_STORAGE);
+//                        xmlparser = new XMLMusicParser(filename, ROOT_FOLDER, OUTPUT_FOLDER);
+//                        xmlparser.parseMXL(); // parse the .mxl file
+//                        List<Note> atPaceParsedNotes = xmlparser.parseXML(); // parse the .xml file
+//                        comparison = new ComparisonSetup();
+//                        comparison.SyncNotes(atPaceParsedNotes);
+//                        atPaceParsedNotes.clear();
+//                        buttonResult.setText("");
+//                    }
+//                    else  {
+//                        CharSequence text = "External storage not available for read and write.";
+//                        int duration = Toast.LENGTH_SHORT;
+//                        Toast toast = Toast.makeText(context, text, duration);
+//                        toast.show();
+//                    }
+//                }
+//                catch (IOException ie) {
+//                    ie.printStackTrace();
+//                }
+//            }
+//        });
 
         Button compareNotes = (Button) findViewById(R.id.compareNotesButton);
         compareNotes.setBackgroundColor(Color.rgb(0, 91, 170));
