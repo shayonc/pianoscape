@@ -1,4 +1,4 @@
-# FYDP
+# PianoScape
 
 Create a /Piano folder in root directory and put in .mxl file.
 Create a /WrongPianoNotes folder in root directory and put in .mxl file.

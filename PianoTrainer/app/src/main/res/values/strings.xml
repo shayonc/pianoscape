@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">PianoWorks</string>
+    <string name="app_name">PianoScape</string>
     <string name="title_activity_home">HomeActivity</string>
     <string name="title_home">Home</string>
     <string name="title_camera">Camera</string>
