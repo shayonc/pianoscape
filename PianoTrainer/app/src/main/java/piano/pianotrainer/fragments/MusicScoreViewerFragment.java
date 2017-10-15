@@ -19,6 +19,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.opencv.core.RotatedRect;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -236,14 +238,18 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
                     ScoreImgProc scoreProc = new ScoreImgProc(bitmap);
                     scoreProc.binarize();
                     scoreProc.removeStaffLines(true);
-                    ArrayList<ArrayList<Integer>> staffLines = scoreProc.refineStaffLines();
-
-
-
-                    ArrayList<ArrayList<Rect>> staffObjects = scoreProc.detectObjects();
-                    mDebugView.setText(staffObjects.toString());
                     //Bitmap binBitmap = scoreProc.getNoStaffLinesImg();
 
+                    ArrayList<ArrayList<Integer>> staffLines = scoreProc.refineStaffLines();
+
+                    ArrayList<ArrayList<Rect>> staffObjects = scoreProc.detectObjects();
+
+
+                    ArrayList<Integer> bCounts = scoreProc.classifyObjects();
+                    mDebugView.setText(staffObjects.toString() + "\n\n" + bCounts.toString());
+
+
+                    scoreProc.writeXML();
 
 
                     mImageView.setImageBitmap(bitmap);

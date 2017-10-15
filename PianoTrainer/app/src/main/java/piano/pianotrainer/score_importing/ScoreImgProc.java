@@ -1,21 +1,37 @@
 package piano.pianotrainer.score_importing;
 
 import android.graphics.Bitmap;
+import android.graphics.Interpolator;
 import android.graphics.Rect;
+import android.os.Environment;
 import android.util.Log;
 import android.widget.ArrayAdapter;
 
 import org.opencv.android.Utils;
 import org.opencv.core.Core;
+import org.opencv.core.MatOfPoint;
+import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
+import org.opencv.core.RotatedRect;
+import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.core.Mat;
 import org.opencv.imgproc.Imgproc;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
+import static org.opencv.core.CvType.CV_8UC3;
+import static org.opencv.imgproc.Imgproc.CHAIN_APPROX_SIMPLE;
+import static org.opencv.imgproc.Imgproc.CV_HOUGH_GRADIENT;
+import static org.opencv.imgproc.Imgproc.HoughCircles;
 import static org.opencv.imgproc.Imgproc.MORPH_RECT;
+import static org.opencv.imgproc.Imgproc.RETR_TREE;
 import static org.opencv.imgproc.Imgproc.THRESH_BINARY;
+import static org.opencv.imgproc.Imgproc.ellipse;
 
 /**
  * Created by Ekteshaf Chowdhury on 2017-07-15.
@@ -229,6 +245,8 @@ public class ScoreImgProc {
         curObjectBottom = 0;
         curObjectLeft = noStaffLinesImg.width();
         curObjectRight = 0;
+        int padding = 4;
+
         for (int col = leftBound; col < rightBound; col++) {
             for (int row = topBound; row < bottomBound; row++) {
 
@@ -237,9 +255,9 @@ public class ScoreImgProc {
 
                     if (data[data.length-1] == 255.0) {
                         fillSearch(row, col);
-                        staffObjects.get(i).add(new Rect(curObjectLeft, curObjectTop, curObjectRight, curObjectBottom));
+                        staffObjects.get(i).add(new Rect(curObjectLeft-padding, curObjectTop-padding, curObjectRight+padding, curObjectBottom+padding));
                         //tabuRects.add(new Rect(curObjectLeft, curObjectTop, curObjectRight, curObjectBottom));
-                        markObjectRects();
+                        markObjectRects(padding);
                         curObjectTop = noStaffLinesImg.height();
                         curObjectBottom = 0;
                         curObjectLeft = noStaffLinesImg.width();
@@ -252,6 +270,91 @@ public class ScoreImgProc {
 
         return staffObjects;
     }
+
+    public ArrayList<Integer> classifyObjects() {
+        int i = 0;
+        ArrayList<Rect> objects = staffObjects.get(i);
+        ArrayList<Integer> bCounts = new ArrayList<Integer>();
+        HashMap<Double, Character> notes = new HashMap<Double, Character>();
+        // treble
+        notes.put(0.0,'F');
+        notes.put(0.5,'E');
+        notes.put(1.0,'D');
+        notes.put(1.5,'C');
+        notes.put(2.0,'B');
+        notes.put(2.5,'A');
+        notes.put(3.0,'G');
+        notes.put(3.5,'F');
+        notes.put(4.0,'E');
+
+        // bass
+        notes.put(5.0,'A');
+        notes.put(5.5,'G');
+        notes.put(6.0,'F');
+        notes.put(6.5,'E');
+        notes.put(7.0,'D');
+        notes.put(7.5,'C');
+        notes.put(8.0,'B');
+        notes.put(8.5,'A');
+        notes.put(9.0,'G');
+
+
+        for (Rect obj : objects) {
+            int count = 0;
+            for (int row = obj.top; row < obj.bottom; row++) {
+                for (int col = obj.left; col < obj.right; col++) {
+                    if (noStaffLinesImg.get(row, col)[3] == 255.0) {
+                        count++;
+                    }
+                }
+            }
+            bCounts.add(count);
+            if (count > 600) {
+                // add measure line
+            }
+            else {
+                // determine pitch
+                int cThres = 27;
+                char note = 'A';
+                if (obj.right-obj.left >= cThres) {
+                    note = 'C';
+                }
+                else {
+                    int padding = 4;
+                    int col = obj.left + padding;
+                    int rowAvg = 0;
+                    int rowCount = 0;
+
+                    for (int row = obj.top + padding; row < obj.bottom - padding; row++) {
+                        if (noStaffLinesImg.get(row, col)[3] == 255.0) {
+                            rowAvg += row;
+                            rowCount++;
+                        }
+                    }
+                    rowAvg = rowAvg / rowCount;
+
+                    ArrayList<Integer> staffLines = staffs.get(i);
+                    //for (int j = 0; j < staffLines.size(); j++) {
+
+
+                    //}
+
+
+                }
+
+
+
+                if (count > 400) {
+                    // add quarter note
+
+                } else {
+                    // add half note
+                }
+            }
+        }
+        return bCounts;
+    }
+
 
     public void fillSearch(int row, int col) {
 
@@ -287,9 +390,9 @@ public class ScoreImgProc {
         return noStaffLinesImg.get(row, col);
     }
 
-    public void markObjectRects() {
-        for (int row = curObjectTop; row < curObjectBottom; row++) {
-            for (int col = curObjectLeft; col < curObjectRight; col++) {
+    public void markObjectRects(int padding) {
+        for (int row = curObjectTop-padding; row < curObjectBottom+padding; row++) {
+            for (int col = curObjectLeft-padding; col < curObjectRight+padding; col++) {
                 staffsVisited[row][col] = true;
             }
         }
@@ -313,5 +416,769 @@ public class ScoreImgProc {
                 i--;
             }
         }
+    }
+
+    public void writeXML() {
+        String beginning =
+                        "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n" +
+                                "<!DOCTYPE score-partwise PUBLIC\n" +
+                                "    \"-//Recordare//DTD MusicXML 3.0 Partwise//EN\"\n" +
+                                "    \"http://www.musicxml.org/dtds/partwise.dtd\">\n" +
+                                "<score-partwise version=\"3.0\">\n" +
+                                "  <part-list>\n" +
+                                "    <score-part id=\"P1\">\n" +
+                                "    </score-part>\n" +
+                                "    <score-part id=\"P2\">\n" +
+                                "    </score-part>\n" +
+                                "    <score-part id=\"P3\">\n" +
+                                "    </score-part>\n" +
+                                "  </part-list>\n" +
+                                "  <part id=\"P1\">\n" +
+                                "    <measure>\n" +
+                                "      <attributes>\n" +
+                                "        <divisions>1</divisions>\n" +
+                                "        <key>\n" +
+                                "          <fifths>0</fifths>\n" +
+                                "        </key>\n" +
+                                "        <time>\n" +
+                                "          <beats>4</beats>\n" +
+                                "          <beat-type>4</beat-type>\n" +
+                                "        </time>\n" +
+                                "        <staves>2</staves>\n" +
+                                "        <clef number=\"1\">\n" +
+                                "          <sign>G</sign>\n" +
+                                "          <line>2</line>\n" +
+                                "        </clef>\n" +
+                                "        <clef number=\"2\">\n" +
+                                "          <sign>F</sign>\n" +
+                                "          <line>4</line>\n" +
+                                "        </clef>\n" +
+                                "      </attributes>\n" +
+                                "      \n" +
+                                "\n" +
+                                "      <note>\n" +
+                                "        <pitch>\n" +
+                                "          <step>C</step>\n" +
+                                "          <octave>4</octave>\n" +
+                                "        </pitch>\n" +
+                                "        <duration>1</duration>\n" +
+                                "        <type>quarter</type>\n" +
+                                "        <staff>1</staff>\n" +
+                                "      </note>\n" +
+                                "      <note>\n" +
+                                "        <pitch>\n" +
+                                "          <step>C</step>\n" +
+                                "          <octave>4</octave>\n" +
+                                "        </pitch>\n" +
+                                "        <duration>1</duration>\n" +
+                                "        <type>quarter</type>\n" +
+                                "        <staff>1</staff>\n" +
+                                "      </note>\n" +
+                                "      <note>\n" +
+                                "        <pitch>\n" +
+                                "          <step>G</step>\n" +
+                                "          <octave>4</octave>\n" +
+                                "        </pitch>\n" +
+                                "        <duration>1</duration>\n" +
+                                "        <type>quarter</type>\n" +
+                                "        <staff>1</staff>\n" +
+                                "      </note>\n" +
+                                "      <note>\n" +
+                                "        <pitch>\n" +
+                                "          <step>G</step>\n" +
+                                "          <octave>4</octave>\n" +
+                                "        </pitch>\n" +
+                                "        <duration>1</duration>\n" +
+                                "        <type>quarter</type>\n" +
+                                "        <staff>1</staff>\n" +
+                                "      </note>\n" +
+                                "\n" +
+                                "\n" +
+                                "      <note>\n" +
+                                "        <pitch>\n" +
+                                "          <step>C</step>\n" +
+                                "          <octave>3</octave>\n" +
+                                "        </pitch>\n" +
+                                "        <duration>2</duration>\n" +
+                                "        <type>half</type>\n" +
+                                "        <staff>2</staff>\n" +
+                                "      </note>\n" +
+                                "      <note>\n" +
+                                "        <pitch>\n" +
+                                "          <step>E</step>\n" +
+                                "          <octave>3</octave>\n" +
+                                "        </pitch>\n" +
+                                "        <duration>2</duration>\n" +
+                                "        <type>half</type>\n" +
+                                "        <staff>2</staff>\n" +
+                                "      </note>\n" +
+                                "    </measure>\n" +
+                                "\n" +
+                                "\n" +
+                                "    <measure>\n" +
+                                "      <note>\n" +
+                                "        <pitch>\n" +
+                                "          <step>A</step>\n" +
+                                "          <octave>4</octave>\n" +
+                                "        </pitch>\n" +
+                                "        <duration>1</duration>\n" +
+                                "        <type>quarter</type>\n" +
+                                "        <staff>1</staff>\n" +
+                                "      </note>\n" +
+                                "      <note>\n" +
+                                "        <pitch>\n" +
+                                "          <step>A</step>\n" +
+                                "          <octave>4</octave>\n" +
+                                "        </pitch>\n" +
+                                "        <duration>1</duration>\n" +
+                                "        <type>quarter</type>\n" +
+                                "        <staff>1</staff>\n" +
+                                "      </note>\n" +
+                                "      <note>\n" +
+                                "        <pitch>\n" +
+                                "          <step>G</step>\n" +
+                                "          <octave>4</octave>\n" +
+                                "        </pitch>\n" +
+                                "        <duration>2</duration>\n" +
+                                "        <type>half</type>\n" +
+                                "        <staff>1</staff>\n" +
+                                "      </note>\n" +
+                                "\n" +
+                                "\n" +
+                                "      <note>\n" +
+                                "        <pitch>\n" +
+                                "          <step>F</step>\n" +
+                                "          <octave>3</octave>\n" +
+                                "        </pitch>\n" +
+                                "        <duration>2</duration>\n" +
+                                "        <type>half</type>\n" +
+                                "        <staff>2</staff>\n" +
+                                "      </note>\n" +
+                                "      <note>\n" +
+                                "        <pitch>\n" +
+                                "          <step>E</step>\n" +
+                                "          <octave>3</octave>\n" +
+                                "        </pitch>\n" +
+                                "        <duration>2</duration>\n" +
+                                "        <type>half</type>\n" +
+                                "        <staff>2</staff>\n" +
+                                "      </note>\n" +
+                                "    </measure>\n" +
+                                "\n" +
+                                "\n" +
+                                "    <measure>\n" +
+                                "      <note>\n" +
+                                "        <pitch>\n" +
+                                "          <step>F</step>\n" +
+                                "          <octave>4</octave>\n" +
+                                "        </pitch>\n" +
+                                "        <duration>1</duration>\n" +
+                                "        <type>quarter</type>\n" +
+                                "        <staff>1</staff>\n" +
+                                "      </note>\n" +
+                                "      <note>\n" +
+                                "        <pitch>\n" +
+                                "          <step>F</step>\n" +
+                                "          <octave>4</octave>\n" +
+                                "        </pitch>\n" +
+                                "        <duration>1</duration>\n" +
+                                "        <type>quarter</type>\n" +
+                                "        <staff>1</staff>\n" +
+                                "      </note>\n" +
+                                "      <note>\n" +
+                                "        <pitch>\n" +
+                                "          <step>E</step>\n" +
+                                "          <octave>4</octave>\n" +
+                                "        </pitch>\n" +
+                                "        <duration>1</duration>\n" +
+                                "        <type>quarter</type>\n" +
+                                "        <staff>1</staff>\n" +
+                                "      </note>\n" +
+                                "      <note>\n" +
+                                "        <pitch>\n" +
+                                "          <step>E</step>\n" +
+                                "          <octave>4</octave>\n" +
+                                "        </pitch>\n" +
+                                "        <duration>1</duration>\n" +
+                                "        <type>quarter</type>\n" +
+                                "        <staff>1</staff>\n" +
+                                "      </note>\n" +
+                                "\n" +
+                                "\n" +
+                                "      <note>\n" +
+                                "        <pitch>\n" +
+                                "          <step>D</step>\n" +
+                                "          <octave>3</octave>\n" +
+                                "        </pitch>\n" +
+                                "        <duration>2</duration>\n" +
+                                "        <type>half</type>\n" +
+                                "        <staff>2</staff>\n" +
+                                "      </note>\n" +
+                                "      <note>\n" +
+                                "        <pitch>\n" +
+                                "          <step>C</step>\n" +
+                                "          <octave>3</octave>\n" +
+                                "        </pitch>\n" +
+                                "        <duration>2</duration>\n" +
+                                "        <type>half</type>\n" +
+                                "        <staff>2</staff>\n" +
+                                "      </note>\n" +
+                                "    </measure>\n" +
+                                "\n" +
+                                "\n" +
+                                "    <measure>\n" +
+                                "      <note>\n" +
+                                "        <pitch>\n" +
+                                "          <step>D</step>\n" +
+                                "          <octave>4</octave>\n" +
+                                "        </pitch>\n" +
+                                "        <duration>1</duration>\n" +
+                                "        <type>quarter</type>\n" +
+                                "        <staff>1</staff>\n" +
+                                "      </note>\n" +
+                                "      <note>\n" +
+                                "        <pitch>\n" +
+                                "          <step>D</step>\n" +
+                                "          <octave>4</octave>\n" +
+                                "        </pitch>\n" +
+                                "        <duration>1</duration>\n" +
+                                "        <type>quarter</type>\n" +
+                                "        <staff>1</staff>\n" +
+                                "      </note>\n" +
+                                "      <note>\n" +
+                                "        <pitch>\n" +
+                                "          <step>C</step>\n" +
+                                "          <octave>4</octave>\n" +
+                                "        </pitch>\n" +
+                                "        <duration>2</duration>\n" +
+                                "        <type>half</type>\n" +
+                                "        <staff>1</staff>\n" +
+                                "      </note>\n" +
+                                "\n" +
+                                "\n" +
+                                "      <note>\n" +
+                                "        <pitch>\n" +
+                                "          <step>G</step>\n" +
+                                "          <octave>3</octave>\n" +
+                                "        </pitch>\n" +
+                                "        <duration>2</duration>\n" +
+                                "        <type>half</type>\n" +
+                                "        <staff>2</staff>\n" +
+                                "      </note>\n" +
+                                "      <note>\n" +
+                                "        <pitch>\n" +
+                                "          <step>E</step>\n" +
+                                "          <octave>3</octave>\n" +
+                                "        </pitch>\n" +
+                                "        <duration>2</duration>\n" +
+                                "        <type>half</type>\n" +
+                                "        <staff>2</staff>\n" +
+                                "      </note>\n" +
+                                "    </measure>\n" +
+                                "\n" +
+                                "\n" +
+                                "    <measure>\n" +
+                                "      <note>\n" +
+                                "        <pitch>\n" +
+                                "          <step>G</step>\n" +
+                                "          <octave>4</octave>\n" +
+                                "        </pitch>\n" +
+                                "        <duration>1</duration>\n" +
+                                "        <type>quarter</type>\n" +
+                                "        <staff>1</staff>\n" +
+                                "      </note>\n" +
+                                "      <note>\n" +
+                                "        <pitch>\n" +
+                                "          <step>G</step>\n" +
+                                "          <octave>4</octave>\n" +
+                                "        </pitch>\n" +
+                                "        <duration>1</duration>\n" +
+                                "        <type>quarter</type>\n" +
+                                "        <staff>1</staff>\n" +
+                                "      </note>\n" +
+                                "      <note>\n" +
+                                "        <pitch>\n" +
+                                "          <step>F</step>\n" +
+                                "          <octave>4</octave>\n" +
+                                "        </pitch>\n" +
+                                "        <duration>1</duration>\n" +
+                                "        <type>quarter</type>\n" +
+                                "        <staff>1</staff>\n" +
+                                "      </note>\n" +
+                                "      <note>\n" +
+                                "        <pitch>\n" +
+                                "          <step>F</step>\n" +
+                                "          <octave>4</octave>\n" +
+                                "        </pitch>\n" +
+                                "        <duration>1</duration>\n" +
+                                "        <type>quarter</type>\n" +
+                                "        <staff>1</staff>\n" +
+                                "      </note>\n" +
+                                "\n" +
+                                "\n" +
+                                "      <note>\n" +
+                                "        <pitch>\n" +
+                                "          <step>E</step>\n" +
+                                "          <octave>3</octave>\n" +
+                                "        </pitch>\n" +
+                                "        <duration>2</duration>\n" +
+                                "        <type>half</type>\n" +
+                                "        <staff>2</staff>\n" +
+                                "      </note>\n" +
+                                "      <note>\n" +
+                                "        <pitch>\n" +
+                                "          <step>D</step>\n" +
+                                "          <octave>3</octave>\n" +
+                                "        </pitch>\n" +
+                                "        <duration>2</duration>\n" +
+                                "        <type>half</type>\n" +
+                                "        <staff>2</staff>\n" +
+                                "      </note>\n" +
+                                "    </measure>\n" +
+                                "  </part>\n" +
+                                "\n" +
+                                "\n" +
+                                "  <part id=\"P2\">\n" +
+                                "    <measure>\n" +
+                                "      <attributes>\n" +
+                                "        <divisions>1</divisions>\n" +
+                                "        <key>\n" +
+                                "          <fifths>0</fifths>\n" +
+                                "        </key>\n" +
+                                "        <time>\n" +
+                                "          <beats>4</beats>\n" +
+                                "          <beat-type>4</beat-type>\n" +
+                                "        </time>\n" +
+                                "        <staves>2</staves>\n" +
+                                "        <clef number=\"1\">\n" +
+                                "          <sign>G</sign>\n" +
+                                "          <line>2</line>\n" +
+                                "        </clef>\n" +
+                                "        <clef number=\"2\">\n" +
+                                "          <sign>F</sign>\n" +
+                                "          <line>4</line>\n" +
+                                "        </clef>\n" +
+                                "      </attributes>\n" +
+                                "      <note>\n" +
+                                "        <pitch>\n" +
+                                "          <step>E</step>\n" +
+                                "          <octave>4</octave>\n" +
+                                "        </pitch>\n" +
+                                "        <duration>1</duration>\n" +
+                                "        <type>quarter</type>\n" +
+                                "        <staff>1</staff>\n" +
+                                "      </note>\n" +
+                                "      <note>\n" +
+                                "        <pitch>\n" +
+                                "          <step>E</step>\n" +
+                                "          <octave>4</octave>\n" +
+                                "        </pitch>\n" +
+                                "        <duration>1</duration>\n" +
+                                "        <type>quarter</type>\n" +
+                                "        <staff>1</staff>\n" +
+                                "      </note>\n" +
+                                "      <note>\n" +
+                                "        <pitch>\n" +
+                                "          <step>D</step>\n" +
+                                "          <octave>4</octave>\n" +
+                                "        </pitch>\n" +
+                                "        <duration>2</duration>\n" +
+                                "        <type>half</type>\n" +
+                                "        <staff>1</staff>\n" +
+                                "      </note>\n" +
+                                "\n" +
+                                "\n" +
+                                "      <note>\n" +
+                                "        <pitch>\n" +
+                                "          <step>C</step>\n" +
+                                "          <octave>3</octave>\n" +
+                                "        </pitch>\n" +
+                                "        <duration>2</duration>\n" +
+                                "        <type>half</type>\n" +
+                                "        <staff>2</staff>\n" +
+                                "      </note>\n" +
+                                "      <note>\n" +
+                                "        <pitch>\n" +
+                                "          <step>G</step>\n" +
+                                "          <octave>3</octave>\n" +
+                                "        </pitch>\n" +
+                                "        <duration>2</duration>\n" +
+                                "        <type>half</type>\n" +
+                                "        <staff>2</staff>\n" +
+                                "      </note>\n" +
+                                "    </measure>\n" +
+                                "    \n" +
+                                "\n" +
+                                "    <measure>\n" +
+                                "      <note>\n" +
+                                "        <pitch>\n" +
+                                "          <step>G</step>\n" +
+                                "          <octave>4</octave>\n" +
+                                "        </pitch>\n" +
+                                "        <duration>1</duration>\n" +
+                                "        <type>quarter</type>\n" +
+                                "        <staff>1</staff>\n" +
+                                "      </note>\n" +
+                                "      <note>\n" +
+                                "        <pitch>\n" +
+                                "          <step>G</step>\n" +
+                                "          <octave>4</octave>\n" +
+                                "        </pitch>\n" +
+                                "        <duration>1</duration>\n" +
+                                "        <type>quarter</type>\n" +
+                                "        <staff>1</staff>\n" +
+                                "      </note>\n" +
+                                "      <note>\n" +
+                                "        <pitch>\n" +
+                                "          <step>F</step>\n" +
+                                "          <octave>4</octave>\n" +
+                                "        </pitch>\n" +
+                                "        <duration>1</duration>\n" +
+                                "        <type>quarter</type>\n" +
+                                "        <staff>1</staff>\n" +
+                                "      </note>\n" +
+                                "      <note>\n" +
+                                "        <pitch>\n" +
+                                "          <step>F</step>\n" +
+                                "          <octave>4</octave>\n" +
+                                "        </pitch>\n" +
+                                "        <duration>1</duration>\n" +
+                                "        <type>quarter</type>\n" +
+                                "        <staff>1</staff>\n" +
+                                "      </note>\n" +
+                                "\n" +
+                                "\n" +
+                                "      <note>\n" +
+                                "        <pitch>\n" +
+                                "          <step>E</step>\n" +
+                                "          <octave>3</octave>\n" +
+                                "        </pitch>\n" +
+                                "        <duration>2</duration>\n" +
+                                "        <type>half</type>\n" +
+                                "        <staff>2</staff>\n" +
+                                "      </note>\n" +
+                                "      <note>\n" +
+                                "        <pitch>\n" +
+                                "          <step>D</step>\n" +
+                                "          <octave>3</octave>\n" +
+                                "        </pitch>\n" +
+                                "        <duration>2</duration>\n" +
+                                "        <type>half</type>\n" +
+                                "        <staff>2</staff>\n" +
+                                "      </note>\n" +
+                                "    </measure>\n" +
+                                "\n" +
+                                "\n" +
+                                "    <measure>\n" +
+                                "      <note>\n" +
+                                "        <pitch>\n" +
+                                "          <step>E</step>\n" +
+                                "          <octave>4</octave>\n" +
+                                "        </pitch>\n" +
+                                "        <duration>1</duration>\n" +
+                                "        <type>quarter</type>\n" +
+                                "        <staff>1</staff>\n" +
+                                "      </note>\n" +
+                                "      <note>\n" +
+                                "        <pitch>\n" +
+                                "          <step>E</step>\n" +
+                                "          <octave>4</octave>\n" +
+                                "        </pitch>\n" +
+                                "        <duration>1</duration>\n" +
+                                "        <type>quarter</type>\n" +
+                                "        <staff>1</staff>\n" +
+                                "      </note>\n" +
+                                "      <note>\n" +
+                                "        <pitch>\n" +
+                                "          <step>D</step>\n" +
+                                "          <octave>4</octave>\n" +
+                                "        </pitch>\n" +
+                                "        <duration>2</duration>\n" +
+                                "        <type>half</type>\n" +
+                                "        <staff>1</staff>\n" +
+                                "      </note>\n" +
+                                "\n" +
+                                "\n" +
+                                "      <note>\n" +
+                                "        <pitch>\n" +
+                                "          <step>C</step>\n" +
+                                "          <octave>3</octave>\n" +
+                                "        </pitch>\n" +
+                                "        <duration>2</duration>\n" +
+                                "        <type>half</type>\n" +
+                                "        <staff>2</staff>\n" +
+                                "      </note>\n" +
+                                "      <note>\n" +
+                                "        <pitch>\n" +
+                                "          <step>G</step>\n" +
+                                "          <octave>3</octave>\n" +
+                                "        </pitch>\n" +
+                                "        <duration>2</duration>\n" +
+                                "        <type>half</type>\n" +
+                                "        <staff>2</staff>\n" +
+                                "      </note>\n" +
+                                "    </measure>\n" +
+                                "\n" +
+                                "\n" +
+                                "    <measure>\n" +
+                                "      <note>\n" +
+                                "        <pitch>\n" +
+                                "          <step>C</step>\n" +
+                                "          <octave>4</octave>\n" +
+                                "        </pitch>\n" +
+                                "        <duration>1</duration>\n" +
+                                "        <type>quarter</type>\n" +
+                                "        <staff>1</staff>\n" +
+                                "      </note>\n" +
+                                "      <note>\n" +
+                                "        <pitch>\n" +
+                                "          <step>C</step>\n" +
+                                "          <octave>4</octave>\n" +
+                                "        </pitch>\n" +
+                                "        <duration>1</duration>\n" +
+                                "        <type>quarter</type>\n" +
+                                "        <staff>1</staff>\n" +
+                                "      </note>\n" +
+                                "      <note>\n" +
+                                "        <pitch>\n" +
+                                "          <step>G</step>\n" +
+                                "          <octave>4</octave>\n" +
+                                "        </pitch>\n" +
+                                "        <duration>1</duration>\n" +
+                                "        <type>quarter</type>\n" +
+                                "        <staff>1</staff>\n" +
+                                "      </note>\n" +
+                                "      <note>\n" +
+                                "        <pitch>\n" +
+                                "          <step>G</step>\n" +
+                                "          <octave>4</octave>\n" +
+                                "        </pitch>\n" +
+                                "        <duration>1</duration>\n" +
+                                "        <type>quarter</type>\n" +
+                                "        <staff>1</staff>\n" +
+                                "      </note>\n" +
+                                "\n" +
+                                "\n" +
+                                "      <note>\n" +
+                                "        <pitch>\n" +
+                                "          <step>C</step>\n" +
+                                "          <octave>3</octave>\n" +
+                                "        </pitch>\n" +
+                                "        <duration>2</duration>\n" +
+                                "        <type>half</type>\n" +
+                                "        <staff>2</staff>\n" +
+                                "      </note>\n" +
+                                "      <note>\n" +
+                                "        <pitch>\n" +
+                                "          <step>E</step>\n" +
+                                "          <octave>3</octave>\n" +
+                                "        </pitch>\n" +
+                                "        <duration>2</duration>\n" +
+                                "        <type>half</type>\n" +
+                                "        <staff>2</staff>\n" +
+                                "      </note>\n" +
+                                "    </measure>\n" +
+                                "  </part>\n" +
+                                "\n" +
+                                "\n" +
+                                "    <part id=\"P3\">\n" +
+                                "    <measure>\n" +
+                                "      <attributes>\n" +
+                                "        <divisions>1</divisions>\n" +
+                                "        <key>\n" +
+                                "          <fifths>0</fifths>\n" +
+                                "        </key>\n" +
+                                "        <time>\n" +
+                                "          <beats>4</beats>\n" +
+                                "          <beat-type>4</beat-type>\n" +
+                                "        </time>\n" +
+                                "        <staves>2</staves>\n" +
+                                "        <clef number=\"1\">\n" +
+                                "          <sign>G</sign>\n" +
+                                "          <line>2</line>\n" +
+                                "        </clef>\n" +
+                                "        <clef number=\"2\">\n" +
+                                "          <sign>F</sign>\n" +
+                                "          <line>4</line>\n" +
+                                "        </clef>\n" +
+                                "      </attributes>\n" +
+                                "      <note>\n" +
+                                "        <pitch>\n" +
+                                "          <step>A</step>\n" +
+                                "          <octave>4</octave>\n" +
+                                "        </pitch>\n" +
+                                "        <duration>1</duration>\n" +
+                                "        <type>quarter</type>\n" +
+                                "        <staff>1</staff>\n" +
+                                "      </note>\n" +
+                                "      <note>\n" +
+                                "        <pitch>\n" +
+                                "          <step>A</step>\n" +
+                                "          <octave>4</octave>\n" +
+                                "        </pitch>\n" +
+                                "        <duration>1</duration>\n" +
+                                "        <type>quarter</type>\n" +
+                                "        <staff>1</staff>\n" +
+                                "      </note>\n" +
+                                "      <note>\n" +
+                                "        <pitch>\n" +
+                                "          <step>G</step>\n" +
+                                "          <octave>4</octave>\n" +
+                                "        </pitch>\n" +
+                                "        <duration>2</duration>\n" +
+                                "        <type>half</type>\n" +
+                                "        <staff>1</staff>\n" +
+                                "      </note>\n" +
+                                "\n" +
+                                "\n" +
+                                "      <note>\n" +
+                                "        <pitch>\n" +
+                                "          <step>F</step>\n" +
+                                "          <octave>3</octave>\n" +
+                                "        </pitch>\n" +
+                                "        <duration>2</duration>\n" +
+                                "        <type>half</type>\n" +
+                                "        <staff>2</staff>\n" +
+                                "      </note>\n" +
+                                "      <note>\n" +
+                                "        <pitch>\n" +
+                                "          <step>E</step>\n" +
+                                "          <octave>3</octave>\n" +
+                                "        </pitch>\n" +
+                                "        <duration>2</duration>\n" +
+                                "        <type>half</type>\n" +
+                                "        <staff>2</staff>\n" +
+                                "      </note>\n" +
+                                "    </measure>\n" +
+                                "    \n" +
+                                "\n" +
+                                "    <measure>\n" +
+                                "      <note>\n" +
+                                "        <pitch>\n" +
+                                "          <step>F</step>\n" +
+                                "          <octave>4</octave>\n" +
+                                "        </pitch>\n" +
+                                "        <duration>1</duration>\n" +
+                                "        <type>quarter</type>\n" +
+                                "        <staff>1</staff>\n" +
+                                "      </note>\n" +
+                                "      <note>\n" +
+                                "        <pitch>\n" +
+                                "          <step>F</step>\n" +
+                                "          <octave>4</octave>\n" +
+                                "        </pitch>\n" +
+                                "        <duration>1</duration>\n" +
+                                "        <type>quarter</type>\n" +
+                                "        <staff>1</staff>\n" +
+                                "      </note>\n" +
+                                "      <note>\n" +
+                                "        <pitch>\n" +
+                                "          <step>E</step>\n" +
+                                "          <octave>4</octave>\n" +
+                                "        </pitch>\n" +
+                                "        <duration>1</duration>\n" +
+                                "        <type>quarter</type>\n" +
+                                "        <staff>1</staff>\n" +
+                                "      </note>\n" +
+                                "      <note>\n" +
+                                "        <pitch>\n" +
+                                "          <step>E</step>\n" +
+                                "          <octave>4</octave>\n" +
+                                "        </pitch>\n" +
+                                "        <duration>1</duration>\n" +
+                                "        <type>quarter</type>\n" +
+                                "        <staff>1</staff>\n" +
+                                "      </note>\n" +
+                                "\n" +
+                                "\n" +
+                                "      <note>\n" +
+                                "        <pitch>\n" +
+                                "          <step>D</step>\n" +
+                                "          <octave>3</octave>\n" +
+                                "        </pitch>\n" +
+                                "        <duration>2</duration>\n" +
+                                "        <type>half</type>\n" +
+                                "        <staff>2</staff>\n" +
+                                "      </note>\n" +
+                                "      <note>\n" +
+                                "        <pitch>\n" +
+                                "          <step>C</step>\n" +
+                                "          <octave>3</octave>\n" +
+                                "        </pitch>\n" +
+                                "        <duration>2</duration>\n" +
+                                "        <type>half</type>\n" +
+                                "        <staff>2</staff>\n" +
+                                "      </note>\n" +
+                                "    </measure>\n" +
+                                "\n" +
+                                "\n" +
+                                "    <measure>\n" +
+                                "      <note>\n" +
+                                "        <pitch>\n" +
+                                "          <step>D</step>\n" +
+                                "          <octave>4</octave>\n" +
+                                "        </pitch>\n" +
+                                "        <duration>1</duration>\n" +
+                                "        <type>quarter</type>\n" +
+                                "        <staff>1</staff>\n" +
+                                "      </note>\n" +
+                                "      <note>\n" +
+                                "        <pitch>\n" +
+                                "          <step>D</step>\n" +
+                                "          <octave>4</octave>\n" +
+                                "        </pitch>\n" +
+                                "        <duration>1</duration>\n" +
+                                "        <type>quarter</type>\n" +
+                                "        <staff>1</staff>\n" +
+                                "      </note>\n" +
+                                "      <note>\n" +
+                                "        <pitch>\n" +
+                                "          <step>C</step>\n" +
+                                "          <octave>4</octave>\n" +
+                                "        </pitch>\n" +
+                                "        <duration>2</duration>\n" +
+                                "        <type>half</type>\n" +
+                                "        <staff>1</staff>\n" +
+                                "      </note>\n" +
+                                "\n" +
+                                "\n" +
+                                "      <note>\n" +
+                                "        <pitch>\n" +
+                                "          <step>G</step>\n" +
+                                "          <octave>3</octave>\n" +
+                                "        </pitch>\n" +
+                                "        <duration>2</duration>\n" +
+                                "        <type>half</type>\n" +
+                                "        <staff>2</staff>\n" +
+                                "      </note>\n" +
+                                "      <note>\n" +
+                                "        <pitch>\n" +
+                                "          <step>E</step>\n" +
+                                "          <octave>3</octave>\n" +
+                                "        </pitch>\n" +
+                                "        <duration>2</duration>\n" +
+                                "        <type>half</type>\n" +
+                                "        <staff>2</staff>\n" +
+                                "      </note>\n" +
+                                "    </measure>\n" +
+                                "  </part>\n" +
+                                "\n" +
+                                "</score-partwise>\n";
+
+        String root = Environment.getExternalStorageDirectory().toString();
+        File myDir = new File(root + "/Piano/XML");
+        myDir.mkdirs();
+        File file = new File (myDir, "twinkle_twinkle.xml");
+        if (file.exists ()) file.delete ();
+        try {
+            FileOutputStream out = new FileOutputStream(file);
+            out.write(beginning.getBytes());
+            out.flush();
+            out.close();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
     }
 }
