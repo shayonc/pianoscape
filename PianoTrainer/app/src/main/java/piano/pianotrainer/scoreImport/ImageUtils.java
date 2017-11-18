@@ -1,4 +1,4 @@
-package piano.pianotrainer.score_importing;
+package piano.pianotrainer.scoreImport;
 import android.Manifest;
 import android.app.Activity;
 import android.content.Context;

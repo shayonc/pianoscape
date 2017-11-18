@@ -27,7 +27,7 @@ import java.io.IOException;
 import piano.pianotrainer.R;
 import piano.pianotrainer.db.DBHelper;
 import piano.pianotrainer.parser.XMLMusicParser;
-import piano.pianotrainer.score_importing.PDFHelper;
+import piano.pianotrainer.scoreImport.PDFHelper;
 
 public class HomeActivity extends AppCompatActivity {
 

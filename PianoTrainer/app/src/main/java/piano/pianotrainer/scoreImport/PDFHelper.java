@@ -1,4 +1,4 @@
-package piano.pianotrainer.score_importing;
+package piano.pianotrainer.scoreImport;
 
 import android.graphics.Bitmap;
 import android.graphics.pdf.PdfRenderer;
@@ -44,7 +44,7 @@ public class PDFHelper {
         mCurrentPage.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY);
         //IMG PROCESSING:
         //feed in the bitmap to be binarized
-        ScoreImgProc scoreProc = new ScoreImgProc(bitmap);
+        ScoreProcessor scoreProc = new ScoreProcessor(bitmap);
         scoreProc.binarize();
         scoreProc.removeStaffLines(true);
         //after binarization and staff line elimination

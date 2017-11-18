@@ -28,9 +28,9 @@ import java.io.InputStream;
 import java.util.ArrayList;
 
 import piano.pianotrainer.R;
-import piano.pianotrainer.score_importing.ImageUtils;
-import piano.pianotrainer.score_importing.PDFHelper;
-import piano.pianotrainer.score_importing.ScoreImgProc;
+import piano.pianotrainer.scoreImport.ImageUtils;
+import piano.pianotrainer.scoreImport.PDFHelper;
+import piano.pianotrainer.scoreImport.ScoreProcessor;
 
 public class MusicScoreViewerFragment extends Fragment implements View.OnClickListener{
     /**
@@ -235,7 +235,7 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
                     curPage.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY);
 
 
-                    ScoreImgProc scoreProc = new ScoreImgProc(bitmap);
+                    ScoreProcessor scoreProc = new ScoreProcessor(bitmap);
                     scoreProc.binarize();
                     scoreProc.removeStaffLines(true);
                     //Bitmap binBitmap = scoreProc.getNoStaffLinesImg();
