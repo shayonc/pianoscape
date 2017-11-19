@@ -44,6 +44,8 @@ public class ScoreProcessor {
     int staffLineDiff;
     List<List<Integer>> staffs;
     List<List<Rect>> staffObjects;
+
+    // intermediate values to keep track of object bounds
     int curObjectTop;
     int curObjectBottom;
     int curObjectLeft;
@@ -221,13 +223,13 @@ public class ScoreProcessor {
         return staffs;
     }
 
-    public ArrayList<ArrayList<Rect>> detectObjects() {
+    public List<List<Rect>> detectObjects() {
         //TODO: iterate through all staffs
-        staffObjects = new ArrayList<ArrayList<Rect>>();
-        staffsVisited = new boolean[noStaffLinesImg.height()][noStaffLinesImg.width()];
+        staffObjects = new ArrayList<List<Rect>>();
+        boolean[][] staffsVisited = new boolean[noStaffLinesImg.height()][noStaffLinesImg.width()];
 
         int i = 0;
-        ArrayList<Integer> staffLines = staffs.get(i);
+        List<Integer> staffLines = staffs.get(i);
         staffObjects.add(new ArrayList<Rect>());
         int topBound = staffLines.get(0);
         int bottomBound = staffLines.get(9);
@@ -248,10 +250,10 @@ public class ScoreProcessor {
                     double[] data = noStaffLinesImg.get(row, col);
 
                     if (data[data.length-1] == 255.0) {
-                        fillSearch(row, col);
+                        fillSearch(row, col, staffsVisited);
                         staffObjects.get(i).add(new Rect(curObjectLeft-padding, curObjectTop-padding, curObjectRight+padding, curObjectBottom+padding));
                         //tabuRects.add(new Rect(curObjectLeft, curObjectTop, curObjectRight, curObjectBottom));
-                        markObjectRects(padding);
+                        markObjectRects(padding, staffsVisited);
                         curObjectTop = noStaffLinesImg.height();
                         curObjectBottom = 0;
                         curObjectLeft = noStaffLinesImg.width();
@@ -265,11 +267,52 @@ public class ScoreProcessor {
         return staffObjects;
     }
 
-    public ArrayList<Integer> classifyObjects() {
+
+    private void fillSearch(int row, int col, boolean[][] staffsVisited) {
+
+        if (row > curObjectBottom) {
+            curObjectBottom = row;
+        }
+        if (row < curObjectTop) {
+            curObjectTop = row;
+        }
+        if (col > curObjectRight) {
+            curObjectRight = col;
+        }
+        if (col < curObjectLeft) {
+            curObjectLeft = col;
+        }
+        staffsVisited[row][col] = true;
+
+        if (!staffsVisited[row-1][col] && noStaffLinesImg.get(row-1, col)[3] == 255.0) {
+            fillSearch(row-1, col, staffsVisited);
+        }
+        if (!staffsVisited[row+1][col] && noStaffLinesImg.get(row+1, col)[3] == 255.0) {
+            fillSearch(row+1, col, staffsVisited);
+        }
+        if (!staffsVisited[row][col-1] && noStaffLinesImg.get(row, col-1)[3] == 255.0) {
+            fillSearch(row, col-1, staffsVisited);
+        }
+        if (!staffsVisited[row][col+1] && noStaffLinesImg.get(row, col+1)[3] == 255.0) {
+            fillSearch(row, col+1, staffsVisited);
+        }
+    }
+
+
+    private void markObjectRects(int padding, boolean[][] staffsVisited) {
+        for (int row = curObjectTop-padding; row < curObjectBottom+padding; row++) {
+            for (int col = curObjectLeft-padding; col < curObjectRight+padding; col++) {
+                staffsVisited[row][col] = true;
+            }
+        }
+    }
+
+
+    public List<Integer> classifyObjects() {
         int i = 0;
-        ArrayList<Rect> objects = staffObjects.get(i);
-        ArrayList<Integer> bCounts = new ArrayList<Integer>();
-        HashMap<Double, Character> notes = new HashMap<Double, Character>();
+        List<Rect> objects = staffObjects.get(i);
+        List<Integer> bCounts = new ArrayList<Integer>();
+        Map<Double, Character> notes = new HashMap<Double, Character>();
         // treble
         notes.put(0.0,'F');
         notes.put(0.5,'E');
@@ -327,7 +370,7 @@ public class ScoreProcessor {
                     }
                     rowAvg = rowAvg / rowCount;
 
-                    ArrayList<Integer> staffLines = staffs.get(i);
+                    List<Integer> staffLines = staffs.get(i);
                     //for (int j = 0; j < staffLines.size(); j++) {
 
 
@@ -349,47 +392,8 @@ public class ScoreProcessor {
         return bCounts;
     }
 
-
-    public void fillSearch(int row, int col) {
-
-        if (row > curObjectBottom) {
-            curObjectBottom = row;
-        }
-        if (row < curObjectTop) {
-            curObjectTop = row;
-        }
-        if (col > curObjectRight) {
-            curObjectRight = col;
-        }
-        if (col < curObjectLeft) {
-            curObjectLeft = col;
-        }
-        staffsVisited[row][col] = true;
-
-        if (!staffsVisited[row-1][col] && noStaffLinesImg.get(row-1, col)[3] == 255.0) {
-            fillSearch(row-1, col);
-        }
-        if (!staffsVisited[row+1][col] && noStaffLinesImg.get(row+1, col)[3] == 255.0) {
-            fillSearch(row+1, col);
-        }
-        if (!staffsVisited[row][col-1] && noStaffLinesImg.get(row, col-1)[3] == 255.0) {
-            fillSearch(row, col-1);
-        }
-        if (!staffsVisited[row][col+1] && noStaffLinesImg.get(row, col+1)[3] == 255.0) {
-            fillSearch(row, col+1);
-        }
-    }
-
     public double[] getImageData(int row, int col) {
         return noStaffLinesImg.get(row, col);
-    }
-
-    public void markObjectRects(int padding) {
-        for (int row = curObjectTop-padding; row < curObjectBottom+padding; row++) {
-            for (int col = curObjectLeft-padding; col < curObjectRight+padding; col++) {
-                staffsVisited[row][col] = true;
-            }
-        }
     }
 
     public boolean inTabuRects(int row, int col, ArrayList<Rect> tabuRects) {

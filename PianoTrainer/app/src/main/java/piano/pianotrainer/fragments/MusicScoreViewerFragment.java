@@ -25,7 +25,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
+import java.util.*;
 
 import piano.pianotrainer.R;
 import piano.pianotrainer.scoreImport.ImageUtils;
@@ -240,12 +240,12 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
                     scoreProc.removeStaffLines(true);
                     //Bitmap binBitmap = scoreProc.getNoStaffLinesImg();
 
-                    ArrayList<ArrayList<Integer>> staffLines = scoreProc.refineStaffLines();
+                    scoreProc.refineStaffLines();
 
-                    ArrayList<ArrayList<Rect>> staffObjects = scoreProc.detectObjects();
+                    List<List<Rect>> staffObjects = scoreProc.detectObjects();
 
 
-                    ArrayList<Integer> bCounts = scoreProc.classifyObjects();
+                    List<Integer> bCounts = scoreProc.classifyObjects();
                     mDebugView.setText(staffObjects.toString() + "\n\n" + bCounts.toString());
 
 
