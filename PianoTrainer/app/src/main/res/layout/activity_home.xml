@@ -66,7 +66,18 @@
                 android:text="Placeholder"
                 android:textSize="14sp"
                 android:scrollbars = "vertical"
-                android:gravity="center_horizontal"/> <!--center horizontal gravity-->
+                android:gravity="center_horizontal"/>
+
+            <android.support.design.widget.FloatingActionButton
+                android:id="@+id/floatingActionButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:layout_centerHorizontal="true"
+                android:layout_marginBottom="38dp"
+                android:clickable="true"
+                app:backgroundTint="@color/colorPrimary"
+                app:srcCompat="@mipmap/piano" /> <!--center horizontal gravity-->
 
         </RelativeLayout>
         <TextView
@@ -81,13 +92,5 @@
 
 
     </FrameLayout>
-
-    <android.support.design.widget.BottomNavigationView
-        android:id="@+id/navigation"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom"
-        android:background="?android:attr/windowBackground"
-        app:menu="@menu/navigation" />
 
 </LinearLayout>
