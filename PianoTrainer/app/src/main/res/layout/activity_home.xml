@@ -77,7 +77,7 @@
                 android:layout_marginBottom="38dp"
                 android:clickable="true"
                 app:backgroundTint="@color/colorPrimary"
-                app:srcCompat="@mipmap/piano" /> <!--center horizontal gravity-->
+                app:srcCompat="@drawable/camera" /> <!--center horizontal gravity-->
 
         </RelativeLayout>
         <TextView
