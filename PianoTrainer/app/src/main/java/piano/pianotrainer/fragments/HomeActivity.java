@@ -41,6 +41,7 @@ import piano.pianotrainer.fragments.ComparisonSetup;
 import piano.pianotrainer.model.Note;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class HomeActivity extends AppCompatActivity {
@@ -224,22 +225,49 @@ public class HomeActivity extends AppCompatActivity {
                 }
             }
         });
-        // TODO : List of files
+        /* TODO : List of files
+         * put mxl files into array of objects
+         * send mxl files and get (title, last updated) to ImageView to display
+         * OnClick of each image show popup
+        * */
         // initialize paths
-//        this.directoryPath = getSdCardPath() + ROOT_FOLDER;
+        this.directoryPath = getSdCardPath() + ROOT_FOLDER;
 //        this.mxlFilePath = getSdCardPath() + ROOT_FOLDER + File.separator + filename + ".mxl";
 //        this.outputFolder = getSdCardPath() + ROOT_FOLDER + File.separator + OUTPUT_FOLDER;
 //        this.xmlFilePath = getSdCardPath() + ROOT_FOLDER + File.separator + OUTPUT_FOLDER + File.separator + filename + ".xml";
-        GridView gridview = (GridView) findViewById(R.id.gridview);
-        gridview.setAdapter(new ImageAdapter(this));
-
-        gridview.setOnItemClickListener(new OnItemClickListener() {
-            public void onItemClick(AdapterView<?> parent, View v,
-                                    int position, long id) {
-                Toast.makeText(HomeActivity.this, "" + position,
-                        Toast.LENGTH_SHORT).show();
+        try {
+            File file = new File(directoryPath);
+            //if Piano folder doesn't exist then create one
+            if (!file.exists()) {
+                file.mkdir();
             }
-        });
+            //get list of files, no recursive
+            File[] list = file.listFiles();
+
+            for (File f: list){
+                String name = f.getName();
+                if (name.endsWith(".mxl") || name.endsWith(".xml")) {
+                    Log.d("HomeActivity", name);
+                    Date date = new Date(f.lastModified());
+                    Log.d("HomeActivity", date.toString());
+                }
+            }
+
+            GridView gridview = (GridView) findViewById(R.id.gridview);
+            gridview.setAdapter(new ImageAdapter(this));
+
+            gridview.setOnItemClickListener(new OnItemClickListener() {
+                public void onItemClick(AdapterView<?> parent, View v,
+                                        int position, long id) {
+                    Toast.makeText(HomeActivity.this, "" + position,
+                            Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+
     }
 
     public String[] GetMxlFiles(){
