@@ -19,6 +19,7 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.GridView;
 import android.widget.TextView;
 import android.widget.Spinner;
 import android.widget.Toast;
@@ -31,6 +32,7 @@ import java.io.Console;
 import java.io.IOException;
 
 import piano.pianotrainer.R;
+import piano.pianotrainer.adapters.ImageAdapter;
 import piano.pianotrainer.db.DBHelper;
 import piano.pianotrainer.parser.XMLMusicParser;
 import piano.pianotrainer.fragments.ComparisonSetup;
@@ -64,6 +66,10 @@ public class HomeActivity extends AppCompatActivity {
     // Variables for helping with evaluation
     private final String state = "";
     private int evalPosition;
+    private String directoryPath;
+    private String mxlFilePath;
+    private String outputFolder;
+    private String xmlFilePath;
 
     // Storage Permissions
     private static final int REQUEST_EXTERNAL_STORAGE = 1;
@@ -218,7 +224,22 @@ public class HomeActivity extends AppCompatActivity {
                 }
             }
         });
+        // TODO : List of files
+        // initialize paths
+//        this.directoryPath = getSdCardPath() + ROOT_FOLDER;
+//        this.mxlFilePath = getSdCardPath() + ROOT_FOLDER + File.separator + filename + ".mxl";
+//        this.outputFolder = getSdCardPath() + ROOT_FOLDER + File.separator + OUTPUT_FOLDER;
+//        this.xmlFilePath = getSdCardPath() + ROOT_FOLDER + File.separator + OUTPUT_FOLDER + File.separator + filename + ".xml";
+        GridView gridview = (GridView) findViewById(R.id.gridview);
+        gridview.setAdapter(new ImageAdapter(this));
 
+        gridview.setOnItemClickListener(new OnItemClickListener() {
+            public void onItemClick(AdapterView<?> parent, View v,
+                                    int position, long id) {
+                Toast.makeText(HomeActivity.this, "" + position,
+                        Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     public String[] GetMxlFiles(){
@@ -281,7 +302,9 @@ public class HomeActivity extends AppCompatActivity {
         return false;
     }
 
-
+    public static String getSdCardPath() {
+        return Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator;
+    }
 
     public static void verifyStoragePermissions(Activity activity) {
         // Check if we have write permission
