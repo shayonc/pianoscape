@@ -12,6 +12,7 @@ import java.io.File;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.text.method.ScrollingMovementMethod;
@@ -271,9 +272,8 @@ public class HomeActivity extends AppCompatActivity {
                                         int position, long id) {
                     // TODO: temp fix
                     MusicFile selectedItem = musicFileList.get(position);
-
-                    Toast.makeText(HomeActivity.this, "" + position,
-                            Toast.LENGTH_SHORT).show();
+                    // pop up dialog
+                    openMusicOptions();
                 }
             });
         }
@@ -281,6 +281,11 @@ public class HomeActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
+    }
+
+    public void openMusicOptions() {
+        DialogFragment newFragment = new MusicDialogFragment();
+        newFragment.show(getSupportFragmentManager(), "musicOptions");
     }
 
     public String[] GetMxlFiles(){

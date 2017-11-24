@@ -4,4 +4,12 @@
     <string name="title_home">Home</string>
     <string name="title_camera">Camera</string>
     <string name="summary">Summary</string>
+    <string name="music_dialog">Select Option</string>
+    <string-array
+        name="musicDialogOptions">
+        <item>Play Real-Time</item>
+        <item>Play at Own Pace</item>
+        <item>Edit XML File</item>
+        <item>View Summary</item>
+    </string-array>
 </resources>
