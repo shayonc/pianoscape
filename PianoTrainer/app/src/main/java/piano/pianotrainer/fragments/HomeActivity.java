@@ -229,16 +229,12 @@ public class HomeActivity extends AppCompatActivity {
                 }
             }
         });
-        /* TODO : List of files
-         * OnClick of each image show popup with 4 options
-         * Edit file using QuickEdit
-         * Add refresh button on home page
-        * */
+
         // initialize paths
         this.directoryPath = getSdCardPath() + ROOT_FOLDER;
 //        this.mxlFilePath = getSdCardPath() + ROOT_FOLDER + File.separator + filename + ".mxl";
 //        this.outputFolder = getSdCardPath() + ROOT_FOLDER + File.separator + OUTPUT_FOLDER;
-//        this.xmlFilePath = getSdCardPath() + ROOT_FOLDER + File.separator + OUTPUT_FOLDER + File.separator + filename + ".xml";
+        this.xmlFilePath = getSdCardPath() + ROOT_FOLDER + File.separator + OUTPUT_FOLDER + File.separator;
         try {
             File file = new File(directoryPath);
 
@@ -273,7 +269,7 @@ public class HomeActivity extends AppCompatActivity {
                     // TODO: temp fix
                     MusicFile selectedItem = musicFileList.get(position);
                     // pop up dialog
-                    openMusicOptions();
+                    openMusicOptions(selectedItem.getFilename(), xmlFilePath);
                 }
             });
         }
@@ -283,9 +279,13 @@ public class HomeActivity extends AppCompatActivity {
 
     }
 
-    public void openMusicOptions() {
-        DialogFragment newFragment = new MusicDialogFragment();
-        newFragment.show(getSupportFragmentManager(), "musicOptions");
+    public void openMusicOptions(String filename, String xmlFilePath) {
+        DialogFragment dialogFragment = new MusicDialogFragment();
+        Bundle bundle = new Bundle();
+        bundle.putString("filename", filename);
+        bundle.putString("xmlFilePath", xmlFilePath);
+        dialogFragment.setArguments(bundle);
+        dialogFragment.show(getSupportFragmentManager(), "musicOptions");
     }
 
     public String[] GetMxlFiles(){
