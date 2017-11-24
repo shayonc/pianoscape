@@ -1,12 +1,15 @@
 package piano.pianotrainer.adapters;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.GridView;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 
@@ -41,18 +44,29 @@ public class ImageAdapter extends BaseAdapter {
 
         // create a new ImageView for each item referenced by the Adapter
         public View getView(int position, View convertView, ViewGroup parent) {
-            ImageView imageView;
+//            ImageView imageView;
+            View grid;
+            LayoutInflater inflater = (LayoutInflater) mContext
+                    .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             if (convertView == null) {
                 // if it's not recycled, initialize some attributes
-                imageView = new ImageView(mContext);
-                imageView.setLayoutParams(new GridView.LayoutParams(350, 350));
+                grid = new View(mContext);
+                grid = inflater.inflate(R.layout.grid_layout, null);
+                TextView textView = (TextView) grid.findViewById(R.id.grid_text);
+                ImageView imageView = (ImageView)grid.findViewById(R.id.grid_image);
+                textView.setText(musicFileList.get(position).getFilename() + " " + musicFileList.get(position).getDateModified().toString());
+                textView.setTextColor(Color.BLACK);
+                Log.d("ImageAdapter", textView.getText().toString());
+                imageView.setImageResource(musicFileList.get(position).getThumbnail());
+
+//                imageView = new ImageView(mContext);
+//                imageView.setLayoutParams(new GridView.LayoutParams(350, 350));
                 imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
                 imageView.setPadding(8, 8, 8, 8);
             } else {
-                imageView = (ImageView) convertView;
+                grid = (View) convertView;
             }
-            imageView.setImageResource(musicFileList.get(position).getThumbnail());
-            return imageView;
+            return grid;
         }
 
 }

@@ -227,8 +227,7 @@ public class HomeActivity extends AppCompatActivity {
             }
         });
         /* TODO : List of files
-         * send mxl files and get (title, last updated) to ImageView to display
-         * OnClick of each image show popup
+         * OnClick of each image show popup with 4 options
          * Edit file using QuickEdit
          * Add refresh button on home page
         * */
