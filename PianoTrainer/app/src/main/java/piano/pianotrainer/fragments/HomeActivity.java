@@ -34,6 +34,7 @@ import java.io.IOException;
 import piano.pianotrainer.R;
 import piano.pianotrainer.adapters.ImageAdapter;
 import piano.pianotrainer.db.DBHelper;
+import piano.pianotrainer.model.MusicFile;
 import piano.pianotrainer.parser.XMLMusicParser;
 import piano.pianotrainer.fragments.ComparisonSetup;
 
@@ -226,9 +227,10 @@ public class HomeActivity extends AppCompatActivity {
             }
         });
         /* TODO : List of files
-         * put mxl files into array of objects
          * send mxl files and get (title, last updated) to ImageView to display
          * OnClick of each image show popup
+         * Edit file using QuickEdit
+         * Add refresh button on home page
         * */
         // initialize paths
         this.directoryPath = getSdCardPath() + ROOT_FOLDER;
@@ -237,6 +239,7 @@ public class HomeActivity extends AppCompatActivity {
 //        this.xmlFilePath = getSdCardPath() + ROOT_FOLDER + File.separator + OUTPUT_FOLDER + File.separator + filename + ".xml";
         try {
             File file = new File(directoryPath);
+            ArrayList<MusicFile> musicFileList = new ArrayList<>();
             //if Piano folder doesn't exist then create one
             if (!file.exists()) {
                 file.mkdir();
@@ -247,14 +250,20 @@ public class HomeActivity extends AppCompatActivity {
             for (File f: list){
                 String name = f.getName();
                 if (name.endsWith(".mxl") || name.endsWith(".xml")) {
-                    Log.d("HomeActivity", name);
+                    MusicFile musicFile = new MusicFile();
+                    name = name.substring(0, name.lastIndexOf("."));
+                    musicFile.setFilename(name);
                     Date date = new Date(f.lastModified());
-                    Log.d("HomeActivity", date.toString());
+                    musicFile.setDateModified(date);
+                    musicFile.setThumbnail(R.drawable.ic_purple_music_note_clipart_purple_musical_note);
+                    //add to list
+                    musicFileList.add(musicFile);
                 }
             }
 
             GridView gridview = (GridView) findViewById(R.id.gridview);
-            gridview.setAdapter(new ImageAdapter(this));
+            ImageAdapter imageAdapter = new ImageAdapter(this, musicFileList);
+            gridview.setAdapter(imageAdapter);
 
             gridview.setOnItemClickListener(new OnItemClickListener() {
                 public void onItemClick(AdapterView<?> parent, View v,

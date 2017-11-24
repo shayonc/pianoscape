@@ -1,13 +1,17 @@
 package piano.pianotrainer.adapters;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.GridView;
 import android.widget.ImageView;
 
+import java.util.ArrayList;
+
 import piano.pianotrainer.R;
+import piano.pianotrainer.model.MusicFile;
 
 /**
  * Created by Matthew on 11/22/2017.
@@ -16,13 +20,15 @@ import piano.pianotrainer.R;
 
 public class ImageAdapter extends BaseAdapter {
         private Context mContext;
+        private ArrayList<MusicFile> musicFileList;
 
-        public ImageAdapter(Context c) {
+        public ImageAdapter(Context c, ArrayList<MusicFile> musicFileList) {
             mContext = c;
+            this.musicFileList = musicFileList;
         }
 
         public int getCount() {
-            return mThumbIds.length;
+            return musicFileList.size();
         }
 
         public Object getItem(int position) {
@@ -45,20 +51,9 @@ public class ImageAdapter extends BaseAdapter {
             } else {
                 imageView = (ImageView) convertView;
             }
-
-            imageView.setImageResource(mThumbIds[position]);
+            imageView.setImageResource(musicFileList.get(position).getThumbnail());
             return imageView;
         }
 
-        // references to our images
-        private Integer[] mThumbIds = {
-                R.drawable.ic_purple_music_note_clipart_purple_musical_note, R.drawable.ic_purple_music_note_clipart_purple_musical_note,
-                R.drawable.ic_purple_music_note_clipart_purple_musical_note, R.drawable.ic_purple_music_note_clipart_purple_musical_note,
-                R.drawable.ic_purple_music_note_clipart_purple_musical_note, R.drawable.ic_purple_music_note_clipart_purple_musical_note,
-                R.drawable.ic_purple_music_note_clipart_purple_musical_note, R.drawable.ic_purple_music_note_clipart_purple_musical_note,
-                R.drawable.ic_purple_music_note_clipart_purple_musical_note, R.drawable.ic_purple_music_note_clipart_purple_musical_note,
-                R.drawable.ic_purple_music_note_clipart_purple_musical_note, R.drawable.ic_purple_music_note_clipart_purple_musical_note,
-                R.drawable.ic_purple_music_note_clipart_purple_musical_note, R.drawable.ic_purple_music_note_clipart_purple_musical_note
-        };
 }
 
