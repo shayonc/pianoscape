@@ -56,7 +56,6 @@ public class ImageAdapter extends BaseAdapter {
                 ImageView imageView = (ImageView)grid.findViewById(R.id.grid_image);
                 textView.setText(musicFileList.get(position).getFilename() + " " + musicFileList.get(position).getDateModified().toString());
                 textView.setTextColor(Color.BLACK);
-                Log.d("ImageAdapter", textView.getText().toString());
                 imageView.setImageResource(musicFileList.get(position).getThumbnail());
 
 //                imageView = new ImageView(mContext);

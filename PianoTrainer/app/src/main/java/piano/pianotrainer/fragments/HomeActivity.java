@@ -64,6 +64,8 @@ public class HomeActivity extends AppCompatActivity {
     private static final String WRONG_NOTES_FOLDER = "WrongPianoNotes";
     private ArrayList<List<Note>> correctSyncedNotes = new ArrayList<List<Note>>();
     private ArrayList<List<Note>> wrongSyncedNotes = new ArrayList<List<Note>>();
+    private GridView gridview;
+    private ArrayList<MusicFile> musicFileList = new ArrayList<>();
 
     // Variables for helping with evaluation
     private final String state = "";
@@ -238,7 +240,7 @@ public class HomeActivity extends AppCompatActivity {
 //        this.xmlFilePath = getSdCardPath() + ROOT_FOLDER + File.separator + OUTPUT_FOLDER + File.separator + filename + ".xml";
         try {
             File file = new File(directoryPath);
-            ArrayList<MusicFile> musicFileList = new ArrayList<>();
+
             //if Piano folder doesn't exist then create one
             if (!file.exists()) {
                 file.mkdir();
@@ -260,13 +262,16 @@ public class HomeActivity extends AppCompatActivity {
                 }
             }
 
-            GridView gridview = (GridView) findViewById(R.id.gridview);
+            gridview = findViewById(R.id.gridview);
             ImageAdapter imageAdapter = new ImageAdapter(this, musicFileList);
             gridview.setAdapter(imageAdapter);
 
             gridview.setOnItemClickListener(new OnItemClickListener() {
                 public void onItemClick(AdapterView<?> parent, View v,
                                         int position, long id) {
+                    // TODO: temp fix
+                    MusicFile selectedItem = musicFileList.get(position);
+
                     Toast.makeText(HomeActivity.this, "" + position,
                             Toast.LENGTH_SHORT).show();
                 }
