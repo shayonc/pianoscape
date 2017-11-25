@@ -276,18 +276,11 @@ public class HomeActivity extends AppCompatActivity {
                 }
             });
 
-            /*
- * Sets up a SwipeRefreshLayout.OnRefreshListener that is invoked when the user
- * performs a swipe-to-refresh gesture.
- */
             swiperefresh = findViewById(R.id.swiperefresh);
             swiperefresh.setOnRefreshListener(
                     new SwipeRefreshLayout.OnRefreshListener() {
                         @Override
                         public void onRefresh() {
-
-                            // This method performs the actual data-refresh operation.
-                            // The method calls setRefreshing(false) when it's finished.
                             refreshGrid();
                         }
                     }

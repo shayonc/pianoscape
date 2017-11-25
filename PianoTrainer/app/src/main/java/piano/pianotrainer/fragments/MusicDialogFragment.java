@@ -58,9 +58,6 @@ public class MusicDialogFragment extends DialogFragment {
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }
-
-
-
                         }
                     }
                 });
