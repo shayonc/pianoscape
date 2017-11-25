@@ -14,6 +14,7 @@ import android.support.design.widget.BottomNavigationView;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
@@ -67,6 +68,8 @@ public class HomeActivity extends AppCompatActivity {
     private ArrayList<List<Note>> wrongSyncedNotes = new ArrayList<List<Note>>();
     private GridView gridview;
     private ArrayList<MusicFile> musicFileList = new ArrayList<>();
+    private ImageAdapter imageAdapter;
+    private SwipeRefreshLayout swiperefresh;
 
     // Variables for helping with evaluation
     private final String state = "";
@@ -260,7 +263,7 @@ public class HomeActivity extends AppCompatActivity {
             }
 
             gridview = findViewById(R.id.gridview);
-            ImageAdapter imageAdapter = new ImageAdapter(this, musicFileList);
+            imageAdapter = new ImageAdapter(this, musicFileList);
             gridview.setAdapter(imageAdapter);
 
             gridview.setOnItemClickListener(new OnItemClickListener() {
@@ -272,6 +275,23 @@ public class HomeActivity extends AppCompatActivity {
                     openMusicOptions(selectedItem.getFilename(), xmlFilePath);
                 }
             });
+
+            /*
+ * Sets up a SwipeRefreshLayout.OnRefreshListener that is invoked when the user
+ * performs a swipe-to-refresh gesture.
+ */
+            swiperefresh = findViewById(R.id.swiperefresh);
+            swiperefresh.setOnRefreshListener(
+                    new SwipeRefreshLayout.OnRefreshListener() {
+                        @Override
+                        public void onRefresh() {
+
+                            // This method performs the actual data-refresh operation.
+                            // The method calls setRefreshing(false) when it's finished.
+                            refreshGrid();
+                        }
+                    }
+            );
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -350,6 +370,12 @@ public class HomeActivity extends AppCompatActivity {
 
     public static String getSdCardPath() {
         return Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator;
+    }
+
+    public void refreshGrid() {
+        ////TODO creation of new mxl
+        imageAdapter.notifyDataSetChanged();
+        swiperefresh.setRefreshing(false);
     }
 
     public static void verifyStoragePermissions(Activity activity) {
