@@ -107,12 +107,13 @@ public class ScoreProcessor {
         // "reamps" the remaining elements on the page (trailing parts of staffline_
         Imgproc.dilate(isoStaffLinesImg, noStaffLinesImg, horizontalStructure, pt,2);
 
-        //ideally the image after morphology only contains staff lines which are no subtracted out
+        //ideally the image after morphology only contains staff lines which are not subtracted out
         Core.subtract(binarizedImg,noStaffLinesImg,noStaffLinesImg);
         //now lets try vertically dilating it to stich gaps
         Point pt2 = new Point(-1,-1); //"default"
         //via paint max staff line width is 2
-        Size kernelHeight = new Size(1,2);
+        //Will need to make sure flood fill works 100% of the time
+        Size kernelHeight = new Size(1,3);
         Mat verticalStructure = Imgproc.getStructuringElement(MORPH_RECT, kernelHeight);
         //vertical dilate will look 1 pixel away vertically and take max
         Imgproc.dilate(noStaffLinesImg,noStaffLinesImg,verticalStructure,pt,2);
@@ -228,41 +229,46 @@ public class ScoreProcessor {
         staffObjects = new ArrayList<List<Rect>>();
         boolean[][] staffsVisited = new boolean[noStaffLinesImg.height()][noStaffLinesImg.width()];
 
-        int i = 0;
-        List<Integer> staffLines = staffs.get(i);
-        staffObjects.add(new ArrayList<Rect>());
-        int topBound = staffLines.get(0);
-        int bottomBound = staffLines.get(9);
-        int leftBound = 225;
-        int rightBound = 1610;
+        //int i = 0;
+        List<Integer> staffLines;
+        int topBound, bottomBound, leftBound, rightBound;
+        for(int i = 0 ; i < staffs.size(); i++){
+            staffLines = staffs.get(i);
+            staffObjects.add(new ArrayList<Rect>());
+            topBound = staffLines.get(0);
+            bottomBound = staffLines.get(9);
+            leftBound = 0;
+            rightBound = noStaffLinesImg.width();
 
-        //ArrayList<Rect> tabuRects = new ArrayList<Rect>();
-        curObjectTop = noStaffLinesImg.height();
-        curObjectBottom = 0;
-        curObjectLeft = noStaffLinesImg.width();
-        curObjectRight = 0;
-        int padding = 4;
+            //ArrayList<Rect> tabuRects = new ArrayList<Rect>();
+            curObjectTop = noStaffLinesImg.height();
+            curObjectBottom = 0;
+            curObjectLeft = noStaffLinesImg.width();
+            curObjectRight = 0;
+            int padding = 4;
 
-        for (int col = leftBound; col < rightBound; col++) {
-            for (int row = topBound; row < bottomBound; row++) {
+            for (int col = leftBound; col < rightBound; col++) {
+                for (int row = topBound; row < bottomBound; row++) {
 
-                if (!staffsVisited[row][col]) {
-                    double[] data = noStaffLinesImg.get(row, col);
+                    if (!staffsVisited[row][col]) {
+                        double[] data = noStaffLinesImg.get(row, col);
 
-                    if (data[data.length-1] == 255.0) {
-                        fillSearch(row, col, staffsVisited);
-                        staffObjects.get(i).add(new Rect(curObjectLeft-padding, curObjectTop-padding, curObjectRight+padding, curObjectBottom+padding));
-                        //tabuRects.add(new Rect(curObjectLeft, curObjectTop, curObjectRight, curObjectBottom));
-                        markObjectRects(padding, staffsVisited);
-                        curObjectTop = noStaffLinesImg.height();
-                        curObjectBottom = 0;
-                        curObjectLeft = noStaffLinesImg.width();
-                        curObjectRight = 0;
-                        //cleanTabuRects(row, col, tabuRects);
+                        if (data[data.length-1] == 255.0) {
+                            fillSearch(row, col, staffsVisited);
+                            staffObjects.get(i).add(new Rect(curObjectLeft-padding, curObjectTop-padding, curObjectRight+padding, curObjectBottom+padding));
+                            //tabuRects.add(new Rect(curObjectLeft, curObjectTop, curObjectRight, curObjectBottom));
+                            markObjectRects(padding, staffsVisited);
+                            curObjectTop = noStaffLinesImg.height();
+                            curObjectBottom = 0;
+                            curObjectLeft = noStaffLinesImg.width();
+                            curObjectRight = 0;
+                            //cleanTabuRects(row, col, tabuRects);
+                        }
                     }
                 }
             }
         }
+
 
         return staffObjects;
     }

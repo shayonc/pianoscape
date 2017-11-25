@@ -6,6 +6,9 @@ package piano.pianotrainer.fragments;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.pdf.PdfRenderer;
 import android.os.Bundle;
@@ -245,13 +248,21 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
                     List<List<Rect>> staffObjects = scoreProc.detectObjects();
 
 
-                    List<Integer> bCounts = scoreProc.classifyObjects();
-                    mDebugView.setText(staffObjects.toString() + "\n\n" + bCounts.toString());
+                    //List<Integer> bCounts = scoreProc.classifyObjects();
+                    //mDebugView.setText(staffObjects.toString() + "\n\n" + bCounts.toString());
 
 
                     scoreProc.writeXML();
-
-
+                    //Bitmap scoreWithRects = scoreProc.drawRects(bitmap);
+                    Canvas cnvs = new Canvas(bitmap);
+                    Paint paint=new Paint();
+                    paint.setStyle(Paint.Style.STROKE);
+                    paint.setColor(Color.RED);
+                    for(List<Rect> rectList : staffObjects){
+                        for(Rect symbolRect : rectList){
+                            cnvs.drawRect(symbolRect, paint);
+                        }
+                    }
                     mImageView.setImageBitmap(bitmap);
                 }
                 else {
