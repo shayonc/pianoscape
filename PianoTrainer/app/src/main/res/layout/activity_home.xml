@@ -86,6 +86,7 @@
                 android:id="@+id/gridview"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:layout_below="@id/compareNotesButton"
                 android:columnWidth="90dp"
                 android:numColumns="auto_fit"
                 android:verticalSpacing="10dp"
