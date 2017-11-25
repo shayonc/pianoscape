@@ -17,6 +17,3 @@ Piano/
 └── Serenade.mxl
 
 └── Prelude.mxl
-    
-    
-![Alt text](/Images/demo.jpg?)
