@@ -1,5 +1,7 @@
 package piano.pianotrainer.scoreImport;
+import android.content.res.AssetManager;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Interpolator;
 import android.graphics.Rect;
 import android.os.Environment;
@@ -8,6 +10,7 @@ import android.widget.ArrayAdapter;
 
 import org.opencv.android.Utils;
 import org.opencv.core.Core;
+import org.opencv.core.CvType;
 import org.opencv.core.MatOfPoint;
 import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
@@ -15,10 +18,15 @@ import org.opencv.core.RotatedRect;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.core.Mat;
+import org.opencv.ml.*;
+import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
+import org.opencv.ml.KNearest;
+import org.opencv.utils.Converters;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.util.*;
 
 import static org.opencv.core.CvType.CV_8UC3;
@@ -29,6 +37,7 @@ import static org.opencv.imgproc.Imgproc.MORPH_RECT;
 import static org.opencv.imgproc.Imgproc.RETR_TREE;
 import static org.opencv.imgproc.Imgproc.THRESH_BINARY;
 import static org.opencv.imgproc.Imgproc.ellipse;
+import static org.opencv.imgproc.Imgproc.resize;
 
 
 public class ScoreProcessor {
@@ -51,6 +60,10 @@ public class ScoreProcessor {
     int curObjectLeft;
     int curObjectRight;
 
+    KNearest knn;
+    Mat trainData, testData;
+    List<Integer> trainLabs = new ArrayList<Integer>(),
+            testLabs = new ArrayList<Integer>();
 
     public ScoreProcessor(Bitmap bmpImg){
         staffLineRowIndices = new ArrayList<Integer>();
@@ -59,6 +72,13 @@ public class ScoreProcessor {
         binarizedImg = new Mat();
         noStaffLinesImg = new Mat();
         Utils.bitmapToMat(bmpImg,originalImg);
+        //Used to train for various symbol by passing in a label and test data
+        knn = KNearest.create();
+        trainData = new Mat();
+        testData = new Mat();
+        trainData.convertTo(trainData, CvType.CV_32F);
+        testData.convertTo(testData, CvType.CV_32F);
+
         Log.d(TAG,String.format("Converted original image to %d by %d MAT",originalImg.cols(),
                 originalImg.rows()));
     }
@@ -271,6 +291,63 @@ public class ScoreProcessor {
 
 
         return staffObjects;
+    }
+
+    //Trains the knn with a label (ID for symbol) and the bitmap img
+    //All images must be formatted to be the same size (resize) and a horizontal vector (reshape)
+    public void addSample(Bitmap bmp , int label){
+        Size size = new Size(20,30);
+        Mat curFeature = new Mat();
+        Mat resizedImg = new Mat();
+        Utils.bitmapToMat(bmp, curFeature);
+        Imgproc.resize(curFeature, resizedImg, size);
+        resizedImg.convertTo(resizedImg, CvType.CV_32F);
+        resizedImg = resizedImg.reshape(1,1);
+        trainData.push_back(resizedImg);
+        trainLabs.add(label);
+
+    }
+
+    //Finds the nearest neighbour of a bitmap img and returns whether its label is what we expect
+    public boolean testKnn(Bitmap bmp, int label){
+        //Convert to Mat
+        Mat curFeature = new Mat();
+        Utils.bitmapToMat(bmp, curFeature);
+        curFeature.convertTo(curFeature, CvType.CV_32F);
+        Size size = new Size(20,30);
+        Mat resizedImg = new Mat();
+        Imgproc.resize(curFeature, resizedImg, size);
+        resizedImg.convertTo(resizedImg, CvType.CV_32F);
+        resizedImg = resizedImg.reshape(1,1);
+        Mat res = new Mat();
+        res.convertTo(res, CvType.CV_32F);
+        //Test Mat against KNN
+        float p = knn.findNearest(resizedImg.reshape(1,1), 1 ,res);
+        return Math.round(p) == label;
+    }
+
+    public void trainKnn(){
+        knn.train(trainData, Ml.ROW_SAMPLE, Converters.vector_int_to_Mat(trainLabs));
+        //Load the image
+        //Didn't work likely using train overwrites previous data?
+//        Mat curSymbol = new Mat();
+//        Mat trainData = new Mat();
+//        trainData.convertTo(trainData, CvType.CV_32F);
+//        Mat testData = new Mat();
+//        List<Integer> trainLabs = new ArrayList<Integer>(),
+//                testLabs = new ArrayList<Integer>();
+//        Size size = new Size(20,30);
+//        Mat resizedImg = new Mat();
+//
+//        Utils.bitmapToMat(bmp, curSymbol);
+//        Imgproc.resize(curSymbol, resizedImg, size);
+//        resizedImg.convertTo(resizedImg, CvType.CV_32F);
+//        testData.push_back(resizedImg.reshape(1,1));
+//        trainLabs.add(label);
+//        this.knn.train(resizedImg.reshape(1,1), Ml.ROW_SAMPLE, Converters.vector_int_to_Mat(trainLabs).reshape(1,1));
+//
+
+
     }
 
 

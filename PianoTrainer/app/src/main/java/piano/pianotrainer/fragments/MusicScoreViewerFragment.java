@@ -5,7 +5,10 @@ package piano.pianotrainer.fragments;
  */
 
 import android.content.Context;
+import android.content.res.AssetManager;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -14,6 +17,7 @@ import android.graphics.pdf.PdfRenderer;
 import android.os.Bundle;
 import android.os.ParcelFileDescriptor;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -42,6 +46,9 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
     private static final String STATE_CURRENT_PAGE_INDEX = "current_page_index";
 
     private static final String FILENAME = "twinkle_twinkle_little_star.pdf";
+
+    private static final String TRAINING = "training_set";
+
     private ParcelFileDescriptor mFileDescriptor;
     private ImageView mImageView;
     private PDFHelper mPdfHelper;
@@ -246,14 +253,99 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
                     scoreProc.refineStaffLines();
 
                     List<List<Rect>> staffObjects = scoreProc.detectObjects();
+                    //load the training images and train symbol detection
+                    Resources res = getResources();
+                    AssetManager am = res.getAssets();
+                    String dirPath = "assets//" + TRAINING + "//" + "g_clef";
+                    Bitmap curBmp;
+                    InputStream inputstream;
+                    try {
+                        //Primitive testing only two different training sets first
+                        //get all the file names under the specified training set
+                        //train with all the even indexed images in each of the directories
+                        String fileList[] = am.list("training_set/g_clef");
+
+                        if (fileList != null)
+                        {
+                            for ( int i = 0;i<fileList.length;i++)
+                            {
+                                inputstream=appContext.getAssets().open("training_set/g_clef/"
+                                        +fileList[i]);
+                                curBmp = BitmapFactory.decodeStream(inputstream);
+                                if(i % 2 == 0){
+
+                                    Log.d("",fileList[i]);
+                                    scoreProc.addSample(curBmp, 10);
+                                }
+                            }
+
+                        }
+                        else{
+                            Log.d("","NULL filelist!!");
+                        }
+                        String fileList2[] = am.list("training_set/f_clef");
+                        if (fileList2 != null)
+                        {
+                            for ( int i = 0;i<fileList2.length;i++)
+                            {
+                                inputstream=appContext.getAssets().open("training_set/f_clef/"
+                                        +fileList2[i]);
+                                curBmp = BitmapFactory.decodeStream(inputstream);
+                                if(i % 2 == 0){
+
+                                    Log.d("",fileList2[i]);
+                                    scoreProc.addSample(curBmp, 20);
+                                }
+
+                            }
+
+                            //Train
+                            scoreProc.trainKnn();
+                            //Test: with odd indexed images in the training set directory
+                            Bitmap bmpFclef, bmpGclef;
+                            int testsPassedG = 0;
+                            int testsPassedF = 0;
+                            int totalTestsG = 0;
+                            int totalTestsF = 0;
+                            for(int j = 0; j < fileList.length; j++){
+                                //there are more g clefs than f clefs in train data for now
+                                inputstream = appContext.getAssets().open("training_set/g_clef/" + fileList[j]);
+                                bmpGclef = BitmapFactory.decodeStream(inputstream);
+                                if(j % 2 != 0){
+                                    if(scoreProc.testKnn(bmpGclef, 10)){
+                                        testsPassedG++;
+                                    }
+                                    totalTestsG++;
+                                }
+                            }
+                            for(int i = 0 ; i < fileList2.length; i++){
+                                inputstream=appContext.getAssets().open("training_set/f_clef/"
+                                        +fileList2[i]);
+                                bmpFclef = BitmapFactory.decodeStream(inputstream);
 
 
-                    //List<Integer> bCounts = scoreProc.classifyObjects();
-                    //mDebugView.setText(staffObjects.toString() + "\n\n" + bCounts.toString());
+                                if(i % 2 != 0){
+                                    //test two different ones
 
+                                    if(scoreProc.testKnn(bmpFclef, 20)){
+                                        testsPassedF++;
+                                    }
+                                    totalTestsF++;
+                                }
+                            }
+                            String logTest = String.format("G: %d/%d , F: %d/%d", testsPassedG, totalTestsG, testsPassedF, totalTestsF);
+                            Log.d("", logTest);
 
-                    scoreProc.writeXML();
-                    //Bitmap scoreWithRects = scoreProc.drawRects(bitmap);
+                        }
+                        else{
+                            Log.d("","NULL filelist!!");
+                        }
+
+                    }
+                    catch(Exception e){
+                        Log.d("","ERROR in am.list");
+                    }
+
                     Canvas cnvs = new Canvas(bitmap);
                     Paint paint=new Paint();
                     paint.setStyle(Paint.Style.STROKE);
