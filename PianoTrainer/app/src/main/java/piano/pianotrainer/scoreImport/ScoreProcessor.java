@@ -43,6 +43,9 @@ import static org.opencv.imgproc.Imgproc.resize;
 public class ScoreProcessor {
     static final String TAG = "ScoreProcessor";
 
+    static final int TRAIN_WIDTH = 30;
+    static final int TRAIN_HEIGHT = 30;
+
     Mat originalImg;
     Mat grayImg;
     Mat binarizedImg;
@@ -244,6 +247,9 @@ public class ScoreProcessor {
         return staffs;
     }
 
+
+
+
     public List<List<Rect>> detectObjects() {
         //TODO: iterate through all staffs
         staffObjects = new ArrayList<List<Rect>>();
@@ -296,7 +302,8 @@ public class ScoreProcessor {
     //Trains the knn with a label (ID for symbol) and the bitmap img
     //All images must be formatted to be the same size (resize) and a horizontal vector (reshape)
     public void addSample(Bitmap bmp , int label){
-        Size size = new Size(20,30);
+        //most notes around 30x80
+        Size size = new Size(TRAIN_WIDTH,TRAIN_HEIGHT);
         Mat curFeature = new Mat();
         Mat resizedImg = new Mat();
         Utils.bitmapToMat(bmp, curFeature);
@@ -308,15 +315,48 @@ public class ScoreProcessor {
 
     }
 
+    public boolean testMusicObjects(){
+        List<List<Integer>> results = new ArrayList<List<Integer>>();
+
+        Rect curRect;
+        boolean passed = true;
+        for(int i = 0; i < staffObjects.size(); i++){
+            results.add(new ArrayList<Integer>());
+            for(int j = 0; j < staffObjects.get(i).size(); j++){
+                curRect = staffObjects.get(i).get(j);
+                results.get(i).add(testKnnMat(extractFromNoStaffImg(curRect)));
+            }
+        }
+        return true;
+    }
+
+    public Mat extractFromNoStaffImg(Rect r){
+        org.opencv.core.Rect cvRect = new org.opencv.core.Rect(r.left, r.top, r.width(), r.height());
+        return new Mat(noStaffLinesImg, cvRect);
+    }
+
+    public Bitmap getStaffObject(int staffLine, int index) {
+        if(index < 0 || index >= staffObjects.get(staffLine).size()){
+            throw new IndexOutOfBoundsException();
+        }
+        Bitmap bmp = Bitmap.createBitmap(staffObjects.get(staffLine).get(index).width(),staffObjects.get(staffLine).get(index).height(),Bitmap.Config.ARGB_8888);
+        Utils.matToBitmap(extractFromNoStaffImg(staffObjects.get(staffLine).get(index)), bmp);
+        return bmp;
+    }
+
     //Finds the nearest neighbour of a bitmap img and returns whether its label is what we expect
     public boolean testKnn(Bitmap bmp, int label){
         //Convert to Mat
         Mat curFeature = new Mat();
         Utils.bitmapToMat(bmp, curFeature);
-        curFeature.convertTo(curFeature, CvType.CV_32F);
-        Size size = new Size(20,30);
+        return testKnnMat(curFeature, label);
+    }
+
+    public boolean testKnnMat(Mat symbolToTest, int label){
+        symbolToTest.convertTo(symbolToTest, CvType.CV_32F);
+        Size size = new Size(TRAIN_WIDTH, TRAIN_HEIGHT);
         Mat resizedImg = new Mat();
-        Imgproc.resize(curFeature, resizedImg, size);
+        Imgproc.resize(symbolToTest, resizedImg, size);
         resizedImg.convertTo(resizedImg, CvType.CV_32F);
         resizedImg = resizedImg.reshape(1,1);
         Mat res = new Mat();
@@ -324,6 +364,20 @@ public class ScoreProcessor {
         //Test Mat against KNN
         float p = knn.findNearest(resizedImg.reshape(1,1), 1 ,res);
         return Math.round(p) == label;
+    }
+
+    public int testKnnMat(Mat symbolToTest){
+        symbolToTest.convertTo(symbolToTest, CvType.CV_32F);
+        Size size = new Size(TRAIN_WIDTH, TRAIN_HEIGHT);
+        Mat resizedImg = new Mat();
+        Imgproc.resize(symbolToTest, resizedImg, size);
+        resizedImg.convertTo(resizedImg, CvType.CV_32F);
+        resizedImg = resizedImg.reshape(1,1);
+        Mat res = new Mat();
+        res.convertTo(res, CvType.CV_32F);
+        //Test Mat against KNN
+        float p = knn.findNearest(resizedImg.reshape(1,1), 1 ,res);
+        return Math.round(p);
     }
 
     public void trainKnn(){

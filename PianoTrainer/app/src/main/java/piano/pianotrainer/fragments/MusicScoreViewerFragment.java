@@ -55,6 +55,9 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
     //used for loading saved page index from save states before we re-init PDF Helper object
     private int mPageIndexSaved;
 
+    private ScoreProcessor scoreProc;
+    public int objectIndex = 0;
+
     /**
      * {@link android.widget.Button} to move to the previous page.
      */
@@ -168,7 +171,11 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
         }
     }
 
-
+    private void showObject(int index) {
+        Bitmap bmpObject = scoreProc.getStaffObject(1, index);
+        mImageView.setImageBitmap(bmpObject);
+        mDebugView.setText(String.format("Object -> Width: %d, Height: %d", bmpObject.getWidth(), bmpObject.getHeight()));
+    }
 
     /**
      * Shows the specified page of PDF to the screen.
@@ -182,8 +189,10 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
 
         //Save img internally - help analyze pixels
         mDebugView.setText(ImageUtils.saveImageToExternal(curPageBitmap,"testImg.png"));
-        updateUi();
+        //updateUi();
     }
+
+
 
     /**
      * Updates the state of 2 control buttons in response to the current page index.
@@ -210,12 +219,16 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
         switch (view.getId()) {
             case R.id.previous: {
                 // Move to the previous page
-                showPage(mPdfHelper.getCurPage().getIndex() - 1);
+//                showPage(mPdfHelper.getCurPage().getIndex() - 1);
+                objectIndex--;
+                showObject(objectIndex);
                 break;
             }
             case R.id.next: {
                 // Move to the next page
-                showPage(mPdfHelper.getCurPage().getIndex() + 1);
+//                showPage(mPdfHelper.getCurPage().getIndex() + 1); EC: testing objects
+                objectIndex++;
+                showObject(objectIndex);
                 break;
             }
             case R.id.import_sheet: {
@@ -245,7 +258,7 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
                     curPage.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY);
 
 
-                    ScoreProcessor scoreProc = new ScoreProcessor(bitmap);
+                    scoreProc = new ScoreProcessor(bitmap);
                     scoreProc.binarize();
                     scoreProc.removeStaffLines(true);
                     //Bitmap binBitmap = scoreProc.getNoStaffLinesImg();
@@ -272,11 +285,8 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
                                 inputstream=appContext.getAssets().open("training_set/g_clef/"
                                         +fileList[i]);
                                 curBmp = BitmapFactory.decodeStream(inputstream);
-                                if(i % 2 == 0){
-
-                                    Log.d("",fileList[i]);
-                                    scoreProc.addSample(curBmp, 10);
-                                }
+                                Log.d("",fileList[i]);
+                                scoreProc.addSample(curBmp, 10);
                             }
 
                         }
@@ -291,50 +301,48 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
                                 inputstream=appContext.getAssets().open("training_set/f_clef/"
                                         +fileList2[i]);
                                 curBmp = BitmapFactory.decodeStream(inputstream);
-                                if(i % 2 == 0){
-
-                                    Log.d("",fileList2[i]);
-                                    scoreProc.addSample(curBmp, 20);
-                                }
-
+                                Log.d("",fileList2[i]);
+                                scoreProc.addSample(curBmp, 20);
                             }
 
                             //Train
                             scoreProc.trainKnn();
-                            //Test: with odd indexed images in the training set directory
-                            Bitmap bmpFclef, bmpGclef;
-                            int testsPassedG = 0;
-                            int testsPassedF = 0;
-                            int totalTestsG = 0;
-                            int totalTestsF = 0;
-                            for(int j = 0; j < fileList.length; j++){
-                                //there are more g clefs than f clefs in train data for now
-                                inputstream = appContext.getAssets().open("training_set/g_clef/" + fileList[j]);
-                                bmpGclef = BitmapFactory.decodeStream(inputstream);
-                                if(j % 2 != 0){
-                                    if(scoreProc.testKnn(bmpGclef, 10)){
-                                        testsPassedG++;
-                                    }
-                                    totalTestsG++;
-                                }
-                            }
-                            for(int i = 0 ; i < fileList2.length; i++){
-                                inputstream=appContext.getAssets().open("training_set/f_clef/"
-                                        +fileList2[i]);
-                                bmpFclef = BitmapFactory.decodeStream(inputstream);
-
-
-                                if(i % 2 != 0){
-                                    //test two different ones
-
-                                    if(scoreProc.testKnn(bmpFclef, 20)){
-                                        testsPassedF++;
-                                    }
-                                    totalTestsF++;
-                                }
-                            }
-                            String logTest = String.format("G: %d/%d , F: %d/%d", testsPassedG, totalTestsG, testsPassedF, totalTestsF);
-                            Log.d("", logTest);
+//                            //Test: with odd indexed images in the training set directory
+//                            Bitmap bmpFclef, bmpGclef;
+//                            int testsPassedG = 0;
+//                            int testsPassedF = 0;
+//                            int totalTestsG = 0;
+//                            int totalTestsF = 0;
+//                            for(int j = 0; j < fileList.length; j++){
+//                                //there are more g clefs than f clefs in train data for now
+//                                inputstream = appContext.getAssets().open("training_set/g_clef/" + fileList[j]);
+//                                bmpGclef = BitmapFactory.decodeStream(inputstream);
+//                                if(j % 2 != 0){
+//                                    if(scoreProc.testKnn(bmpGclef, 10)){
+//                                        testsPassedG++;
+//                                    }
+//                                    totalTestsG++;
+//                                }
+//                            }
+//                            for(int i = 0 ; i < fileList2.length; i++){
+//                                inputstream=appContext.getAssets().open("training_set/f_clef/"
+//                                        +fileList2[i]);
+//                                bmpFclef = BitmapFactory.decodeStream(inputstream);
+//
+//
+//                                if(i % 2 != 0){
+//                                    //test two different ones
+//
+//                                    if(scoreProc.testKnn(bmpFclef, 20)){
+//                                        testsPassedF++;
+//                                    }
+//                                    totalTestsF++;
+//                                }
+//                            }
+//                            String logTest = String.format("G: %d/%d , F: %d/%d", testsPassedG, totalTestsG, testsPassedF, totalTestsF);
+//                            Log.d("", logTest);
+                            //Test some symbols
+                            scoreProc.testMusicObjects();
 
                         }
                         else{
