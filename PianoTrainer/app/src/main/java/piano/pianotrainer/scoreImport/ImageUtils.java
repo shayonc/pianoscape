@@ -42,10 +42,12 @@ public final class ImageUtils {
 
     public static Mat bgrToGrayscale(Mat imgMat){
         //Channel Conversion since colors -> RGB
-        if(imgMat.channels() == 3){
-            Imgproc.cvtColor(imgMat,imgMat,Imgproc.COLOR_BGR2GRAY);
-        }
-        return imgMat;
+        Mat result = new Mat();
+        Log.d("ImageUtils", String.format("imgMat: %d", imgMat.get(0,0).length));
+        Log.d("ImageUtils", String.format("imgMat channels: %d", imgMat.channels()));
+        Imgproc.cvtColor(imgMat,result,Imgproc.COLOR_BGR2GRAY);
+        Log.d("ImageUtils", String.format("result: %d", result.get(0,0).length));
+        return result;
     }
 
     public static String saveImageToExternal(Bitmap finalBitmap, String imgName) {

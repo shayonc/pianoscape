@@ -11,13 +11,17 @@ import android.widget.ArrayAdapter;
 import org.opencv.android.Utils;
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
+import org.opencv.core.KeyPoint;
+import org.opencv.core.MatOfKeyPoint;
 import org.opencv.core.MatOfPoint;
 import org.opencv.core.MatOfPoint2f;
+import org.opencv.core.MatOfPoint3f;
 import org.opencv.core.Point;
 import org.opencv.core.RotatedRect;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.core.Mat;
+import org.opencv.features2d.FeatureDetector;
 import org.opencv.ml.*;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
@@ -36,6 +40,8 @@ import static org.opencv.imgproc.Imgproc.HoughCircles;
 import static org.opencv.imgproc.Imgproc.MORPH_RECT;
 import static org.opencv.imgproc.Imgproc.RETR_TREE;
 import static org.opencv.imgproc.Imgproc.THRESH_BINARY;
+import static org.opencv.imgproc.Imgproc.circle;
+import static org.opencv.imgproc.Imgproc.cvtColor;
 import static org.opencv.imgproc.Imgproc.ellipse;
 import static org.opencv.imgproc.Imgproc.resize;
 
@@ -421,18 +427,21 @@ public class ScoreProcessor {
         }
         staffsVisited[row][col] = true;
 
-        if (!staffsVisited[row-1][col] && noStaffLinesImg.get(row-1, col)[3] == 255.0) {
+        if (!staffsVisited[row-1][col] && noStaffLinesImg.get(row-1, col)[0] == 255.0) {
             fillSearch(row-1, col, staffsVisited);
         }
-        if (!staffsVisited[row+1][col] && noStaffLinesImg.get(row+1, col)[3] == 255.0) {
+        if (!staffsVisited[row+1][col] && noStaffLinesImg.get(row+1, col)[0] == 255.0) {
             fillSearch(row+1, col, staffsVisited);
         }
-        if (!staffsVisited[row][col-1] && noStaffLinesImg.get(row, col-1)[3] == 255.0) {
+        if (!staffsVisited[row][col-1] && noStaffLinesImg.get(row, col-1)[0] == 255.0) {
             fillSearch(row, col-1, staffsVisited);
         }
-        if (!staffsVisited[row][col+1] && noStaffLinesImg.get(row, col+1)[3] == 255.0) {
+        if (!staffsVisited[row][col+1] && noStaffLinesImg.get(row, col+1)[0] == 255.0) {
             fillSearch(row, col+1, staffsVisited);
         }
+
+
+
     }
 
 
@@ -444,6 +453,43 @@ public class ScoreProcessor {
         }
     }
 
+    public List<Double> classifyNoteGroup()  {
+//        ImageUtils.saveImageToExternal(bmpObject, "testNote.bmp");
+        String root = Environment.getExternalStorageDirectory().toString();
+//        Mat noteGroupMat = Imgcodecs.imread(root + "/Piano/Images/quarterNote2.png");
+        List<Double> notePixels = new ArrayList<Double>();
+        Rect rect = staffObjects.get(0).get(8);
+        Mat noteGroupMat = extractFromNoStaffImg(rect);
+
+
+        Imgcodecs.imwrite(root + "/Piano/Images/test0.png", noteGroupMat);
+        Mat greyMat = new Mat();
+        cvtColor(noteGroupMat, greyMat, Imgproc.COLOR_BGR2GRAY);
+
+        for (int r = 0; r < greyMat.height(); r++) {
+            for (int c = 0; c < greyMat.width(); c++) {
+                notePixels.add(greyMat.get(r,c)[0]);
+            }
+        }
+
+        Imgcodecs.imwrite(root + "/Piano/Images/test1.png", greyMat);
+        Mat circles = new Mat();
+        Imgproc.HoughCircles(greyMat, circles, CV_HOUGH_GRADIENT, 1.0, ((double)staffLineDiff)*0.8, 100, 1, 0, 0);
+
+        for (int i = 0; i < circles.cols(); i++) {
+            double[] vCircle = circles.get(0, i);
+
+            Point pt = new Point(Math.round(vCircle[0]), Math.round(vCircle[1]));
+            int radius = (int)Math.round(vCircle[2]);
+
+            circle(noteGroupMat, pt, radius, new Scalar(255, 0, 0), 2);
+        }
+
+        Imgcodecs.imwrite(root + "/Piano/Images/test3.png", noteGroupMat);
+//        Bitmap bmp = Bitmap.createBitmap(bmpObject.width(),bmpObject.height(),Bitmap.Config.ARGB_8888);
+//        Utils.matToBitmap(resultMat, bmp);
+        return notePixels;
+    }
 
     public List<Integer> classifyObjects() {
         int i = 0;
@@ -477,7 +523,7 @@ public class ScoreProcessor {
             int count = 0;
             for (int row = obj.top; row < obj.bottom; row++) {
                 for (int col = obj.left; col < obj.right; col++) {
-                    if (noStaffLinesImg.get(row, col)[3] == 255.0) {
+                    if (noStaffLinesImg.get(row, col)[0] == 255.0) {
                         count++;
                     }
                 }
@@ -500,7 +546,7 @@ public class ScoreProcessor {
                     int rowCount = 0;
 
                     for (int row = obj.top + padding; row < obj.bottom - padding; row++) {
-                        if (noStaffLinesImg.get(row, col)[3] == 255.0) {
+                        if (noStaffLinesImg.get(row, col)[0] == 255.0) {
                             rowAvg += row;
                             rowCount++;
                         }
