@@ -183,7 +183,7 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
      * @param index The page index.
      */
     private void showPage(int index) {
-        Bitmap curPageBitmap = mPdfHelper.toBinImg(index);
+        Bitmap curPageBitmap = mPdfHelper.toImg(index);
         // We are ready to show the Bitmap to user.
         mImageView.setImageBitmap(curPageBitmap);
 
@@ -257,15 +257,16 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
                             Bitmap.Config.ARGB_8888);
                     curPage.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY);
 
-
+                    //image processing
+                    //loads the Mat object of the image
                     scoreProc = new ScoreProcessor(bitmap);
+                    //Threshold so Mat will only have 0s and 255s
                     scoreProc.binarize();
-                    scoreProc.removeStaffLines(true);
-                    //Bitmap binBitmap = scoreProc.getNoStaffLinesImg();
-
+                    scoreProc.removeStaffLines();
                     scoreProc.refineStaffLines();
-
                     List<List<Rect>> staffObjects = scoreProc.detectObjects();
+
+                    //TRAINING SETS FOR SYMBOLS
                     //load the training images and train symbol detection
 //                    Resources res = getResources();
 //                    AssetManager am = res.getAssets();
@@ -307,40 +308,39 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
 //
 //                            //Train
 //                            scoreProc.trainKnn();
-////                            //Test: with odd indexed images in the training set directory
-////                            Bitmap bmpFclef, bmpGclef;
-////                            int testsPassedG = 0;
-////                            int testsPassedF = 0;
-////                            int totalTestsG = 0;
-////                            int totalTestsF = 0;
-////                            for(int j = 0; j < fileList.length; j++){
-////                                //there are more g clefs than f clefs in train data for now
-////                                inputstream = appContext.getAssets().open("training_set/g_clef/" + fileList[j]);
-////                                bmpGclef = BitmapFactory.decodeStream(inputstream);
-////                                if(j % 2 != 0){
-////                                    if(scoreProc.testKnn(bmpGclef, 10)){
-////                                        testsPassedG++;
-////                                    }
-////                                    totalTestsG++;
-////                                }
-////                            }
-////                            for(int i = 0 ; i < fileList2.length; i++){
-////                                inputstream=appContext.getAssets().open("training_set/f_clef/"
-////                                        +fileList2[i]);
-////                                bmpFclef = BitmapFactory.decodeStream(inputstream);
-////
-////
-////                                if(i % 2 != 0){
-////                                    //test two different ones
-////
-////                                    if(scoreProc.testKnn(bmpFclef, 20)){
-////                                        testsPassedF++;
-////                                    }
-////                                    totalTestsF++;
-////                                }
-////                            }
-////                            String logTest = String.format("G: %d/%d , F: %d/%d", testsPassedG, totalTestsG, testsPassedF, totalTestsF);
-////                            Log.d("", logTest);
+//                            //Test: with odd indexed images in the training set directory
+//                            Bitmap bmpFclef, bmpGclef;
+//                            int testsPassedG = 0;
+//                            int testsPassedF = 0;
+//                            int totalTestsG = 0;
+//                            int totalTestsF = 0;
+//                            for(int j = 0; j < fileList.length; j++){
+//                                //there are more g clefs than f clefs in train data for now
+//                                inputstream = appContext.getAssets().open("training_set/g_clef/" + fileList[j]);
+//                                bmpGclef = BitmapFactory.decodeStream(inputstream);
+//                                if(j % 2 != 0){
+//                                    if(scoreProc.testKnn(bmpGclef, 10)){
+//                                        testsPassedG++;
+//                                    }
+//                                    totalTestsG++;
+//                                }
+//                            }
+//                            for(int i = 0 ; i < fileList2.length; i++){
+//                                inputstream=appContext.getAssets().open("training_set/f_clef/"
+//                                        +fileList2[i]);
+//                                bmpFclef = BitmapFactory.decodeStream(inputstream);
+//
+//
+//                                if(i % 2 != 0){
+//                                    //test two different ones
+//                                    if(scoreProc.testKnn(bmpFclef, 20)){
+//                                        testsPassedF++;
+//                                    }
+//                                    totalTestsF++;
+//                                }
+//                            }
+//                            String logTest = String.format("G: %d/%d , F: %d/%d", testsPassedG, totalTestsG, testsPassedF, totalTestsF);
+//                            Log.d("", logTest);
 //                            //Test some symbols
 //                            scoreProc.testMusicObjects();
 //
@@ -353,17 +353,17 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
 //                    catch(Exception e){
 //                        Log.d("","ERROR in am.list");
 //                    }
-                    mDebugView.setText(staffObjects.toString());
-//                    try {
-////                        int numCircles = scoreProc.classifyNoteGroup();
-////                        mDebugView.setText(String.format("Number of circles: %d", numCircles));
-//                        List<Double> pixels = scoreProc.classifyNoteGroup();
-//                        mDebugView.setText(pixels.toString());
-////                        mImageView.setImageBitmap(ngBmp);
-//                    }
-//                    catch (Exception e) {
-//                        mDebugView.setText(e.toString());
-//                    }
+
+                    try {
+//                        int numCircles = scoreProc.classifyNoteGroup();
+//                        mDebugView.setText(String.format("Number of circles: %d", numCircles));
+                        List<Double> pixels = scoreProc.classifyNoteGroup();
+                        mDebugView.setText(pixels.toString());
+//                        mImageView.setImageBitmap(ngBmp);
+                    }
+                    catch (Exception e) {
+                        mDebugView.setText(e.toString());
+                    }
 
                     Canvas cnvs = new Canvas(bitmap);
                     Paint paint=new Paint();

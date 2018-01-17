@@ -12,6 +12,7 @@ import org.opencv.android.Utils;
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.KeyPoint;
+import org.opencv.core.MatOfInt;
 import org.opencv.core.MatOfKeyPoint;
 import org.opencv.core.MatOfPoint;
 import org.opencv.core.MatOfPoint2f;
@@ -52,10 +53,14 @@ public class ScoreProcessor {
     static final int TRAIN_WIDTH = 30;
     static final int TRAIN_HEIGHT = 30;
 
-    Mat originalImg;
+    //Information channel (alpha) - inv since 0 is white, 255 is black
+    Mat originalGrayInvImg;
+    //Just the first 3 channels (all 0s)
+    Mat originalImgRgb;
     Mat grayImg;
     Mat binarizedImg;
     Mat noStaffLinesImg;
+
     final int MAX_STAFF_LINE_THICKNESS = 2; //TODO detect this dynamically
     List<Integer> staffLineRowIndices;
 
@@ -76,11 +81,35 @@ public class ScoreProcessor {
 
     public ScoreProcessor(Bitmap bmpImg){
         staffLineRowIndices = new ArrayList<Integer>();
-        originalImg = new Mat();
-        grayImg = new Mat();
-        binarizedImg = new Mat();
-        noStaffLinesImg = new Mat();
-        Utils.bitmapToMat(bmpImg,originalImg);
+        Mat originalImgRgba = new Mat(bmpImg.getHeight(), bmpImg.getWidth(), CvType.CV_8UC4);
+        //load into 8UC4 where the information is stored in the last (alpha) channel
+        Utils.bitmapToMat(bmpImg, originalImgRgba);
+        //structure for extracting channels needs a list of Mat for inputs and outputs
+        List<Mat> inputMats = new ArrayList<Mat>();
+        inputMats.add(originalImgRgba);
+        List<Mat> outputMats = new ArrayList<Mat>();
+        originalImgRgb = new Mat(bmpImg.getHeight(), bmpImg.getWidth(), CvType.CV_8UC3);
+        originalGrayInvImg = new Mat(bmpImg.getHeight(), bmpImg.getWidth(), CvType.CV_8UC1);
+        outputMats.add(originalImgRgb);
+        outputMats.add(originalGrayInvImg);
+        //one to one mapping; first channel of input -> first channel of output
+        //total channel size of inputs and outputs must be equal: 8UC4 = 8UC3 + 8UC1
+        int[] channelMapArray = {0,0,1,1,2,2,3,3};
+        MatOfInt channelMapping = new MatOfInt(channelMapArray);
+        try{
+            Core.mixChannels(inputMats, outputMats, channelMapping);
+        }
+        catch(Exception e){
+            String exc = e.toString();
+        }
+        originalGrayInvImg = outputMats.get(1);
+
+        //---
+        binarizedImg = new Mat(bmpImg.getHeight(), bmpImg.getWidth(), CvType.CV_8UC1);
+        noStaffLinesImg = new Mat(bmpImg.getHeight(), bmpImg.getWidth(), CvType.CV_8UC1);
+
+        //android uses BGR default -> switch B and R channels
+//        Imgproc.cvtColor(originalImg, originalImg, Imgproc.COLOR_BGRA2RGBA);
         //Used to train for various symbol by passing in a label and test data
         knn = KNearest.create();
         trainData = new Mat();
@@ -88,19 +117,16 @@ public class ScoreProcessor {
         trainData.convertTo(trainData, CvType.CV_32F);
         testData.convertTo(testData, CvType.CV_32F);
 
-        Log.d(TAG,String.format("Converted original image to %d by %d MAT",originalImg.cols(),
-                originalImg.rows()));
+        Log.d(TAG,String.format("Converted original image to %d by %d MAT",originalGrayInvImg.cols(),
+                originalGrayInvImg.rows()));
     }
 
-    //takes original image -> grayscales -> binarize it
+    //Threshold the alpha values of the original image
     public void binarize(){
-        grayImg = ImageUtils.bgrToGrayscale(this.originalImg);
-        Log.d(TAG,String.format("Created grayscale %d by %d img MAT",grayImg.cols(),grayImg.rows()));
         try {
             //TODO: See if adaptive threshold is better
-            //Imgproc.adaptiveThreshold(grayImg, binarizedImg, 255, ADAPTIVE_THRESH_MEAN_C, THRESH_BINARY, 15, -2);
-            //Lots of salt pepper noise so a lower threshold value will give stronger blacks which will help
-            Imgproc.threshold(grayImg,binarizedImg,50,255,THRESH_BINARY);
+//            Lots of salt pepper noise so a lower threshold value will give stronger blacks which will help
+            Imgproc.threshold(originalGrayInvImg,binarizedImg,50,255,THRESH_BINARY);
             Log.d(TAG,String.format("Created binarized %d by %d img MAT",binarizedImg.cols(),binarizedImg.rows()));
         }
         catch(Exception e){
@@ -108,22 +134,8 @@ public class ScoreProcessor {
         }
     }
 
-    //TODO: Find out if other one is suffice and scrap this
-    //EC Uses Vertical Morphology but results weren't great for some music elements with lines thru em
-    public void removeStaffLines(){
-        // Create structure element for extracting vertical lines through morphology operations
-        Point pt = new Point(-1,-1); //"default"
-        //via paint max staff line width is 2
-        Size kernelHeight = new Size(1,5);
-        Mat verticalStructure = Imgproc.getStructuringElement(MORPH_RECT, kernelHeight);
-        //erode out the lines
-        Imgproc.erode(binarizedImg,noStaffLinesImg,verticalStructure,pt,1);
-        //should re-amp the blackness of remaining black things in the picture
-        //Imgproc.dilate(noStaffLinesImg,noStaffLinesImg,verticalStructure,pt,1);
-    }
-
     //Uses horizontal morphology and subtracts from the original img
-    public void removeStaffLines(boolean horzMorph){
+    public void removeStaffLines(){
         Mat isoStaffLinesImg = new Mat();
         // Relative measure which seemed ok
         int horizontalsize = binarizedImg.cols() / 30;
@@ -133,43 +145,32 @@ public class ScoreProcessor {
         Mat horizontalStructure = Imgproc.getStructuringElement(MORPH_RECT, kernelWidth);
         // Apply morphology operations
         Imgproc.erode(binarizedImg, isoStaffLinesImg, horizontalStructure, pt,2);
-        // "reamps" the remaining elements on the page (trailing parts of staffline_
+        // "reamps" the remaining elements on the page (trailing parts of staffline which were eliminated)
         Imgproc.dilate(isoStaffLinesImg, noStaffLinesImg, horizontalStructure, pt,2);
-
         //ideally the image after morphology only contains staff lines which are not subtracted out
         Core.subtract(binarizedImg,noStaffLinesImg,noStaffLinesImg);
         //now lets try vertically dilating it to stich gaps
-        Point pt2 = new Point(-1,-1); //"default"
         //via paint max staff line width is 2
         //Will need to make sure flood fill works 100% of the time
         Size kernelHeight = new Size(1,3);
         Mat verticalStructure = Imgproc.getStructuringElement(MORPH_RECT, kernelHeight);
         //vertical dilate will look 1 pixel away vertically and take max
         Imgproc.dilate(noStaffLinesImg,noStaffLinesImg,verticalStructure,pt,2);
-
-        // horizontalsize = 2; //Try this for neighbours
-        // kernelWidth = new Size(horizontalsize,1);
-        // pt = new Point(-1,-1); //current pixel is the 'center' when applying operations
-        // // Create structure element for extracting horizontal lines through morphology operations
-        // horizontalStructure = Imgproc.getStructuringElement(MORPH_RECT, kernelWidth);
-        // Imgproc.dilate(noStaffLinesImg, noStaffLinesImg, horizontalStructure, pt,2); //you can play around with iterations here
-
-        //gapstich
+        //internally make note of stafflines and locations
         staffLineDetect(isoStaffLinesImg);
     }
 
+
     public void staffLineDetect(Mat staffLinesImg){
-        Mat curRow;
-        //TODO: Make structured val not hacky estimate
+        //TODO: Make structured val not hacky estimate for threshold
         int thresholdForStaffline = binarizedImg.cols()/2;
         double[] rowTotalVals;
         int curRowTotal;
-        int y;
         double[] mVal;
         for(int i = 0; i<staffLinesImg.rows(); i++){
             mVal = staffLinesImg.get(i,150);
             rowTotalVals = Core.sumElems(staffLinesImg.row(i)).val;
-            curRowTotal = (int) rowTotalVals[rowTotalVals.length-1]/255;
+            curRowTotal = (int) rowTotalVals[0]/255;
             if(curRowTotal > thresholdForStaffline){
                 staffLineRowIndices.add(i);
             }
@@ -179,25 +180,19 @@ public class ScoreProcessor {
         Log.d(TAG,String.format("Detected %d staff line positions!", staffLineRowIndices.size()));
     }
 
-    //    public void vertGapStich(Mat staffLinesImg){
-    //        double[] curStaffImgValVec;
-    //        int curStaffImgVal;
-    //        for(int rowIndex : staffLineRowIndices){
-    //            for(int colIndex = 0; colIndex < staffLinesImg.cols(); colIndex++){
-    //                curStaffImgValVec = staffLinesImg.get(rowIndex,colIndex);
-    //                curStaffImgVal = (int) curStaffImgValVec[curStaffImgValVec.length - 1];
-    //                //white
-    //                if(curStaffImgVal == 0){
-    //
-    //                }
-    //            }
-    //        }
-    //    }
-
     //Returns the image after staff line removal
     public Bitmap getNoStaffLinesImg(){
         Bitmap bmp = Bitmap.createBitmap(noStaffLinesImg.cols(),noStaffLinesImg.rows(),Bitmap.Config.ARGB_8888);
-        Utils.matToBitmap(noStaffLinesImg,bmp);
+        Mat noStaffLinesImgRgba = new Mat(noStaffLinesImg.rows(), noStaffLinesImg.cols(), CvType.CV_8UC4);
+        List<Mat> inputMats = new ArrayList<Mat>();
+        inputMats.add(originalImgRgb);
+        inputMats.add(noStaffLinesImg);
+        List<Mat> outputMats = new ArrayList<Mat>();
+        outputMats.add(noStaffLinesImgRgba);
+        int[] channelMapArray = {0,0,1,1,2,2,3,3};
+        MatOfInt channelMap = new MatOfInt(channelMapArray);
+        Core.mixChannels(inputMats, outputMats, channelMap);
+        Utils.matToBitmap(noStaffLinesImgRgba,bmp);
         return bmp;
     }
 
@@ -209,6 +204,43 @@ public class ScoreProcessor {
         return bmp;
     }
 
+    public Bitmap getGrayImg(){
+        Bitmap bmp = Bitmap.createBitmap(grayImg.cols(),grayImg.rows(),Bitmap.Config.ARGB_8888);
+        //reconvert to rgb format to use with android bitmap
+        Mat rgbFormatMat = new Mat();
+        cvtColor(grayImg,rgbFormatMat,Imgproc.COLOR_GRAY2RGBA, 4 );
+        Utils.matToBitmap(rgbFormatMat,bmp);
+        Log.d(TAG,String.format("Creating binarized %d by %d img",bmp.getWidth(),bmp.getHeight()));
+        return bmp;
+    }
+
+    public Bitmap getOriginalImg() {
+        Bitmap bmp = Bitmap.createBitmap(originalGrayInvImg.cols(),originalGrayInvImg.rows(),Bitmap.Config.ARGB_8888);
+        Mat gray = new Mat();
+        Mat endImg = new Mat();
+        int rowToTest = 100;
+        List<Mat> lRgb = new ArrayList<Mat>(3);
+        Core.split(originalGrayInvImg, lRgb);
+        Mat mR = lRgb.get(0).row(rowToTest);
+        Mat mG = lRgb.get(1).row(rowToTest);
+        Mat mB = lRgb.get(2).row(rowToTest);
+        Mat mA = lRgb.get(3).row(rowToTest);
+        String sR = mR.dump();
+        String sG = mG.dump();
+        String sB = mB.dump();
+        String sA = mA.dump();
+        cvtColor(originalGrayInvImg, gray, Imgproc.COLOR_RGB2GRAY);
+        //String s = gray.dump();
+        Mat x = gray.row(rowToTest);
+        String s = x.dump();
+
+        cvtColor(gray, endImg, Imgproc.COLOR_GRAY2RGB);
+        Utils.matToBitmap(endImg,bmp);
+        Log.d(TAG,String.format("Creating original %d by %d img",bmp.getWidth(),bmp.getHeight()));
+        return bmp;
+    }
+
+    //clustering to classify distinct staffs from the raw staff line information
     public List<List<Integer>> refineStaffLines() {
         staffs = new ArrayList<List<Integer>>();
         staffs.add(new ArrayList<Integer>());
@@ -284,8 +316,8 @@ public class ScoreProcessor {
 
                     if (!staffsVisited[row][col]) {
                         double[] data = noStaffLinesImg.get(row, col);
-
-                        if (data[data.length-1] == 255.0) {
+                        //nostafflinesimg should be 8UC1
+                        if (data[0] == 255.0) {
                             fillSearch(row, col, staffsVisited);
                             staffObjects.get(i).add(new Rect(curObjectLeft-padding, curObjectTop-padding, curObjectRight+padding, curObjectBottom+padding));
                             //tabuRects.add(new Rect(curObjectLeft, curObjectTop, curObjectRight, curObjectBottom));
@@ -310,15 +342,44 @@ public class ScoreProcessor {
     public void addSample(Bitmap bmp , int label){
         //most notes around 30x80
         Size size = new Size(TRAIN_WIDTH,TRAIN_HEIGHT);
-        Mat curFeature = new Mat();
         Mat resizedImg = new Mat();
-        Utils.bitmapToMat(bmp, curFeature);
-        Imgproc.resize(curFeature, resizedImg, size);
+        Mat curFeatureRgba = new Mat();
+        Mat curFeatureGba, curFeatureR;
+        Utils.bitmapToMat(bmp, curFeatureRgba);
+        List<Mat> inputMats = new ArrayList<Mat>();
+        inputMats.add(curFeatureRgba);
+        List<Mat> outputMats = new ArrayList<Mat>();
+        curFeatureGba = new Mat(curFeatureRgba.rows(), curFeatureRgba.cols(), CvType.CV_8UC3);
+        curFeatureR = new Mat(curFeatureRgba.rows(), curFeatureRgba.cols(), CvType.CV_8UC1);
+        outputMats.add(curFeatureR);
+        outputMats.add(curFeatureGba);
+        //one to one mapping; first channel of input -> first channel of output
+        //total channel size of inputs and outputs must be equal: 8UC4 = 8UC3 + 8UC1
+        int[] channelMapArray = {0,0,1,1,2,2,3,3};
+        MatOfInt channelMapping = new MatOfInt(channelMapArray);
+        try{
+            Core.mixChannels(inputMats, outputMats, channelMapping);
+        }
+        catch(Exception e){
+            String exc = e.toString();
+        }
+        curFeatureR = outputMats.get(0);
+        //stay consistent since our original image is gray-inverted
+        curFeatureR = invertGrayImg(curFeatureR);
+        Imgproc.resize(curFeatureR, resizedImg, size);
         resizedImg.convertTo(resizedImg, CvType.CV_32F);
         resizedImg = resizedImg.reshape(1,1);
         trainData.push_back(resizedImg);
         trainLabs.add(label);
+    }
 
+    public Mat invertGrayImg(Mat grayImg){
+        for(int i = 0; i < grayImg.rows(); i++){
+            for(int j = 0; j < grayImg.cols(); j++){
+                grayImg.put(i,j,(grayImg.get(i,j)[0]-255)%255);
+            }
+        }
+        return grayImg;
     }
 
     public boolean testMusicObjects(){
@@ -353,9 +414,28 @@ public class ScoreProcessor {
     //Finds the nearest neighbour of a bitmap img and returns whether its label is what we expect
     public boolean testKnn(Bitmap bmp, int label){
         //Convert to Mat
-        Mat curFeature = new Mat();
-        Utils.bitmapToMat(bmp, curFeature);
-        return testKnnMat(curFeature, label);
+        Mat curFeatureRgba = new Mat();
+        Mat curFeatureGba, curFeatureR;
+        Utils.bitmapToMat(bmp, curFeatureRgba);
+        List<Mat> inputMats = new ArrayList<Mat>();
+        inputMats.add(curFeatureRgba);
+        List<Mat> outputMats = new ArrayList<Mat>();
+        curFeatureGba = new Mat(curFeatureRgba.rows(), curFeatureRgba.cols(), CvType.CV_8UC3);
+        curFeatureR = new Mat(curFeatureRgba.rows(), curFeatureRgba.cols(), CvType.CV_8UC1);
+        outputMats.add(curFeatureR);
+        outputMats.add(curFeatureGba);
+        //one to one mapping; first channel of input -> first channel of output
+        //total channel size of inputs and outputs must be equal: 8UC4 = 8UC3 + 8UC1
+        int[] channelMapArray = {0,0,1,1,2,2,3,3};
+        MatOfInt channelMapping = new MatOfInt(channelMapArray);
+        try{
+            Core.mixChannels(inputMats, outputMats, channelMapping);
+        }
+        catch(Exception e){
+            String exc = e.toString();
+        }
+        curFeatureR = outputMats.get(0);
+        return testKnnMat(curFeatureR, label);
     }
 
     public boolean testKnnMat(Mat symbolToTest, int label){
@@ -388,6 +468,7 @@ public class ScoreProcessor {
 
     public void trainKnn(){
         knn.train(trainData, Ml.ROW_SAMPLE, Converters.vector_int_to_Mat(trainLabs));
+
         //Load the image
         //Didn't work likely using train overwrites previous data?
 //        Mat curSymbol = new Mat();

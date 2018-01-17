@@ -45,7 +45,7 @@ public final class ImageUtils {
         Mat result = new Mat();
         Log.d("ImageUtils", String.format("imgMat: %d", imgMat.get(0,0).length));
         Log.d("ImageUtils", String.format("imgMat channels: %d", imgMat.channels()));
-        Imgproc.cvtColor(imgMat,result,Imgproc.COLOR_BGR2GRAY);
+        Imgproc.cvtColor(imgMat,result,Imgproc.COLOR_BGRA2GRAY);
         Log.d("ImageUtils", String.format("result: %d", result.get(0,0).length));
         return result;
     }

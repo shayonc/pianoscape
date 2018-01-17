@@ -26,7 +26,7 @@ public class PDFHelper {
         }
     }
 
-    //USED FOR IMG PROCESSING TESTING: can apply any algorithms on the bmp of pdf and output it
+    //USED FOR IMG PROCESSING TESTING ONLY: can apply any algorithms on the bmp of pdf and output it
     public Bitmap toBinImg(int index){
         //close current page
         if(mCurrentPage != null){
@@ -41,15 +41,18 @@ public class PDFHelper {
         // To render a portion of the page, use the second and third parameter. Pass nulls to get
         // the default result.
         // Pass either RENDER_MODE_FOR_DISPLAY or RENDER_MODE_FOR_PRINT for the last parameter.
-        mCurrentPage.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY);
+        mCurrentPage.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_PRINT);
         //IMG PROCESSING:
+        //fix the channel values
+        //..idk
         //feed in the bitmap to be binarized
         ScoreProcessor scoreProc = new ScoreProcessor(bitmap);
         scoreProc.binarize();
-        scoreProc.removeStaffLines(true);
+        //TODO:uncomment scoreProc.removeStaffLines(true);
         //after binarization and staff line elimination
-        Bitmap binBitmap = scoreProc.getNoStaffLinesImg();
-        return binBitmap;
+        //test grayscale with binary img
+        Bitmap grayImgBitmap = scoreProc.getOriginalImg();
+        return grayImgBitmap;
     }
 
     //Can be used for just displaying the actual Bitmaps for the PDFs generated with no processing
