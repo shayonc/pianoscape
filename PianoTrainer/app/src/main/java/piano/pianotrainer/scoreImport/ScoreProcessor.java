@@ -364,19 +364,30 @@ public class ScoreProcessor {
             String exc = e.toString();
         }
         curFeatureR = outputMats.get(0);
+        Mat curRow = curFeatureR.row(10);
+        String rowInfo = curRow.dump();
         //stay consistent since our original image is gray-inverted
         curFeatureR = invertGrayImg(curFeatureR);
+        curRow = curFeatureR.row(10);
+        rowInfo = curRow.dump();
+
         Imgproc.resize(curFeatureR, resizedImg, size);
+        //most examples suggest we need float data for knn
         resizedImg.convertTo(resizedImg, CvType.CV_32F);
-        resizedImg = resizedImg.reshape(1,1);
+        //for opencv ml, each feature has to be a single row
+
+        resizedImg = resizedImg.reshape(1, 1);
+
         trainData.push_back(resizedImg);
         trainLabs.add(label);
     }
 
     public Mat invertGrayImg(Mat grayImg){
+        double curVal;
         for(int i = 0; i < grayImg.rows(); i++){
             for(int j = 0; j < grayImg.cols(); j++){
-                grayImg.put(i,j,(grayImg.get(i,j)[0]-255)%255);
+                curVal = grayImg.get(i,j)[0];
+                grayImg.put(i,j, 255 - curVal);
             }
         }
         return grayImg;
@@ -435,6 +446,7 @@ public class ScoreProcessor {
             String exc = e.toString();
         }
         curFeatureR = outputMats.get(0);
+        curFeatureR = invertGrayImg(curFeatureR);
         return testKnnMat(curFeatureR, label);
     }
 
