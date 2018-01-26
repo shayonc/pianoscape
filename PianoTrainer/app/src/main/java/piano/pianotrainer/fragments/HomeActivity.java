@@ -138,7 +138,7 @@ public class HomeActivity extends AppCompatActivity {
 
         // Setup a menu to select an input source.
         mLogSenderSelector = new MidiOutputPortSelector(mMidiManager, this,
-                com.mobileer.example.midiscope.R.id.spinner_senders) {
+                R.id.spinner_senders) {
 
             @Override
             public void onPortSelected(final MidiPortWrapper wrapper) {
