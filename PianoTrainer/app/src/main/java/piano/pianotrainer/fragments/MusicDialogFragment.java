@@ -9,6 +9,7 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
+import android.support.v4.content.FileProvider;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -39,9 +40,11 @@ public class MusicDialogFragment extends DialogFragment {
                                 String path = rootpath + filename + ".xml";
                                 File file = new File(path);
                                 Log.d("MusicDialogFragment", file.getName());
-                                Uri uri = Uri.parse("file://" + path);
+//                                Uri uri = Uri.parse("file://" + path);
+                                Uri uri = FileProvider.getUriForFile(getContext(), getContext().getApplicationContext().getPackageName() + ".provider", file);
                                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                                 intent.setFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                                intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
                                 intent.setDataAndType(uri, "text/xml");
 
                                 PackageManager packageManager = getActivity().getPackageManager();
