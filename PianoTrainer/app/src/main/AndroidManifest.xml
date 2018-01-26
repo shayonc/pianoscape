@@ -7,6 +7,11 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
 
+    <uses-feature
+        android:name="android.software.leanback"
+        android:required="false" />
+    <uses-feature android:name="android.software.midi" android:required="true"/>
+
     <application
         tools:replace="android:icon"
         android:allowBackup="true"
@@ -25,6 +30,27 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity android:name=".fragments.MainActivity" android:label="MIDI Scope">
+
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+            </intent-filter>
+        </activity>
+            <service android:name="midi.scope.MidiScope"
+                android:permission="android.permission.BIND_MIDI_DEVICE_SERVICE">
+                <intent-filter>
+                    <action android:name="android.media.midi.MidiDeviceService" />
+                </intent-filter>
+                <meta-data android:name="android.media.midi.MidiDeviceService"
+                    android:resource="@xml/scope_device_info" />
+            </service>
+
     </application>
+
+
 
 </manifest>

@@ -29,6 +29,7 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.ArrayAdapter;
+import android.content.Intent;
 
 import java.io.Console;
 import java.io.IOException;
@@ -103,51 +104,12 @@ public class HomeActivity extends AppCompatActivity {
             Manifest.permission.WRITE_EXTERNAL_STORAGE
     };
 
-    private static final String TAG = "MidiScope";
-
-    private TextView mLog;
-    private ScrollView mScroller;
-    private LinkedList<String> logLines = new LinkedList<String>();
-    private static final int MAX_LINES = 100;
-    private MidiOutputPortSelector mLogSenderSelector;
-    private MidiManager mMidiManager;
-    private MidiReceiver mLoggingReceiver;
-    private MidiFramer mConnectFramer;
-    private MyDirectReceiver mDirectReceiver;
-    private boolean mShowRaw;
-
-
     //Parsed Xml
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
-
-        //mLog = (TextView) findViewById(com.mobileer.example.midiscope.R.id.log);
-       // mScroller = (ScrollView) findViewById(com.mobileer.example.midiscope.R.id.scroll);
-
-        // Setup MIDI
-        mMidiManager = (MidiManager) getSystemService(MIDI_SERVICE);
-
-        // Receiver that prints the messages.
-        //mLoggingReceiver = new LoggingReceiver(this);
-
-        // Receivers that parses raw data into complete messages.
-        mConnectFramer = new MidiFramer(mLoggingReceiver);
-
-        // Setup a menu to select an input source.
-        mLogSenderSelector = new MidiOutputPortSelector(mMidiManager, this,
-                R.id.spinner_senders) {
-
-            @Override
-            public void onPortSelected(final MidiPortWrapper wrapper) {
-                super.onPortSelected(wrapper);
-                if (wrapper != null) {
-                   // log(MidiPrinter.formatDeviceInfo(wrapper.getDeviceInfo()));
-                }
-            }
-        };
 
         mTextMessage = (TextView) findViewById(R.id.message);
 
@@ -171,6 +133,18 @@ public class HomeActivity extends AppCompatActivity {
                 // Do Nothing
             }
         });
+
+        Button compareActivityButton = (Button) findViewById(R.id.compareActivityButton);
+        compareActivityButton.setBackgroundColor(Color.rgb(0, 91, 170));
+        compareActivityButton.setTextColor(Color.WHITE);
+        compareActivityButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                Intent intentMain = new Intent(HomeActivity.this , MainActivity.class);
+                HomeActivity.this.startActivity(intentMain);
+            }
+        });
+
+
 
         Button printSyncButton = (Button) findViewById(R.id.printSyncButton);
         printSyncButton.setBackgroundColor(Color.rgb(0, 91, 170));
@@ -425,19 +399,6 @@ public class HomeActivity extends AppCompatActivity {
         ////TODO creation of new mxl
         imageAdapter.notifyDataSetChanged();
         swiperefresh.setRefreshing(false);
-    }
-
-    class MyDirectReceiver extends MidiReceiver {
-        @Override
-        public void onSend(byte[] data, int offset, int count,
-                           long timestamp) throws IOException {
-            if (mShowRaw) {
-                String prefix = String.format("0x%08X, ", timestamp);
-                //logByteArray(prefix, data, offset, count);
-            }
-            // Send raw data to be parsed into discrete messages.
-            mConnectFramer.send(data, offset, count, timestamp);
-        }
     }
 
     public static void verifyStoragePermissions(Activity activity) {
