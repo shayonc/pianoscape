@@ -1,1 +1,1 @@
-include ':app', ':MidiScope-debug'
+include ':app', ':MidiScope-debug', ':MidiTools-debug'
