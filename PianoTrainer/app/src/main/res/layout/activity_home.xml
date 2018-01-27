@@ -49,16 +49,6 @@
                 android:textAllCaps="false"
                 android:textSize="10sp" />
 
-            <Button
-                android:id="@+id/compareActivityButton"
-                android:layout_width="96dp"
-                android:layout_height="wrap_content"
-                android:layout_below="@+id/mxlFileSpinner"
-                android:layout_marginStart="27dp"
-                android:layout_toEndOf="@+id/printSyncButton"
-                android:text="Launch Compare"
-                android:textAllCaps="false"
-                android:textSize="10sp" />
             <!--<Button-->
             <!--android:id="@+id/startAtPaceEvalButton"-->
             <!--android:layout_width="96dp"-->

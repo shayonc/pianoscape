@@ -32,7 +32,10 @@ public class MusicDialogFragment extends DialogFragment {
                         Bundle bundle = getArguments();
                         String filename = bundle.getString("filename","");
                         String rootpath = bundle.getString("xmlFilePath","");
-
+                        if (which == 1) {
+                            Intent intentMain = new Intent(getActivity() , MainActivity.class);
+                            getActivity().startActivity(intentMain);
+                        }
                         if (which == 2) {
                             try {
                                 // open text editor
@@ -40,7 +43,6 @@ public class MusicDialogFragment extends DialogFragment {
                                 String path = rootpath + filename + ".xml";
                                 File file = new File(path);
                                 Log.d("MusicDialogFragment", file.getName());
-//                                Uri uri = Uri.parse("file://" + path);
                                 Uri uri = FileProvider.getUriForFile(getContext(), getContext().getApplicationContext().getPackageName() + ".provider", file);
                                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                                 intent.setFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);

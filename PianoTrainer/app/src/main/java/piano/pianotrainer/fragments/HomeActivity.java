@@ -134,18 +134,6 @@ public class HomeActivity extends AppCompatActivity {
             }
         });
 
-        Button compareActivityButton = (Button) findViewById(R.id.compareActivityButton);
-        compareActivityButton.setBackgroundColor(Color.rgb(0, 91, 170));
-        compareActivityButton.setTextColor(Color.WHITE);
-        compareActivityButton.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                Intent intentMain = new Intent(HomeActivity.this , MainActivity.class);
-                HomeActivity.this.startActivity(intentMain);
-            }
-        });
-
-
-
         Button printSyncButton = (Button) findViewById(R.id.printSyncButton);
         printSyncButton.setBackgroundColor(Color.rgb(0, 91, 170));
         printSyncButton.setTextColor(Color.WHITE);
