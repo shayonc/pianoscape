@@ -38,16 +38,16 @@
                 android:spinnerMode="dropdown"
                 android:textSize="14sp" />
 
-            <Button
-                android:id="@+id/printSyncButton"
-                android:layout_width="96dp"
-                android:layout_height="wrap_content"
-                android:layout_below="@+id/mxlFileSpinner"
-                android:layout_marginStart="19dp"
-                android:layout_toEndOf="@+id/compareNotesButton"
-                android:text="Parse Notes"
-                android:textAllCaps="false"
-                android:textSize="10sp" />
+            <!--<Button-->
+                <!--android:id="@+id/printSyncButton"-->
+                <!--android:layout_width="96dp"-->
+                <!--android:layout_height="wrap_content"-->
+                <!--android:layout_below="@+id/mxlFileSpinner"-->
+                <!--android:layout_marginStart="19dp"-->
+                <!--android:layout_toEndOf="@+id/compareNotesButton"-->
+                <!--android:text="Parse Notes"-->
+                <!--android:textAllCaps="false"-->
+                <!--android:textSize="10sp" />-->
 
             <!--<Button-->
             <!--android:id="@+id/startAtPaceEvalButton"-->
@@ -75,7 +75,6 @@
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
                 android:layout_below="@id/mxlFileSpinner"
-                android:layout_toRightOf="@id/printSyncButton"
                 android:gravity="center_horizontal"
                 android:scrollbars="vertical"
                 android:text="Placeholder"
