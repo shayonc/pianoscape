@@ -31,7 +31,9 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".fragments.MainActivity" android:label="MIDI Scope">
+        <activity   android:name=".fragments.MainActivity"
+                    android:label="MIDI Scope"
+                    android:screenOrientation="landscape">
 
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
