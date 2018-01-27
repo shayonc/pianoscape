@@ -104,7 +104,7 @@ public class MainActivity extends Activity implements ScopeLogger {
         notesArray = parseNotes.parseTheNotes(filename, context, MainActivity.this);
         Log.d("MainActivity", Integer.toString(notesArray.size()));
 
-//        ArrayList<List<Note>> soManyWrongNotes = parseNotes.compareWrongNotes(filename, context, MainActivity.this);
+        ArrayList<List<Note>> soManyWrongNotes = parseNotes.compareWrongNotes(filename, context, MainActivity.this);
 
     }
 
