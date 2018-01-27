@@ -14,9 +14,11 @@ import android.util.Log;
 import android.widget.Toast;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 import piano.pianotrainer.R;
+import piano.pianotrainer.model.Note;
 
 /**
  * Created by Matthew on 11/24/2017.
@@ -32,11 +34,15 @@ public class MusicDialogFragment extends DialogFragment {
                         Bundle bundle = getArguments();
                         String filename = bundle.getString("filename","");
                         String rootpath = bundle.getString("xmlFilePath","");
+                        if (which == 0) {
+
+                        }
                         if (which == 1) {
                             Intent intentMain = new Intent(getActivity() , MainActivity.class);
+                            intentMain.putExtra("filename", filename);
                             getActivity().startActivity(intentMain);
                         }
-                        if (which == 2) {
+                        else if (which == 2) {
                             try {
                                 // open text editor
                                 Intent intent = new Intent(Intent.ACTION_EDIT);

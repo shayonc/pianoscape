@@ -147,6 +147,7 @@ public class HomeActivity extends AppCompatActivity {
                         xmlparser = new XMLMusicParser(filename, ROOT_FOLDER, OUTPUT_FOLDER);
                         xmlparser.parseMXL(); // parse the .mxl file
                         List<Note> parsedNotes = xmlparser.parseXML(); // parse the .xml file
+//                        Log.d("HomeActivity", Integer.toString(parsedNotes.size()));
                         comparison = new ComparisonSetup();
                         comparison.SyncNotes(parsedNotes);
                         String toPrint = comparison.DebugPrintSync();

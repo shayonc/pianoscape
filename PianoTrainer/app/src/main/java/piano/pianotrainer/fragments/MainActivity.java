@@ -17,9 +17,11 @@
 package piano.pianotrainer.fragments;
 
 import android.app.Activity;
+import android.content.Context;
 import android.media.midi.MidiManager;
 import android.media.midi.MidiReceiver;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.CheckBox;
@@ -34,10 +36,13 @@ import com.mobileer.miditools.MidiOutputPortSelector;
 import com.mobileer.miditools.MidiPortWrapper;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 
 import midi.scope.LoggingReceiver;
 import midi.scope.ScopeLogger;
+import piano.pianotrainer.model.Note;
 
 /*
  * Print incoming MIDI messages to the screen.
@@ -55,11 +60,13 @@ public class MainActivity extends Activity implements ScopeLogger {
     private MidiFramer mConnectFramer;
     private MyDirectReceiver mDirectReceiver;
     private boolean mShowRaw;
+    private Context context;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(piano.pianotrainer.R.layout.main);
+        context = getApplicationContext();
 
         mLog = (TextView) findViewById(R.id.log);
         mScroller = (ScrollView) findViewById(R.id.scroll);
@@ -91,6 +98,14 @@ public class MainActivity extends Activity implements ScopeLogger {
 
         // Tell the virtual device to log its messages here..
         MidiScope.setScopeLogger(this);
+        String filename = getIntent().getStringExtra("filename");
+        List<Note> notesArray = new ArrayList<>();
+        ParseNotes parseNotes = new ParseNotes();
+        notesArray = parseNotes.parseTheNotes(filename, context, MainActivity.this);
+        Log.d("MainActivity", Integer.toString(notesArray.size()));
+
+//        ArrayList<List<Note>> soManyWrongNotes = parseNotes.compareWrongNotes(filename, context, MainActivity.this);
+
     }
 
     @Override
