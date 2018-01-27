@@ -30,7 +30,6 @@ public class ParseNotes {
     private XMLMusicParser xmlparser;
     private XMLMusicParser rightxmlparser;
     private XMLMusicParser wrongxmlparser;
-    private ComparisonSetup comparison;
     private ComparisonSetup rightComparison;
     private ComparisonSetup wrongComparison;
     // Storage Permissions
@@ -73,7 +72,7 @@ public class ParseNotes {
                 wrongComparison = new ComparisonSetup();
                 wrongSyncedNotes = wrongComparison.SyncNotes(WrongParsedNotes);
                 WrongParsedNotes.clear();
-                String WrongtoPrint = wrongComparison.CompareDebugPrintSync(correctSyncedNotes, wrongSyncedNotes);
+//                String WrongtoPrint = wrongComparison.CompareDebugPrintSync(correctSyncedNotes, wrongSyncedNotes);
 //                buttonResult.setText(WrongtoPrint);
                 return wrongSyncedNotes;
             }
@@ -93,6 +92,8 @@ public class ParseNotes {
     public List<Note> parseTheNotes(String filename, Context context, Activity activity) {
         Log.d("asfsdfdf", filename);
         List<Note> parsedNotes = new ArrayList<>();
+        ComparisonSetup comparison;
+
         try {
             if (isExternalStorageWritable()) {
                 verifyStoragePermissions(activity);
@@ -103,7 +104,6 @@ public class ParseNotes {
                 parsedNotes = xmlparser.parseXML(); // parse the .xml file
                 comparison = new ComparisonSetup();
                 comparison.SyncNotes(parsedNotes);
-                String toPrint = comparison.DebugPrintSync();
                 return parsedNotes;
 //                parsedNotes.clear();
 //                buttonResult.setText(toPrint);
