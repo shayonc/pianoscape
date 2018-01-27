@@ -23,6 +23,10 @@ import android.media.midi.MidiReceiver;
 import com.mobileer.miditools.MidiFramer;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.concurrent.locks.Lock;
+
+import piano.pianotrainer.model.Note;
 
 /**
  * Virtual MIDI Device that logs messages to a ScopeLogger.
@@ -54,11 +58,11 @@ public class MidiScope extends MidiDeviceService {
         return mScopeLogger;
     }
 
-    public static void setScopeLogger(ScopeLogger logger) {
+    public static void setScopeLogger(ScopeLogger logger, List<Note> notesArray, Lock compLock, int curNote) {
         if (logger != null) {
             // Receiver that prints the messages.
-            LoggingReceiver loggingReceiver = new LoggingReceiver(logger);
-            mDeviceFramer = new MidiFramer(loggingReceiver);
+            NoteReceiver noteReceiver = new NoteReceiver(logger, notesArray, compLock, curNote);
+            mDeviceFramer = new MidiFramer(noteReceiver);
         }
         mScopeLogger = logger;
     }

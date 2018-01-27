@@ -27,6 +27,10 @@ public class Note {
     boolean forward;
     boolean tieStart;
     boolean tieStop;
+    boolean noteOn;
+
+    long startTime;
+    long endTime;
 
     public Note() {
 
@@ -175,6 +179,26 @@ public class Note {
         this.step = step;
     }
 
+    public void setStep(int note) {
+        String convStep;
+        switch(note){
+            case 0: convStep = "C";
+            case 1: convStep = "C#";
+            case 2: convStep = "D";
+            case 3: convStep = "D#";
+            case 4: convStep = "E";
+            case 5: convStep = "F";
+            case 6: convStep = "F#";
+            case 7: convStep = "G";
+            case 8: convStep = "G#";
+            case 9: convStep = "A";
+            case 10: convStep = "A#";
+            case 11: convStep = "B";
+            default: convStep = "";
+        }
+        this.step = convStep;
+    }
+
     public int getAlter() {
         return alter;
     }
@@ -230,6 +254,27 @@ public class Note {
     public void setStaff(int staff) {
         this.staff = staff;
     }
+
+    public void setNoteOn(boolean on){this.noteOn = on;}
+
+    public boolean getNoteOn() {return noteOn;}
+
+    public long getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(long startTime) {
+        this.startTime = startTime;
+    }
+
+    public long getEndTime() {
+        return endTime;
+    }
+
+    public void setEndTime(long endTime) {
+        this.endTime = endTime;
+    }
+
 
     public enum Key {
         C,

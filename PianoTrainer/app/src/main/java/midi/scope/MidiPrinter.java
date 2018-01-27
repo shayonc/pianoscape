@@ -22,10 +22,14 @@ import android.os.Bundle;
 
 import com.mobileer.miditools.MidiConstants;
 
+import piano.pianotrainer.model.Note;
+
 /**
  * Format a MIDI message for printing.
  */
 public class MidiPrinter {
+    private static final long NANOS_PER_MILLISECOND = 1000000L;
+    private static final long NANOS_PER_SECOND = NANOS_PER_MILLISECOND * 1000L;
 
     public static final String[] CHANNEL_COMMAND_NAMES = { "NoteOff", "NoteOn",
             "PolyTouch", "Control", "Program", "Pressure", "Bend" };
@@ -95,6 +99,59 @@ public class MidiPrinter {
             sb.append(data[offset_cpy]);
         }
 
+
+        /*if(msg_status == "NoteOn" || msg_status == "NoteOff"){
+
+        }*/
+        /*for (int i = 0; i < numData; i++) {
+            if (i > 0) {
+                sb.append(", ");
+            }
+            sb.append(data[offset++]);
+        }
+        sb.append(")");*/
+        return sb.toString();
+    }
+
+    public static String formatMessage(byte[] data, int offset, int count, long timestamp, Note note) {
+        StringBuilder sb = new StringBuilder();
+        byte statusByte = data[offset++];
+        int status = statusByte & 0xFF;
+        int event_type = statusByte & 0x90;
+        String msg_status = getName(status);
+        sb.append(getName(status)).append("(");
+        int offset_cpy = offset;
+        int numData = MidiConstants.getBytesPerMessage(statusByte) - 1;
+        if ((event_type == 0x80) || (event_type == 0x90)) { // channel message
+            int channel = status & 0x0F;
+            // Add 1 for humans who think channels are numbered 1-16.
+            sb.append("Channel ");
+            sb.append((channel + 1));
+            sb.append(" has ");
+
+            int octave = data[offset_cpy] / 12;
+            if(msg_status == "NoteOn"){
+                note.setNoteOn(true);
+                note.setStartTime(timestamp);
+            }
+            else{
+                note.setNoteOn(false);
+                note.setEndTime(timestamp);
+                long durationNanos = timestamp - System.nanoTime();
+                int durtionMillis = (int)(durationNanos / NANOS_PER_MILLISECOND);
+
+                note.setDuration(durtionMillis);
+            }
+            sb.append(msg_status);
+            sb.append(" in octave ");
+            sb.append(octave);
+            note.setOctave(octave);
+            note.setStep(data[offset_cpy] % 12);
+            sb.append(" with note ");
+            sb.append(data[offset_cpy++] % 12);
+            sb.append(" with velocity ");
+            sb.append(data[offset_cpy]);
+        }
 
         /*if(msg_status == "NoteOn" || msg_status == "NoteOff"){
 

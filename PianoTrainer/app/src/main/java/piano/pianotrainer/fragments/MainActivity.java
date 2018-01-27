@@ -30,6 +30,7 @@ import android.widget.TextView;
 
 import midi.scope.MidiPrinter;
 import midi.scope.MidiScope;
+import midi.scope.NoteReceiver;
 import piano.pianotrainer.R;
 import com.mobileer.miditools.MidiFramer;
 import com.mobileer.miditools.MidiOutputPortSelector;
@@ -39,6 +40,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import midi.scope.LoggingReceiver;
 import midi.scope.ScopeLogger;
@@ -56,11 +59,14 @@ public class MainActivity extends Activity implements ScopeLogger {
     private static final int MAX_LINES = 100;
     private MidiOutputPortSelector mLogSenderSelector;
     private MidiManager mMidiManager;
-    private MidiReceiver mLoggingReceiver;
+    private MidiReceiver mNoteReceiver;
     private MidiFramer mConnectFramer;
     private MyDirectReceiver mDirectReceiver;
     private boolean mShowRaw;
     private Context context;
+    private List<Note> notesArray;
+    private Lock compLock = new ReentrantLock();
+    private int curNote = 0;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -75,10 +81,10 @@ public class MainActivity extends Activity implements ScopeLogger {
         mMidiManager = (MidiManager) getSystemService(MIDI_SERVICE);
 
         // Receiver that prints the messages.
-        mLoggingReceiver = new LoggingReceiver(this);
+        mNoteReceiver = new NoteReceiver(this, notesArray, compLock, curNote);
 
         // Receivers that parses raw data into complete messages.
-        mConnectFramer = new MidiFramer(mLoggingReceiver);
+        mConnectFramer = new MidiFramer(mNoteReceiver);
 
         // Setup a menu to select an input source.
         mLogSenderSelector = new MidiOutputPortSelector(mMidiManager, this,
@@ -96,16 +102,14 @@ public class MainActivity extends Activity implements ScopeLogger {
         mDirectReceiver = new MyDirectReceiver();
         mLogSenderSelector.getSender().connect(mDirectReceiver);
 
-        // Tell the virtual device to log its messages here..
-        MidiScope.setScopeLogger(this);
         String filename = getIntent().getStringExtra("filename");
-        List<Note> notesArray = new ArrayList<>();
+        notesArray = new ArrayList<>();
         ParseNotes parseNotes = new ParseNotes();
         notesArray = parseNotes.parseTheNotes(filename, context, MainActivity.this);
         Log.d("MainActivity", Integer.toString(notesArray.size()));
 
-        ArrayList<List<Note>> soManyWrongNotes = parseNotes.compareWrongNotes(filename, context, MainActivity.this);
-
+        // Tell the virtual device to log its messages here..
+        MidiScope.setScopeLogger(this, notesArray, compLock, curNote);
     }
 
     @Override
@@ -115,7 +119,7 @@ public class MainActivity extends Activity implements ScopeLogger {
         // The scope will live on as
         // a service so we need to tell it to stop
         // writing log messages to this Activity.
-        MidiScope.setScopeLogger(null);
+        MidiScope.setScopeLogger(null, null, null, 0);
         super.onDestroy();
     }
 
