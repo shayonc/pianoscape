@@ -7,8 +7,9 @@
 
     <ImageView
         android:id="@+id/grid_image"
-        android:layout_width="50dp"
-        android:layout_height="50dp">
+        android:layout_above="@id/grid_image"
+        android:layout_width="60dp"
+        android:layout_height="60dp">
     </ImageView>
 
     <TextView

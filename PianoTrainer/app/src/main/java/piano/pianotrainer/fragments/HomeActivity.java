@@ -198,6 +198,7 @@ public class HomeActivity extends AppCompatActivity {
 //            }
 //        });
 
+        // TODO: Remove this button
         Button compareNotes = (Button) findViewById(R.id.compareNotesButton);
         compareNotes.setBackgroundColor(Color.rgb(0, 91, 170));
         compareNotes.setTextColor(Color.WHITE);
