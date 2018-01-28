@@ -59,7 +59,7 @@ public class ScoreProcessor {
     Mat originalImgRgb;
     Mat grayImg;
     Mat binarizedImg;
-    Mat noStaffLinesImg;
+    public Mat noStaffLinesImg;
 
     final int MAX_STAFF_LINE_THICKNESS = 2; //TODO detect this dynamically
     List<Integer> staffLineRowIndices;
@@ -251,6 +251,8 @@ public class ScoreProcessor {
         int lineCount = 0;
         int staffCount = 0;
 
+        String s = staffLineRowIndices.toString();
+
         // gets one row index for each staff line
         for (int i = 0; i < staffLineRowIndices.size(); i++) {
             int curRow = staffLineRowIndices.get(i);
@@ -276,6 +278,7 @@ public class ScoreProcessor {
         }
 
         // TODO: maybe get the average row diff between staff lines
+        List<Integer> staff1 = staffs.get(0);
         staffLineDiff = staffs.get(0).get(3)-staffs.get(0).get(2);
 
         //TODO: instead of this hack, we need to fix the bug of why the last staff line is not detected
@@ -546,28 +549,44 @@ public class ScoreProcessor {
         }
     }
 
-    public List<Double> classifyNoteGroup()  {
+    public void invertImgColor(Mat mat) {
+        for (int r = 0; r < mat.rows(); r++) {
+            for (int c = 0; c < mat.cols(); c++) {
+                double[] pixel = mat.get(r, c);
+                pixel[0] = 255.0-pixel[0];
+                mat.put(r, c, pixel);
+            }
+        }
+    }
+
+    public Mat classifyNoteGroup()  {
 //        ImageUtils.saveImageToExternal(bmpObject, "testNote.bmp");
         String root = Environment.getExternalStorageDirectory().toString();
 //        Mat noteGroupMat = Imgcodecs.imread(root + "/Piano/Images/quarterNote2.png");
+//        for (int i = 0; i < staffObjects.get(0).size(); i++) {
+//            Rect rect_i = staffObjects.get(0).get(i);
+//            Mat printMat = extractFromNoStaffImg(rect_i);
+//            invertImgColor(printMat);
+//            Imgcodecs.imwrite(root + String.format("/Piano/Images/element_%02d.png", i), printMat);
+//        }
+
         List<Double> notePixels = new ArrayList<Double>();
-        Rect rect = staffObjects.get(0).get(8);
+        Rect rect = staffObjects.get(0).get(63);
         Mat noteGroupMat = extractFromNoStaffImg(rect);
+        invertImgColor(noteGroupMat);
 
+        Imgcodecs.imwrite(root + "/Piano/Images/inverted.png", noteGroupMat);
+        Mat colorMat = new Mat();
+        cvtColor(noteGroupMat, colorMat, Imgproc.COLOR_GRAY2BGR);
 
-        Imgcodecs.imwrite(root + "/Piano/Images/test0.png", noteGroupMat);
-        Mat greyMat = new Mat();
-        cvtColor(noteGroupMat, greyMat, Imgproc.COLOR_BGR2GRAY);
+//        for (int r = 0; r < noteGroupMat.height(); r++) {
+//            for (int c = 0; c < noteGroupMat.width(); c++) {
+//                notePixels.add(noteGroupMat.get(r,c)[0]);
+//            }
+//        }
 
-        for (int r = 0; r < greyMat.height(); r++) {
-            for (int c = 0; c < greyMat.width(); c++) {
-                notePixels.add(greyMat.get(r,c)[0]);
-            }
-        }
-
-        Imgcodecs.imwrite(root + "/Piano/Images/test1.png", greyMat);
         Mat circles = new Mat();
-        Imgproc.HoughCircles(greyMat, circles, CV_HOUGH_GRADIENT, 1.0, ((double)staffLineDiff)*0.8, 100, 1, 0, 0);
+        Imgproc.HoughCircles(noteGroupMat, circles, CV_HOUGH_GRADIENT, 1, ((double)staffLineDiff)*0.8, 200, 4, (int)(((double)staffLineDiff)*0.5), (int)(((double)staffLineDiff)*0.75));
 
         for (int i = 0; i < circles.cols(); i++) {
             double[] vCircle = circles.get(0, i);
@@ -575,13 +594,13 @@ public class ScoreProcessor {
             Point pt = new Point(Math.round(vCircle[0]), Math.round(vCircle[1]));
             int radius = (int)Math.round(vCircle[2]);
 
-            circle(noteGroupMat, pt, radius, new Scalar(255, 0, 0), 2);
+            circle(colorMat, pt, radius, new Scalar(0,0,150), 1);
         }
 
-        Imgcodecs.imwrite(root + "/Piano/Images/test3.png", noteGroupMat);
+        Imgcodecs.imwrite(root + "/Piano/Images/circles.png", colorMat);
 //        Bitmap bmp = Bitmap.createBitmap(bmpObject.width(),bmpObject.height(),Bitmap.Config.ARGB_8888);
 //        Utils.matToBitmap(resultMat, bmp);
-        return notePixels;
+        return circles;
     }
 
     public List<Integer> classifyObjects() {

@@ -26,6 +26,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.opencv.android.Utils;
+import org.opencv.core.Mat;
 import org.opencv.core.RotatedRect;
 
 import java.io.File;
@@ -45,7 +47,7 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
      */
     private static final String STATE_CURRENT_PAGE_INDEX = "current_page_index";
 
-    private static final String FILENAME = "twinkle_twinkle_little_star.pdf";
+    private static final String FILENAME = "this_is_me.pdf";
 
     private static final String TRAINING = "training_set";
 
@@ -188,7 +190,7 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
         mImageView.setImageBitmap(curPageBitmap);
 
         //Save img internally - help analyze pixels
-        mDebugView.setText(ImageUtils.saveImageToExternal(curPageBitmap,"testImg.png"));
+        //mDebugView.setText(ImageUtils.saveImageToExternal(curPageBitmap,"testImg.png"));
         //updateUi();
     }
 
@@ -361,8 +363,8 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
                     try {
 //                        int numCircles = scoreProc.classifyNoteGroup();
 //                        mDebugView.setText(String.format("Number of circles: %d", numCircles));
-                        List<Double> pixels = scoreProc.classifyNoteGroup();
-                        mDebugView.setText(pixels.toString());
+                        Mat circles = scoreProc.classifyNoteGroup();
+                        mDebugView.setText(String.format("%d", circles.cols()));
 //                        mImageView.setImageBitmap(ngBmp);
                     }
                     catch (Exception e) {
@@ -378,7 +380,9 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
                             cnvs.drawRect(symbolRect, paint);
                         }
                     }
-                    mImageView.setImageBitmap(bitmap);
+                    Bitmap testBmp = Bitmap.createBitmap(scoreProc.noStaffLinesImg.width(),scoreProc.noStaffLinesImg.height(),Bitmap.Config.ARGB_8888);
+                    Utils.matToBitmap(scoreProc.noStaffLinesImg, testBmp);
+                    mImageView.setImageBitmap(testBmp);
                 }
                 else {
                     mDebugView.setText("pfd or pdfRenderer not instantiated.");
