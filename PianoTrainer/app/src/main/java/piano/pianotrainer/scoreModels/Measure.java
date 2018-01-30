@@ -14,6 +14,7 @@ public class Measure {
     double basicPulse;                  // the weight of a basic pulse in the measure
     Map<Pitch, Integer> keySigs;        // maps the pitch with its staff line/space
     List<List<NoteGroup>> ties;         // list of ties. Each tie is represented by a list of notegroups
+    boolean repeat;
     // the dynamics of the measure. The values are represented in the following way:
     // pp : -3
     // p  : -2
@@ -24,9 +25,9 @@ public class Measure {
     // ff : 3
     int dynamics;
 
-    public Measure(int numPulses, double basicPulse) {
-        this.numPulses = numPulses;
-        this.basicPulse = basicPulse;
+    public Measure() {
+        this.numPulses = 0;
+        this.basicPulse = 0;
         this.dynamics = dynamics;
         noteGroups = new HashMap<Double, NoteGroup>();
         rests = new HashMap<Double, Rest>();
@@ -34,6 +35,12 @@ public class Measure {
         ties = new ArrayList<List<NoteGroup>>();
         dynamics = 0;
     }
+
+    public void setRepeat(boolean repeat) { this.repeat = repeat;}
+
+    public void setNumPulses(int numPulses) { this.numPulses = numPulses;}
+
+    public void setBasicPulses(int basicPulse) { this.basicPulse = basicPulse;}
 
     public void addKeySig(Pitch pitch, int adjustment) {
         keySigs.put(pitch, adjustment);

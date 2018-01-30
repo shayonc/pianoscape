@@ -336,8 +336,24 @@ public class ScoreProcessor {
             }
         }
 
-
         return staffObjects;
+    }
+
+    public boolean isGrandStaff() {
+        if (staffs.size() == 0) return false;
+        for (int i = 0; i < staffs.size(); i++) {
+            List<Integer> staff = staffs.get(i);
+            if (staff.size() != 10) return false;
+        }
+        return true;
+    }
+
+    public boolean isMeasureBar(Rect rect) {
+        return false;
+    }
+
+    public boolean isDot(Rect rect) {
+        return false;
     }
 
     //Trains the knn with a label (ID for symbol) and the bitmap img
@@ -571,7 +587,8 @@ public class ScoreProcessor {
 //        }
 
         List<Double> notePixels = new ArrayList<Double>();
-        Rect rect = staffObjects.get(0).get(63);
+        int lastStaffIndex = staffObjects.size()-1;
+        Rect rect = staffObjects.get(lastStaffIndex).get(staffObjects.get(lastStaffIndex).size()-5);
         Mat noteGroupMat = extractFromNoStaffImg(rect);
         invertImgColor(noteGroupMat);
 

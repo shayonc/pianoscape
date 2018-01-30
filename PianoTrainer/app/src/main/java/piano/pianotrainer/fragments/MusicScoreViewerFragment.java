@@ -37,9 +37,12 @@ import java.io.InputStream;
 import java.util.*;
 
 import piano.pianotrainer.R;
-import piano.pianotrainer.scoreImport.ImageUtils;
 import piano.pianotrainer.scoreImport.PDFHelper;
 import piano.pianotrainer.scoreImport.ScoreProcessor;
+import piano.pianotrainer.scoreModels.ElementType;
+import piano.pianotrainer.scoreModels.Measure;
+import piano.pianotrainer.scoreModels.Score;
+import piano.pianotrainer.scoreModels.Staff;
 
 public class MusicScoreViewerFragment extends Fragment implements View.OnClickListener{
     /**
@@ -47,7 +50,7 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
      */
     private static final String STATE_CURRENT_PAGE_INDEX = "current_page_index";
 
-    private static final String FILENAME = "this_is_me.pdf";
+    private static final String FILENAME = "handel_sonatina.pdf";
 
     private static final String TRAINING = "training_set";
 
@@ -261,12 +264,62 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
 
                     //image processing
                     //loads the Mat object of the image
+                    // TODO: get from user
+                    String scoreTitle = "Twinkle Twinkle Little Star";
                     scoreProc = new ScoreProcessor(bitmap);
+                    Score score = new Score(scoreTitle);
+
                     //Threshold so Mat will only have 0s and 255s
                     scoreProc.binarize();
                     scoreProc.removeStaffLines();
                     scoreProc.refineStaffLines();
+
+                    boolean grandStaff = scoreProc.isGrandStaff();
+                    if (!grandStaff) {
+                        // TODO: return error to user in a dialog
+                        mDebugView.setText("Grand staffs not found.");
+                        break;
+                    }
+
+                    int numPulses = 0;
+                    double basicPulse = 0;
                     List<List<Rect>> staffObjects = scoreProc.detectObjects();
+                    for (int i = 0; i < staffObjects.size(); i++) {
+                        Staff staff = new Staff(true);
+                        List<Rect> objects = staffObjects.get(i);
+
+                        List<Measure> measures = new ArrayList<Measure>();
+                        Measure curMeasure = new Measure();
+                        boolean firstVertBar = true;
+                        int numElemsInMeasure = 0;
+                        Map<Integer, ElementType> elementTypeMap = new HashMap<>(objects.size());
+
+                        for (int j = 0; j < objects.size(); j++) {
+                            Rect obj = objects.get(j);
+                            // TODO: add symbol detection here
+                            // if not a symbol, then run following code
+                            if (j < 10) continue;
+                            if (scoreProc.isMeasureBar(obj) && firstVertBar) {
+                                elementTypeMap.put(j, ElementType.MeasureBar);
+                                firstVertBar = false;
+                            }
+                            else if (scoreProc.isMeasureBar(obj) && !firstVertBar) {
+                                elementTypeMap.put(j, ElementType.MeasureBar);
+                                measures.add(curMeasure);
+                                numElemsInMeasure = 0;
+                                curMeasure = new Measure();
+                            }
+
+                        }
+                    }
+
+
+
+
+
+
+
+
 
                     //TRAINING SETS FOR SYMBOLS
                     //load the training images and train symbol detection
