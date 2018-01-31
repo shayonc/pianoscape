@@ -6,6 +6,7 @@ import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
@@ -58,6 +59,11 @@ public class MusicDialogFragment extends DialogFragment {
                                 PackageManager packageManager = getActivity().getPackageManager();
                                 List activities = packageManager.queryIntentActivities(intent,
                                         PackageManager.MATCH_DEFAULT_ONLY);
+                                List<ResolveInfo> resInfoList = getContext().getPackageManager().queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
+                                for (ResolveInfo resolveInfo : resInfoList) {
+                                    String packageName = resolveInfo.activityInfo.packageName;
+                                    getContext().grantUriPermission(packageName, uri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                                }
                                 boolean isIntentSafe = activities.size() > 0;
                                 if (isIntentSafe) {
                                     getActivity().startActivity(intent);
