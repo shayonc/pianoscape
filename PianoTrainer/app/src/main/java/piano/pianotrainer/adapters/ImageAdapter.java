@@ -54,7 +54,11 @@ public class ImageAdapter extends BaseAdapter {
                 grid = inflater.inflate(R.layout.grid_layout, null);
                 TextView textView = (TextView) grid.findViewById(R.id.grid_text);
                 ImageView imageView = (ImageView)grid.findViewById(R.id.grid_image);
-                textView.setText(musicFileList.get(position).getFilename() + " " + musicFileList.get(position).getDateModified().toString());
+                String imageCaption = musicFileList.get(position).getFilename();
+                if (musicFileList.get(position).getDateModified() != null) {
+                    imageCaption = musicFileList.get(position).getFilename() + " " + musicFileList.get(position).getDateModified().toString();
+                }
+                textView.setText(imageCaption);
                 textView.setTextColor(Color.BLACK);
                 imageView.setImageResource(musicFileList.get(position).getThumbnail());
 

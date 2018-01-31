@@ -267,21 +267,24 @@ public class HomeActivity extends AppCompatActivity {
             }
             //get list of files, no recursive
             File[] list = file.listFiles();
-
             for (File f: list){
                 String name = f.getName();
                 if (name.endsWith(".mxl") || name.endsWith(".xml")) {
                     MusicFile musicFile = new MusicFile();
                     name = name.substring(0, name.lastIndexOf("."));
                     musicFile.setFilename(name);
-                    Date date = new Date(f.lastModified());
-                    musicFile.setDateModified(date);
+
+                    // get modified date of xml
+                    File xmlFile = new File(xmlFilePath + name + ".xml");
+                    if (xmlFile.exists()) {
+                        Date date = new Date(xmlFile.lastModified());
+                        musicFile.setDateModified(date);
+                    }
                     musicFile.setThumbnail(R.drawable.ic_purple_music_note_clipart_purple_musical_note);
                     //add to list
                     musicFileList.add(musicFile);
                 }
             }
-
             gridview = findViewById(R.id.gridview);
             imageAdapter = new ImageAdapter(this, musicFileList);
             gridview.setAdapter(imageAdapter);
@@ -295,7 +298,6 @@ public class HomeActivity extends AppCompatActivity {
                     openMusicOptions(selectedItem.getFilename(), xmlFilePath);
                 }
             });
-
             swiperefresh = findViewById(R.id.swiperefresh);
             swiperefresh.setOnRefreshListener(
                     new SwipeRefreshLayout.OnRefreshListener() {
