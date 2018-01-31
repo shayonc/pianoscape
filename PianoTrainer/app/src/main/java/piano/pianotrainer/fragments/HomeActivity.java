@@ -258,9 +258,36 @@ public class HomeActivity extends AppCompatActivity {
 //        this.mxlFilePath = getSdCardPath() + ROOT_FOLDER + File.separator + filename + ".mxl";
 //        this.outputFolder = getSdCardPath() + ROOT_FOLDER + File.separator + OUTPUT_FOLDER;
         this.xmlFilePath = getSdCardPath() + ROOT_FOLDER + File.separator + OUTPUT_FOLDER + File.separator;
+
+        loadMusicFileList(); // load music file list
+
+        gridview = findViewById(R.id.gridview);
+        imageAdapter = new ImageAdapter(this, musicFileList);
+        gridview.setAdapter(imageAdapter);
+
+        gridview.setOnItemClickListener(new OnItemClickListener() {
+            public void onItemClick(AdapterView<?> parent, View v,
+                                    int position, long id) {
+                // TODO: temp fix
+                MusicFile selectedItem = musicFileList.get(position);
+                // pop up dialog
+                openMusicOptions(selectedItem.getFilename(), xmlFilePath);
+            }
+        });
+
+        swiperefresh = findViewById(R.id.swiperefresh);
+        swiperefresh.setOnRefreshListener(
+                new SwipeRefreshLayout.OnRefreshListener() {
+                    @Override
+                    public void onRefresh() {
+                        refreshGrid();
+                    }
+                }
+        );
+    }
+    public void loadMusicFileList() {
         try {
             File file = new File(directoryPath);
-
             //if Piano folder doesn't exist then create one
             if (!file.exists()) {
                 file.mkdir();
@@ -285,33 +312,11 @@ public class HomeActivity extends AppCompatActivity {
                     musicFileList.add(musicFile);
                 }
             }
-            gridview = findViewById(R.id.gridview);
-            imageAdapter = new ImageAdapter(this, musicFileList);
-            gridview.setAdapter(imageAdapter);
 
-            gridview.setOnItemClickListener(new OnItemClickListener() {
-                public void onItemClick(AdapterView<?> parent, View v,
-                                        int position, long id) {
-                    // TODO: temp fix
-                    MusicFile selectedItem = musicFileList.get(position);
-                    // pop up dialog
-                    openMusicOptions(selectedItem.getFilename(), xmlFilePath);
-                }
-            });
-            swiperefresh = findViewById(R.id.swiperefresh);
-            swiperefresh.setOnRefreshListener(
-                    new SwipeRefreshLayout.OnRefreshListener() {
-                        @Override
-                        public void onRefresh() {
-                            refreshGrid();
-                        }
-                    }
-            );
         }
         catch (Exception e) {
             e.printStackTrace();
         }
-
     }
 
     public void openMusicOptions(String filename, String xmlFilePath) {
@@ -388,8 +393,10 @@ public class HomeActivity extends AppCompatActivity {
     }
 
     public void refreshGrid() {
-        ////TODO creation of new mxl
+        musicFileList.clear();
+        loadMusicFileList();
         imageAdapter.notifyDataSetChanged();
+        gridview.setAdapter(imageAdapter);
         swiperefresh.setRefreshing(false);
     }
 
