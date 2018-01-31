@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 
+import piano.pianotrainer.model.ChordComparator;
 import piano.pianotrainer.model.Note;
 
 /**
@@ -39,6 +40,8 @@ public class NoteReceiver extends MidiReceiver {
     private List<Note> notes;
     private Lock compLock;
     private int curNote;
+    private ChordComparator chordComparator;
+    private boolean isChord = false;
 
     public NoteReceiver(ScopeLogger logger, List<Note> notes, Lock compLock, int curNote) {
         mStartTime = System.nanoTime();
@@ -78,26 +81,47 @@ public class NoteReceiver extends MidiReceiver {
 
         //Compare notes here
 
-        if(!note.getNoteOn()){
-            compLock.lock();
+        compLock.lock();
 
+        if(!note.getNoteOn() && isChord){
+            //released cord too early, clear Chord Comparator
+            chordComparator.clear();
+            sb.append("A key was released before chord completed, chord has been reset\n");
+            chordComparator.displayExpected();
+        }
+        if (note.getNoteOn()) {
             Note expNote = notes.get(curNote);
 
-            //ToDo step compare will not work for flats, midi is only converted to sharps
-            if(expNote.getOctave() == note.getOctave() && expNote.getStep() == note.getStep()){
-                //Note is correct
-                sb.append("\nNote " + curNote + " was correct\n");
-                curNote++;
-            }
-            else{
-                sb.append("\nNote " + curNote + " was incorrect\n");
-                sb.append("Expected octave " + expNote.getOctave() + " and step " + expNote.getStep() + "\n");
+            //chord detection
+            if(!isChord && notes.get(curNote + 1).isChord()){
+                chordComparator = new ChordComparator(notes, curNote);
+                isChord = true;
+                sb.append("chord detected!!!!\n");
             }
 
-            compLock.unlock();
+            //ToDo step compare will not work for flats, midi is only converted to sharp
 
+            if(!isChord) {
+                if (expNote.getOctave() == note.getOctave() && expNote.getStep().equals(note.getStep())) {
+                    //Note is correct
+                    sb.append("\nNote " + curNote + " was correct\n");
+                    curNote++;
+                } else {
+                    sb.append("\nNote " + curNote + " was incorrect\n");
+                    sb.append("Expected octave " + expNote.getOctave() + " and step " + expNote.getStep() + "\n");
+                    sb.append("Given octave " + note.getOctave() + " and step " + note.getStep() + "\n");
+                }
+            }
+            else {
+                if(chordComparator.compareNotes(note) == 0){
+                    isChord = false;
+                    curNote+= chordComparator.correctCount;
+                    sb.append("chord completed successfully\n");
+                }
+            }
         }
 
+        compLock.unlock();
 
         String text = sb.toString();
         //String text = "event";

@@ -90,7 +90,7 @@ public class ParseNotes {
     }
     
     public List<Note> parseTheNotes(String filename, Context context, Activity activity) {
-        Log.d("asfsdfdf", filename);
+        Log.d("ParseNotes.java", filename);
         List<Note> parsedNotes = new ArrayList<>();
         ComparisonSetup comparison;
 

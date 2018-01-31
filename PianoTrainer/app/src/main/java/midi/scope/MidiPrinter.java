@@ -128,27 +128,28 @@ public class MidiPrinter {
             sb.append("Channel ");
             sb.append((channel + 1));
             sb.append(" has ");
+            int dataVal = data[offset_cpy++];
+            int octave = dataVal / 12;
+            int noteNum = dataVal % 12;
 
-            int octave = data[offset_cpy] / 12;
+            note.setStep(noteNum);
+            note.setOctave(octave);
+
             if(msg_status == "NoteOn"){
                 note.setNoteOn(true);
                 note.setStartTime(timestamp);
             }
             else{
-                note.setNoteOn(false);
                 note.setEndTime(timestamp);
                 long durationNanos = timestamp - System.nanoTime();
                 int durtionMillis = (int)(durationNanos / NANOS_PER_MILLISECOND);
-
                 note.setDuration(durtionMillis);
             }
             sb.append(msg_status);
             sb.append(" in octave ");
             sb.append(octave);
-            note.setOctave(octave);
-            note.setStep(data[offset_cpy] % 12);
             sb.append(" with note ");
-            sb.append(data[offset_cpy++] % 12);
+            sb.append(noteNum);
             sb.append(" with velocity ");
             sb.append(data[offset_cpy]);
         }

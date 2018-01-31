@@ -64,7 +64,7 @@ public class MainActivity extends Activity implements ScopeLogger {
     private MyDirectReceiver mDirectReceiver;
     private boolean mShowRaw;
     private Context context;
-    private List<Note> notesArray;
+    private List<Note> notesArray = new ArrayList<>();;
     private Lock compLock = new ReentrantLock();
     private int curNote = 0;
 
@@ -72,6 +72,16 @@ public class MainActivity extends Activity implements ScopeLogger {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(piano.pianotrainer.R.layout.main);
+
+        String filename = getIntent().getStringExtra("filename");
+        ParseNotes parseNotes = new ParseNotes();
+
+        notesArray = parseNotes.parseTheNotes(filename, context, MainActivity.this);
+        Log.d("MainActivity size: ", Integer.toString(notesArray.size()));
+
+        if(notesArray.size() == 0 ){
+            throw new java.lang.RuntimeException("Parsing failed");
+        }
         context = getApplicationContext();
 
         mLog = (TextView) findViewById(R.id.log);
@@ -101,12 +111,6 @@ public class MainActivity extends Activity implements ScopeLogger {
 
         mDirectReceiver = new MyDirectReceiver();
         mLogSenderSelector.getSender().connect(mDirectReceiver);
-
-        String filename = getIntent().getStringExtra("filename");
-        notesArray = new ArrayList<>();
-        ParseNotes parseNotes = new ParseNotes();
-        notesArray = parseNotes.parseTheNotes(filename, context, MainActivity.this);
-        Log.d("MainActivity", Integer.toString(notesArray.size()));
 
         // Tell the virtual device to log its messages here..
         MidiScope.setScopeLogger(this, notesArray, compLock, curNote);

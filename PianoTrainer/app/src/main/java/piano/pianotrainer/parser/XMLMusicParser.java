@@ -133,7 +133,7 @@ public class XMLMusicParser {
                 boolean grace = false;
                 String step = "";
                 int alter = 0;
-                int octave = -1;
+                int octave = -25;
                 int voice = -1;
                 String stem = "";
                 String type = "";

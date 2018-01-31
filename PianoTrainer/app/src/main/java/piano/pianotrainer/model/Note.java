@@ -1,5 +1,7 @@
 package piano.pianotrainer.model;
 
+import android.util.Log;
+
 public class Note {
 
     String measureNumber;
@@ -183,19 +185,33 @@ public class Note {
         String convStep;
         switch(note){
             case 0: convStep = "C";
+            break;
             case 1: convStep = "C#";
+            break;
             case 2: convStep = "D";
+                break;
             case 3: convStep = "D#";
+                break;
             case 4: convStep = "E";
+                break;
             case 5: convStep = "F";
+                break;
             case 6: convStep = "F#";
+                break;
             case 7: convStep = "G";
+                break;
             case 8: convStep = "G#";
+                break;
             case 9: convStep = "A";
+                break;
             case 10: convStep = "A#";
+                break;
             case 11: convStep = "B";
+                break;
             default: convStep = "";
+                break;
         }
+
         this.step = convStep;
     }
 
