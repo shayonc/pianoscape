@@ -115,7 +115,7 @@ public class HomeActivity extends AppCompatActivity {
                         Date date = new Date(xmlFile.lastModified());
                         musicFile.setDateModified(date);
                     }
-                    musicFile.setThumbnail(R.drawable.ic_purple_music_note_clipart_purple_musical_note);
+                    musicFile.setThumbnail(R.drawable.music_sheet);
                     //add to list
                     musicFileList.add(musicFile);
                 }

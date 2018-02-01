@@ -18,7 +18,7 @@ import piano.pianotrainer.model.MusicFile;
 
 /**
  * Created by Matthew on 11/22/2017.
- * http://www.clipartpanda.com/clipart_images/purple-musical-note-clip-art-30682946
+ * https://www.shareicon.net/file-quaver-music-note-music-document-musical-720402
  */
 
 public class ImageAdapter extends BaseAdapter {
