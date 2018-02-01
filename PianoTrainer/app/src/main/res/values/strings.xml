@@ -9,7 +9,6 @@
         name="musicDialogOptions">
         <item>Start Playing!</item>
         <item>Edit XML File</item>
-        <item>View Summary</item>
     </string-array>
     <string name="header_text">Select a MIDI source or send messages to Mobileer MIDI Scope.</string>
     <string name="button_clear">Clear Log</string>

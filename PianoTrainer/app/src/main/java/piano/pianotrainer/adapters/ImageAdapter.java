@@ -62,7 +62,7 @@ public class ImageAdapter extends BaseAdapter {
                 textView.setTextColor(Color.BLACK);
                 imageView.setImageResource(musicFileList.get(position).getThumbnail());
 
-                imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+                imageView.setScaleType(ImageView.ScaleType.FIT_XY);
                 imageView.setPadding(8, 8, 8, 8);
             } else {
                 grid = (View) convertView;

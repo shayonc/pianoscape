@@ -73,9 +73,7 @@ public class MusicDialogFragment extends DialogFragment {
                                 e.printStackTrace();
                             }
                         }
-                        else if (which == 2) { // summary
 
-                        }
                     }
                 });
         return builder.create();
