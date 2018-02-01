@@ -24,7 +24,7 @@ public class SummaryActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         String filename = getIntent().getStringExtra("filename");
 
-        // set shared preferences
+        // TODO: Remove these 3 lines later
         SharedPreferences.Editor editor = getSharedPreferences(SUMMARY_PREFS, MODE_PRIVATE).edit();
         editor.putString(filename, "65/70");
         editor.commit();
@@ -32,17 +32,23 @@ public class SummaryActivity extends AppCompatActivity {
         // get shared preferences
         sharedpreferences = getSharedPreferences(SUMMARY_PREFS, MODE_PRIVATE);
         String summaryScore = sharedpreferences.getString(filename, null);
-        String[] scoreArray = summaryScore.split("/");
-        correctNotes = Integer.parseInt(scoreArray[0]);
-        totalNotes = Integer.parseInt(scoreArray[1]);
-        accuracyRate = ((double) correctNotes / (double) totalNotes) *100;
-
         TextView summaryTextView = (TextView) findViewById(R.id.summaryText);
-        summaryTextView.setText("Music File: " + filename +
-                System.getProperty("line.separator") +
-                "Notes correctly played: " + scoreArray[0] + "/" + scoreArray[1] +
-                System.getProperty("line.separator") +
-                "Accuracy: " + String.format("%.2f", accuracyRate) + "%");
+        String summaryMessage = "";
+
+        if (summaryScore == null) {
+            summaryMessage = "There is no summary data yet.";
+        } else {
+            String[] scoreArray = summaryScore.split("/");
+            correctNotes = Integer.parseInt(scoreArray[0]);
+            totalNotes = Integer.parseInt(scoreArray[1]);
+            accuracyRate = ((double) correctNotes / (double) totalNotes) *100;
+            summaryMessage = "Music File: " + filename +
+                    System.getProperty("line.separator") +
+                    "Notes correctly played: " + scoreArray[0] + "/" + scoreArray[1] +
+                    System.getProperty("line.separator") +
+                    "Accuracy: " + String.format("%.2f", accuracyRate) + "%";
+        }
+        summaryTextView.setText(summaryMessage);
         summaryTextView.setTextSize(21);
     }
 
