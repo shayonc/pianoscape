@@ -7,8 +7,7 @@
     <string name="music_dialog">Select Option</string>
     <string-array
         name="musicDialogOptions">
-        <item>Play Real-Time</item>
-        <item>Play at Own Pace</item>
+        <item>Start Playing!</item>
         <item>Edit XML File</item>
         <item>View Summary</item>
     </string-array>

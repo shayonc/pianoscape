@@ -35,15 +35,12 @@ public class MusicDialogFragment extends DialogFragment {
                         Bundle bundle = getArguments();
                         String filename = bundle.getString("filename","");
                         String rootpath = bundle.getString("xmlFilePath","");
-                        if (which == 0) { // real time
-
-                        }
-                        else if (which == 1) { // own pace
+                        if (which == 0) { // own pace
                             Intent intentMain = new Intent(getActivity() , MainActivity.class);
                             intentMain.putExtra("filename", filename);
                             getActivity().startActivity(intentMain);
                         }
-                        else if (which == 2) { // edit xml file
+                        else if (which == 1) { // edit xml file
                             try {
                                 // open text editor
                                 Intent intent = new Intent(Intent.ACTION_EDIT);
@@ -76,7 +73,7 @@ public class MusicDialogFragment extends DialogFragment {
                                 e.printStackTrace();
                             }
                         }
-                        else if (which == 3) { // summary
+                        else if (which == 2) { // summary
 
                         }
                     }
