@@ -4,7 +4,6 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
@@ -39,7 +38,7 @@ public class SummaryActivity extends AppCompatActivity {
         accuracyRate = ((double) correctNotes / (double) totalNotes) *100;
 
         TextView summaryTextView = (TextView) findViewById(R.id.summaryText);
-        summaryTextView.setText("Notes correctly played: " + scoreArray[0] + "/" + scoreArray[1] + ". Accuracy: " + String.format("%.2f", accuracyRate) + "%");
+        summaryTextView.setText("Notes correctly played: " + scoreArray[0] + "/" + scoreArray[1] + " Accuracy: " + String.format("%.2f", accuracyRate) + "%");
     }
 
 }
