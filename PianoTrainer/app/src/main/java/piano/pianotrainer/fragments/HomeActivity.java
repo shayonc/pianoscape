@@ -111,28 +111,28 @@ public class HomeActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
 
-        mTextMessage = (TextView) findViewById(R.id.message);
+//        mTextMessage = (TextView) findViewById(R.id.message);
 
-        final TextView buttonResult = (TextView)findViewById(R.id.simpleTextView);
-        buttonResult.setText("Button not yet clicked");
-        buttonResult.setMovementMethod(new ScrollingMovementMethod());
+//        final TextView buttonResult = (TextView)findViewById(R.id.simpleTextView);
+//        buttonResult.setText("Button not yet clicked");
+//        buttonResult.setMovementMethod(new ScrollingMovementMethod());
         filename = GetFirstFilename();
         context = getApplicationContext();
         dbHelper = new DBHelper(this);
         db = dbHelper.getWritableDatabase(); // get writable
         //Setup file Dropdown
-        Spinner mxlDropdown = (Spinner)findViewById(R.id.mxlFileSpinner);
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(getApplicationContext(), android.R.layout.simple_spinner_item, GetMxlFiles());
-        mxlDropdown.setAdapter(adapter);
-        mxlDropdown.setOnItemSelectedListener(new OnItemSelectedListener() {
-            public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
-                filename = parent.getItemAtPosition(pos).toString();
-                Toast.makeText(parent.getContext(),parent.getItemAtPosition(pos).toString(), Toast.LENGTH_LONG).show();
-            }
-            public void onNothingSelected(AdapterView<?> parent) {
-                // Do Nothing
-            }
-        });
+//        Spinner mxlDropdown = (Spinner)findViewById(R.id.mxlFileSpinner);
+//        ArrayAdapter<String> adapter = new ArrayAdapter<String>(getApplicationContext(), android.R.layout.simple_spinner_item, GetMxlFiles());
+//        mxlDropdown.setAdapter(adapter);
+//        mxlDropdown.setOnItemSelectedListener(new OnItemSelectedListener() {
+//            public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
+//                filename = parent.getItemAtPosition(pos).toString();
+//                Toast.makeText(parent.getContext(),parent.getItemAtPosition(pos).toString(), Toast.LENGTH_LONG).show();
+//            }
+//            public void onNothingSelected(AdapterView<?> parent) {
+//                // Do Nothing
+//            }
+//        });
 
 //        Button printSyncButton = (Button) findViewById(R.id.printSyncButton);
 //        printSyncButton.setBackgroundColor(Color.rgb(0, 91, 170));
@@ -198,60 +198,59 @@ public class HomeActivity extends AppCompatActivity {
 //            }
 //        });
 
-        // TODO: Remove this button
-        Button compareNotes = (Button) findViewById(R.id.compareNotesButton);
-        compareNotes.setBackgroundColor(Color.rgb(0, 91, 170));
-        compareNotes.setTextColor(Color.WHITE);
-        compareNotes.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                try {
-                    if (isExternalStorageWritable()) {
-                        correctSyncedNotes.clear();
-                        wrongSyncedNotes.clear();
-
-                        verifyStoragePermissions(HomeActivity.this);
-                        int permissionCheck = ContextCompat.checkSelfPermission(HomeActivity.this,
-                                Manifest.permission.WRITE_EXTERNAL_STORAGE);
-                        rightxmlparser = null;
-                        rightxmlparser = new XMLMusicParser(filename, ROOT_FOLDER, OUTPUT_FOLDER);
-                        rightxmlparser.parseMXL(); // parse the .mxl file
-                        /**
-                        *   if called again, the value of the reference will keep adding.
-                         *   Needs to be cleared at end or else will keep adding to same mem space.
-                        * */
-                        List<Note> correctParsedNotes = xmlparser.parseXML(); // parse the .xml file
-                        Log.d("HomeActivity1", String.valueOf(correctParsedNotes.size()));
-                        rightComparison = new ComparisonSetup();
-                        correctSyncedNotes = rightComparison.SyncNotes(correctParsedNotes);
-                        correctParsedNotes.clear();
-
-                        verifyStoragePermissions(HomeActivity.this);
-                        int permissionCheck2 = ContextCompat.checkSelfPermission(HomeActivity.this,
-                                Manifest.permission.WRITE_EXTERNAL_STORAGE);
-                        wrongxmlparser = null;
-                        wrongxmlparser = new XMLMusicParser(filename, WRONG_NOTES_FOLDER, OUTPUT_FOLDER);
-                        wrongxmlparser.parseMXL(); // parse the .mxl file
-                        List<Note> WrongParsedNotes = wrongxmlparser.parseXML(); // parse the .xml file
-                        Log.d("HomeActivity2", String.valueOf(WrongParsedNotes.size()));
-                        wrongComparison = new ComparisonSetup();
-                        wrongSyncedNotes = wrongComparison.SyncNotes(WrongParsedNotes);
-                        WrongParsedNotes.clear();
-                        String WrongtoPrint = wrongComparison.CompareDebugPrintSync(correctSyncedNotes, wrongSyncedNotes);
-                        buttonResult.setText(WrongtoPrint);
-
-                    }
-                    else  {
-                        CharSequence text = "External storage not available for read and write.";
-                        int duration = Toast.LENGTH_SHORT;
-                        Toast toast = Toast.makeText(context, text, duration);
-                        toast.show();
-                    }
-                }
-                catch (IOException ie) {
-                    ie.printStackTrace();
-                }
-            }
-        });
+//        Button compareNotes = (Button) findViewById(R.id.compareNotesButton);
+//        compareNotes.setBackgroundColor(Color.rgb(0, 91, 170));
+//        compareNotes.setTextColor(Color.WHITE);
+//        compareNotes.setOnClickListener(new View.OnClickListener() {
+//            public void onClick(View v) {
+//                try {
+//                    if (isExternalStorageWritable()) {
+//                        correctSyncedNotes.clear();
+//                        wrongSyncedNotes.clear();
+//
+//                        verifyStoragePermissions(HomeActivity.this);
+//                        int permissionCheck = ContextCompat.checkSelfPermission(HomeActivity.this,
+//                                Manifest.permission.WRITE_EXTERNAL_STORAGE);
+//                        rightxmlparser = null;
+//                        rightxmlparser = new XMLMusicParser(filename, ROOT_FOLDER, OUTPUT_FOLDER);
+//                        rightxmlparser.parseMXL(); // parse the .mxl file
+//                        /**
+//                        *   if called again, the value of the reference will keep adding.
+//                         *   Needs to be cleared at end or else will keep adding to same mem space.
+//                        * */
+//                        List<Note> correctParsedNotes = xmlparser.parseXML(); // parse the .xml file
+//                        Log.d("HomeActivity1", String.valueOf(correctParsedNotes.size()));
+//                        rightComparison = new ComparisonSetup();
+//                        correctSyncedNotes = rightComparison.SyncNotes(correctParsedNotes);
+//                        correctParsedNotes.clear();
+//
+//                        verifyStoragePermissions(HomeActivity.this);
+//                        int permissionCheck2 = ContextCompat.checkSelfPermission(HomeActivity.this,
+//                                Manifest.permission.WRITE_EXTERNAL_STORAGE);
+//                        wrongxmlparser = null;
+//                        wrongxmlparser = new XMLMusicParser(filename, WRONG_NOTES_FOLDER, OUTPUT_FOLDER);
+//                        wrongxmlparser.parseMXL(); // parse the .mxl file
+//                        List<Note> WrongParsedNotes = wrongxmlparser.parseXML(); // parse the .xml file
+//                        Log.d("HomeActivity2", String.valueOf(WrongParsedNotes.size()));
+//                        wrongComparison = new ComparisonSetup();
+//                        wrongSyncedNotes = wrongComparison.SyncNotes(WrongParsedNotes);
+//                        WrongParsedNotes.clear();
+//                        String WrongtoPrint = wrongComparison.CompareDebugPrintSync(correctSyncedNotes, wrongSyncedNotes);
+//                        buttonResult.setText(WrongtoPrint);
+//
+//                    }
+//                    else  {
+//                        CharSequence text = "External storage not available for read and write.";
+//                        int duration = Toast.LENGTH_SHORT;
+//                        Toast toast = Toast.makeText(context, text, duration);
+//                        toast.show();
+//                    }
+//                }
+//                catch (IOException ie) {
+//                    ie.printStackTrace();
+//                }
+//            }
+//        });
 
         // initialize paths
         this.directoryPath = getSdCardPath() + ROOT_FOLDER;
