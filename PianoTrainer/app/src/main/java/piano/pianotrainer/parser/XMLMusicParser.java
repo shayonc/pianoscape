@@ -314,6 +314,9 @@ public class XMLMusicParser {
                         note.setGrace(grace);
                         note.setStep(step);
                         note.setAlter(alter);
+//                        if(octave == -99){
+//                            throw new java.lang.RuntimeException("octave not set properly");
+//                        }
                         note.setOctave(octave);
                         note.setVoice(voice);
                         note.setStem(stem);

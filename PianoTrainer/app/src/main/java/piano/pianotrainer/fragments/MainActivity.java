@@ -77,6 +77,11 @@ public class MainActivity extends Activity implements ScopeLogger {
         ParseNotes parseNotes = new ParseNotes();
 
         notesArray = parseNotes.parseTheNotes(filename, context, MainActivity.this);
+        for (Note n : notesArray) {
+            Log.d("mainact-octave", Integer.toString(n.getOctave()));
+            Log.d("mainact-step", n.getStep());
+
+        }
         Log.d("MainActivity size: ", Integer.toString(notesArray.size()));
 
         if(notesArray.size() == 0 ){
