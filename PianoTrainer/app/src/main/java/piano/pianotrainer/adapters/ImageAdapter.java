@@ -11,6 +11,7 @@ import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 
 import piano.pianotrainer.R;
@@ -18,7 +19,7 @@ import piano.pianotrainer.model.MusicFile;
 
 /**
  * Created by Matthew on 11/22/2017.
- * http://www.clipartpanda.com/clipart_images/purple-musical-note-clip-art-30682946
+ * https://www.shareicon.net/file-quaver-music-note-music-document-musical-720402
  */
 
 public class ImageAdapter extends BaseAdapter {
@@ -56,14 +57,19 @@ public class ImageAdapter extends BaseAdapter {
                 ImageView imageView = (ImageView)grid.findViewById(R.id.grid_image);
                 String imageCaption = musicFileList.get(position).getFilename();
                 if (musicFileList.get(position).getDateModified() != null) {
-                    imageCaption = musicFileList.get(position).getFilename() + " " + musicFileList.get(position).getDateModified().toString();
+                    String parsedDate = new SimpleDateFormat("d MMM yyyy HH:mm" ).format(musicFileList.get(position).getDateModified());
+                    imageCaption = musicFileList.get(position).getFilename() + " " + parsedDate;
                 }
                 textView.setText(imageCaption);
                 textView.setTextColor(Color.BLACK);
                 imageView.setImageResource(musicFileList.get(position).getThumbnail());
 
-                imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+                imageView.setScaleType(ImageView.ScaleType.FIT_XY);
                 imageView.setPadding(8, 8, 8, 8);
+                android.view.ViewGroup.LayoutParams layoutParams = imageView.getLayoutParams();
+                layoutParams.width = 300;
+                layoutParams.height = 300;
+                imageView.setLayoutParams(layoutParams);
             } else {
                 grid = (View) convertView;
             }

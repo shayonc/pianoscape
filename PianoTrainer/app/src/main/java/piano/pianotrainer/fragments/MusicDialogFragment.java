@@ -20,12 +20,16 @@ import java.util.List;
 
 import piano.pianotrainer.R;
 import piano.pianotrainer.model.Note;
+import piano.pianotrainer.parser.XMLMusicParser;
 
 /**
  * Created by Matthew on 11/24/2017.
  */
 
 public class MusicDialogFragment extends DialogFragment {
+    private static final String ROOT_FOLDER = "Piano";
+    private static final String OUTPUT_FOLDER = "XMLFiles";
+
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
@@ -35,21 +39,21 @@ public class MusicDialogFragment extends DialogFragment {
                         Bundle bundle = getArguments();
                         String filename = bundle.getString("filename","");
                         String rootpath = bundle.getString("xmlFilePath","");
-                        if (which == 0) { // real time
-
-                        }
-                        else if (which == 1) { // own pace
+                        if (which == 0) { // own pace
                             Intent intentMain = new Intent(getActivity() , MainActivity.class);
                             intentMain.putExtra("filename", filename);
                             getActivity().startActivity(intentMain);
                         }
-                        else if (which == 2) { // edit xml file
+                        else if (which == 1) { // edit xml file
                             try {
                                 // open text editor
                                 Intent intent = new Intent(Intent.ACTION_EDIT);
                                 String path = rootpath + filename + ".xml";
                                 File file = new File(path);
-                                Log.d("MusicDialogFragment", file.getName());
+                                if (!file.exists()) {
+                                    XMLMusicParser xmlparser = new XMLMusicParser(filename, ROOT_FOLDER, OUTPUT_FOLDER);
+                                    xmlparser.parseMXL(); // parse the .mxl file
+                                }
                                 Uri uri = FileProvider.getUriForFile(getContext(), getContext().getApplicationContext().getPackageName() + ".provider", file);
                                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                                 intent.setFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
@@ -76,8 +80,10 @@ public class MusicDialogFragment extends DialogFragment {
                                 e.printStackTrace();
                             }
                         }
-                        else if (which == 3) { // summary
-
+                        else if (which == 2) { // summary
+                            Intent intentMain = new Intent(getActivity() , SummaryActivity.class);
+                            intentMain.putExtra("filename", filename);
+                            getActivity().startActivity(intentMain);
                         }
                     }
                 });
