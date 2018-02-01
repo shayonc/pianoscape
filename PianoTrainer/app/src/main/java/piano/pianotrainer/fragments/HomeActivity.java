@@ -78,8 +78,7 @@ public class HomeActivity extends AppCompatActivity {
                                     int position, long id) {
                 // TODO: temp fix
                 MusicFile selectedItem = musicFileList.get(position);
-                // pop up dialog
-                openMusicOptions(selectedItem.getFilename(), xmlFilePath);
+                openMusicOptions(selectedItem.getFilename(), xmlFilePath); // pop up dialog
             }
         });
 
