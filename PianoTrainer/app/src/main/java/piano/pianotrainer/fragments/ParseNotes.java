@@ -102,8 +102,8 @@ public class ParseNotes {
                 xmlparser = new XMLMusicParser(filename, ROOT_FOLDER, OUTPUT_FOLDER);
                 xmlparser.parseMXL(); // parse the .mxl file
                 parsedNotes = xmlparser.parseXML(); // parse the .xml file
-                comparison = new ComparisonSetup();
-                comparison.SyncNotes(parsedNotes);
+//                comparison = new ComparisonSetup();
+//                comparison.SyncNotes(parsedNotes);
                 return parsedNotes;
 //                parsedNotes.clear();
 //                buttonResult.setText(toPrint);
