@@ -38,7 +38,12 @@ public class SummaryActivity extends AppCompatActivity {
         accuracyRate = ((double) correctNotes / (double) totalNotes) *100;
 
         TextView summaryTextView = (TextView) findViewById(R.id.summaryText);
-        summaryTextView.setText("Notes correctly played: " + scoreArray[0] + "/" + scoreArray[1] + " Accuracy: " + String.format("%.2f", accuracyRate) + "%");
+        summaryTextView.setText("Music File: " + filename +
+                System.getProperty("line.separator") +
+                "Notes correctly played: " + scoreArray[0] + "/" + scoreArray[1] +
+                System.getProperty("line.separator") +
+                "Accuracy: " + String.format("%.2f", accuracyRate) + "%");
+        summaryTextView.setTextSize(21);
     }
 
 }
