@@ -80,7 +80,11 @@ public class MusicDialogFragment extends DialogFragment {
                                 e.printStackTrace();
                             }
                         }
-
+                        else if (which == 2) { // summary
+                            Intent intentMain = new Intent(getActivity() , SummaryActivity.class);
+                            intentMain.putExtra("filename", filename);
+                            getActivity().startActivity(intentMain);
+                        }
                     }
                 });
         return builder.create();

@@ -5,10 +5,10 @@
     <string name="title_camera">Camera</string>
     <string name="summary">Summary</string>
     <string name="music_dialog">Select Option</string>
-    <string-array
-        name="musicDialogOptions">
+    <string-array name="musicDialogOptions">
         <item>Start Playing!</item>
         <item>Edit XML File</item>
+        <item>Summary</item>
     </string-array>
     <string name="header_text">Select a MIDI source or send messages to Mobileer MIDI Scope.</string>
     <string name="button_clear">Clear Log</string>
@@ -17,4 +17,5 @@
     <string-array name="senders">
         <item>"none"</item>
     </string-array>
+    <string name="title_activity_summary">Summary</string>
 </resources>
