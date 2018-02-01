@@ -64,6 +64,10 @@ public class ImageAdapter extends BaseAdapter {
 
                 imageView.setScaleType(ImageView.ScaleType.FIT_XY);
                 imageView.setPadding(8, 8, 8, 8);
+                android.view.ViewGroup.LayoutParams layoutParams = imageView.getLayoutParams();
+                layoutParams.width = 300;
+                layoutParams.height = 300;
+                imageView.setLayoutParams(layoutParams);
             } else {
                 grid = (View) convertView;
             }
