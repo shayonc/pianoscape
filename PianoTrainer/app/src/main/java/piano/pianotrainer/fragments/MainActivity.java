@@ -79,6 +79,10 @@ public class MainActivity extends AppCompatActivity implements ScopeLogger {
         setContentView(piano.pianotrainer.R.layout.main);
 
         String filename = getIntent().getStringExtra("filename");
+        SharedPreferences.Editor sharedPreferences = getSharedPreferences(SUMMARY_PREFS, MODE_PRIVATE).edit();
+        sharedPreferences.putString("filename", filename);
+        sharedPreferences.apply();
+
         ParseNotes parseNotes = new ParseNotes();
 
         notesArray = parseNotes.parseTheNotes(filename, context, MainActivity.this);
@@ -205,12 +209,15 @@ public class MainActivity extends AppCompatActivity implements ScopeLogger {
         log(builder.toString());
     }
 
-    public void openSummaryPage(int incorrectNotes, int totalNotes) {
+    public void openSummaryPage(int incorrectNotes, int notesCount) {
         Log.d("openSummaryPage", "Should open summary");
+        Log.d("openSummaryPage", "incorrect notes: " + incorrectNotes + " totalNotes: " + notesCount);
         Intent intentMain = new Intent(this , SummaryActivity.class);
         SharedPreferences.Editor sharedPreferences = getSharedPreferences(SUMMARY_PREFS, MODE_PRIVATE).edit();
         sharedPreferences.putInt("incorrectNotes", incorrectNotes);
-        sharedPreferences.putInt("totalNotes", totalNotes);
+        sharedPreferences.putInt("notesCount", notesCount);
+        sharedPreferences.apply();
+        finish();
         MainActivity.this.startActivity(intentMain);
     }
 }

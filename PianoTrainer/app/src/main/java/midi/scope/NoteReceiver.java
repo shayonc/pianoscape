@@ -50,6 +50,7 @@ public class NoteReceiver extends MidiReceiver {
     private ChordComparator chordComparator;
     private boolean isChord = false;
     private boolean lastNote = false;
+    private boolean songOver = false;
 
     public NoteReceiver(ScopeLogger logger, List<Note> notes, Lock compLock, int curNote) {
         mStartTime = System.nanoTime();
@@ -98,7 +99,7 @@ public class NoteReceiver extends MidiReceiver {
             sb.append("A key was released before chord completed, chord has been reset\n");
             chordComparator.displayExpected();
         }
-        if (note.getNoteOn()) {
+        if (note.getNoteOn() && !songOver) {
             //skip rests here
             while(notes.get(curNote).isRest()){
                 curNoteAdd(1);
@@ -156,6 +157,7 @@ public class NoteReceiver extends MidiReceiver {
         }
         else if(curNote == notes.size()){
             //end song
+            songOver = true;
             Log.d("NoteReceiverEnd", "Should launch summary activity");
             ((MainActivity)mLogger).openSummaryPage(incorrectCount, notes.size() - restCount);
         }
