@@ -24,19 +24,11 @@ public class SummaryActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         String filename = getIntent().getStringExtra("filename");
 
-        //int correctCount = getIntent().getIntExtra("totalNotes", 0);
-        //int incorrectCount = getIntent().getIntExtra("incorrectNotes", 0);
-
-        // TODO: Remove these 3 lines later
-        SharedPreferences.Editor editor = getSharedPreferences(SUMMARY_PREFS, MODE_PRIVATE).edit();
-        editor.putString(filename, "65/70");
-        editor.commit();
-
         // get shared preferences
         sharedpreferences = getSharedPreferences(SUMMARY_PREFS, MODE_PRIVATE);
         String summaryScore = sharedpreferences.getString(filename, null);
-        int correctNotes = sharedpreferences.getInt("totalNotes", 0);
-        int totalNotes = sharedpreferences.getInt("incorrectCount", 0);
+        int correctNotes = sharedpreferences.getInt(filename + "totalNotes", 0);
+        int totalNotes = sharedpreferences.getInt(filename + "incorrectCount", 0);
         TextView summaryTextView = (TextView) findViewById(R.id.summaryText);
         String summaryMessage = "";
 
