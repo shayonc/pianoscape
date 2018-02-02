@@ -17,12 +17,17 @@
 package midi.scope;
 
 import android.media.midi.MidiReceiver;
+import android.os.Bundle;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.DialogFragment;
 import android.util.Log;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 
+import piano.pianotrainer.fragments.MainActivity;
+import piano.pianotrainer.fragments.MusicDialogFragment;
 import piano.pianotrainer.model.ChordComparator;
 import piano.pianotrainer.model.Note;
 
@@ -40,8 +45,11 @@ public class NoteReceiver extends MidiReceiver {
     private List<Note> notes;
     private Lock compLock;
     private int curNote;
+    private int incorrectCount;
+    private int restCount = 0;
     private ChordComparator chordComparator;
     private boolean isChord = false;
+    private boolean lastNote = false;
 
     public NoteReceiver(ScopeLogger logger, List<Note> notes, Lock compLock, int curNote) {
         mStartTime = System.nanoTime();
@@ -79,21 +87,28 @@ public class NoteReceiver extends MidiReceiver {
 
         sb.append(" Parsed: " + MidiPrinter.formatMessage(data, offset, count, timestamp, note));
 
-        //Compare notes here
-
         compLock.lock();
 
+        //Compare notes here
+
         if(!note.getNoteOn() && isChord){
+            incorrectCount += chordComparator.getNoteCount() - chordComparator.getCorrectCount();
             //released cord too early, clear Chord Comparator
-            chordComparator.clear();
+            chordComparator.clearCorrect();
             sb.append("A key was released before chord completed, chord has been reset\n");
             chordComparator.displayExpected();
         }
         if (note.getNoteOn()) {
+            //skip rests here
+            while(notes.get(curNote).isRest()){
+                curNoteAdd(1);
+                restCount++;
+            }
+
             Note expNote = notes.get(curNote);
 
             //chord detection
-            if(!isChord && notes.get(curNote + 1).isChord()){
+            if(!isChord && !lastNote && notes.get(curNote + 1).isChord()){
                 chordComparator = new ChordComparator(notes, curNote);
                 isChord = true;
                 sb.append("chord detected!!!!\n");
@@ -105,17 +120,18 @@ public class NoteReceiver extends MidiReceiver {
                 if (expNote.getOctave() == note.getOctave() && expNote.getStep().equals(note.getStep())) {
                     //Note is correct
                     sb.append("\nNote " + curNote + " was correct\n");
-                    curNote++;
+                    curNoteAdd(1);
                 } else {
                     sb.append("\nNote " + curNote + " was incorrect\n");
                     sb.append("Expected octave " + expNote.getOctave() + " and step " + expNote.getStep() + "\n");
                     sb.append("Given octave " + note.getOctave() + " and step " + note.getStep() + "\n");
+                    incorrectCount++;
                 }
             }
             else {
                 if(chordComparator.compareNotes(note) == 0){
                     isChord = false;
-                    curNote+= chordComparator.correctCount;
+                    curNoteAdd(chordComparator.getCorrectCount());
                     sb.append("chord completed successfully\n");
                 }
             }
@@ -123,10 +139,27 @@ public class NoteReceiver extends MidiReceiver {
 
         compLock.unlock();
 
+        if(curNote >= notes.size()){
+            Log.d("NoteReceiverEnd", "Song has been played");
+        }
+
         String text = sb.toString();
         //String text = "event";
         mLogger.log(text);
         Log.i(TAG, text);
+    }
+    private void curNoteAdd(int n){
+        curNote += n;
+        if(curNote == notes.size() - 1){
+            Log.d("NoteReceiverEnd", "Last note of song");
+            lastNote = true;
+        }
+        else if(curNote == notes.size()){
+            //end song
+            Log.d("NoteReceiverEnd", "Should launch summary activity");
+            compLock.lock();
+            ((MainActivity)mLogger).openSummaryPage(incorrectCount, notes.size() - restCount);
+        }
     }
 
 }

@@ -24,6 +24,9 @@ public class SummaryActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         String filename = getIntent().getStringExtra("filename");
 
+        //int correctCount = getIntent().getIntExtra("totalNotes", 0);
+        //int incorrectCount = getIntent().getIntExtra("incorrectNotes", 0);
+
         // TODO: Remove these 3 lines later
         SharedPreferences.Editor editor = getSharedPreferences(SUMMARY_PREFS, MODE_PRIVATE).edit();
         editor.putString(filename, "65/70");
@@ -32,22 +35,24 @@ public class SummaryActivity extends AppCompatActivity {
         // get shared preferences
         sharedpreferences = getSharedPreferences(SUMMARY_PREFS, MODE_PRIVATE);
         String summaryScore = sharedpreferences.getString(filename, null);
+        int correctNotes = sharedpreferences.getInt("totalNotes", 0);
+        int totalNotes = sharedpreferences.getInt("incorrectCount", 0);
         TextView summaryTextView = (TextView) findViewById(R.id.summaryText);
         String summaryMessage = "";
 
-        if (summaryScore == null) {
-            summaryMessage = "There is no summary data yet.";
-        } else {
-            String[] scoreArray = summaryScore.split("/");
-            correctNotes = Integer.parseInt(scoreArray[0]);
-            totalNotes = Integer.parseInt(scoreArray[1]);
+        //if (summaryScore == null) {
+       //     summaryMessage = "There is no summary data yet.";
+       // } else {
+            //String[] scoreArray = summaryScore.split("/");
+            //correctNotes = Integer.parseInt(scoreArray[0]);
+           // totalNotes = Integer.parseInt(scoreArray[1]);
             accuracyRate = ((double) correctNotes / (double) totalNotes) *100;
             summaryMessage = "Music File: " + filename +
                     System.getProperty("line.separator") +
-                    "Notes correctly played: " + scoreArray[0] + "/" + scoreArray[1] +
+                    "Notes correctly played: " + correctNotes + "/" + totalNotes +
                     System.getProperty("line.separator") +
                     "Accuracy: " + String.format("%.2f", accuracyRate) + "%";
-        }
+        //}
         summaryTextView.setText(summaryMessage);
         summaryTextView.setTextSize(21);
     }

@@ -18,9 +18,12 @@ package piano.pianotrainer.fragments;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.media.midi.MidiManager;
 import android.media.midi.MidiReceiver;
 import android.os.Bundle;
+import android.support.v4.app.DialogFragment;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
@@ -50,7 +53,7 @@ import piano.pianotrainer.model.Note;
 /*
  * Print incoming MIDI messages to the screen.
  */
-public class MainActivity extends Activity implements ScopeLogger {
+public class MainActivity extends AppCompatActivity implements ScopeLogger {
     private static final String TAG = "MidiScope";
 
     private TextView mLog;
@@ -77,11 +80,7 @@ public class MainActivity extends Activity implements ScopeLogger {
         ParseNotes parseNotes = new ParseNotes();
 
         notesArray = parseNotes.parseTheNotes(filename, context, MainActivity.this);
-        for (Note n : notesArray) {
-            Log.d("mainact-octave", Integer.toString(n.getOctave()));
-            Log.d("mainact-step", n.getStep());
 
-        }
         Log.d("MainActivity size: ", Integer.toString(notesArray.size()));
 
         if(notesArray.size() == 0 ){
@@ -202,5 +201,12 @@ public class MainActivity extends Activity implements ScopeLogger {
             }
         }
         log(builder.toString());
+    }
+
+    public void openSummaryPage(int incorrectNotes, int totalNotes) {
+        Intent intentMain = new Intent(this , SummaryActivity.class);
+        intentMain.putExtra("incorrectNotes", incorrectNotes);
+        intentMain.putExtra("totalNotes", totalNotes);
+        MainActivity.this.startActivity(intentMain);
     }
 }

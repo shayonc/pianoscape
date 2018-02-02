@@ -207,6 +207,8 @@ public class HomeActivity extends AppCompatActivity {
         swiperefresh.setRefreshing(false);
     }
 
+
+
     public static void verifyStoragePermissions(Activity activity) {
         // Check if we have write permission
         int permission = ActivityCompat.checkSelfPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE);

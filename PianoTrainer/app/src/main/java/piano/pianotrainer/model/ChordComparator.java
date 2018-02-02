@@ -11,18 +11,27 @@ import java.util.List;
 
 public class ChordComparator {
     int noteCount;
-    public int correctCount;
+    int correctCount;
+    boolean isFirstAttempt;
     List<Note> expNotes = new ArrayList<>();
 
     public ChordComparator(List<Note> notes, int curNote) {
         noteCount = 1;
         correctCount = 0;
+        isFirstAttempt = true;
+        expNotes.add(notes.get(curNote));
+
         Note nextNote = notes.get(curNote + noteCount);
 
         while(nextNote.isChord()){
             expNotes.add(nextNote);
             noteCount++;
-            nextNote = notes.get(curNote + noteCount);
+            if (notes.size() < curNote + noteCount) {
+                nextNote = notes.get(curNote + noteCount);
+            }
+            else{
+                break;
+            }
         }
     }
     // returns remaining number of correct notes to wait for
@@ -30,10 +39,12 @@ public class ChordComparator {
         for (Note expNote: expNotes) {
             if (expNote.getOctave() == note.getOctave() && expNote.getStep().equals(note.getStep())) {
                 correctCount++;
-                expNotes.remove(expNote);
-                break;
+                //expNotes.remove(expNote);
+                return noteCount - correctCount;
             }
         }
+        //if one note played is incorrect then reset
+        this.clearCorrect();
         return noteCount - correctCount;
     }
 
@@ -41,9 +52,24 @@ public class ChordComparator {
         for(Note note: expNotes){
             Log.d("chordComparitor", "Expected octave " + note.getOctave() + " step " + note.getStep());
         }
+        Log.d("chordComparitor", "End of expNotes");
     }
 
-    public void clear(){
+    public void clearCorrect(){
         correctCount = 0;
+    }
+
+    public int getCorrectCount(){
+        return correctCount;
+    }
+
+    public int getNoteCount(){
+        return  noteCount;
+    }
+
+    public boolean isFirstAttempt(){
+        boolean ret = isFirstAttempt;
+        isFirstAttempt = false;
+        return ret;
     }
 }
