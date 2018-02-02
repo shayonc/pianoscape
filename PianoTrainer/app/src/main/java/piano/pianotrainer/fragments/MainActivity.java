@@ -71,7 +71,7 @@ public class MainActivity extends AppCompatActivity implements ScopeLogger {
     private Context context;
     private List<Note> notesArray = new ArrayList<>();;
     private Lock compLock = new ReentrantLock();
-    private int curNote = 0;
+    private int curNote = 170;
     private String filename = "";
 
     @Override
@@ -79,15 +79,11 @@ public class MainActivity extends AppCompatActivity implements ScopeLogger {
         super.onCreate(savedInstanceState);
         setContentView(piano.pianotrainer.R.layout.main);
 
-<<<<<<< HEAD
         String filename = getIntent().getStringExtra("filename");
         SharedPreferences.Editor sharedPreferences = getSharedPreferences(SUMMARY_PREFS, MODE_PRIVATE).edit();
         sharedPreferences.putString("filename", filename);
         sharedPreferences.apply();
 
-=======
-        filename = getIntent().getStringExtra("filename");
->>>>>>> 36c545becdad080e4bf6432a6e515758a2c7480a
         ParseNotes parseNotes = new ParseNotes();
 
         notesArray = parseNotes.parseTheNotes(filename, context, MainActivity.this);
@@ -220,15 +216,11 @@ public class MainActivity extends AppCompatActivity implements ScopeLogger {
         Intent intentMain = new Intent(this , SummaryActivity.class);
         intentMain.putExtra("filename", filename);
         SharedPreferences.Editor sharedPreferences = getSharedPreferences(SUMMARY_PREFS, MODE_PRIVATE).edit();
-<<<<<<< HEAD
+
         sharedPreferences.putInt("incorrectNotes", incorrectNotes);
         sharedPreferences.putInt("notesCount", notesCount);
         sharedPreferences.apply();
         finish();
-=======
-        sharedPreferences.putInt(filename + "incorrectNotes", incorrectNotes);
-        sharedPreferences.putInt(filename + "totalNotes", totalNotes);
->>>>>>> 36c545becdad080e4bf6432a6e515758a2c7480a
         MainActivity.this.startActivity(intentMain);
     }
 }
