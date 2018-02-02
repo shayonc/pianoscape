@@ -157,7 +157,6 @@ public class NoteReceiver extends MidiReceiver {
         else if(curNote == notes.size()){
             //end song
             Log.d("NoteReceiverEnd", "Should launch summary activity");
-            compLock.lock();
             ((MainActivity)mLogger).openSummaryPage(incorrectCount, notes.size() - restCount);
         }
     }

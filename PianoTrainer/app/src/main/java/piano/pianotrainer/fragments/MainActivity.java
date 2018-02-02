@@ -19,6 +19,7 @@ package piano.pianotrainer.fragments;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.media.midi.MidiManager;
 import android.media.midi.MidiReceiver;
 import android.os.Bundle;
@@ -55,6 +56,7 @@ import piano.pianotrainer.model.Note;
  */
 public class MainActivity extends AppCompatActivity implements ScopeLogger {
     private static final String TAG = "MidiScope";
+    private static final String SUMMARY_PREFS = "SummaryPrefs";
 
     private TextView mLog;
     private ScrollView mScroller;
@@ -204,9 +206,11 @@ public class MainActivity extends AppCompatActivity implements ScopeLogger {
     }
 
     public void openSummaryPage(int incorrectNotes, int totalNotes) {
+        Log.d("openSummaryPage", "Should open summary");
         Intent intentMain = new Intent(this , SummaryActivity.class);
-        intentMain.putExtra("incorrectNotes", incorrectNotes);
-        intentMain.putExtra("totalNotes", totalNotes);
+        SharedPreferences.Editor sharedPreferences = getSharedPreferences(SUMMARY_PREFS, MODE_PRIVATE).edit();
+        sharedPreferences.putInt("incorrectNotes", incorrectNotes);
+        sharedPreferences.putInt("totalNotes", totalNotes);
         MainActivity.this.startActivity(intentMain);
     }
 }
