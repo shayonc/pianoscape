@@ -79,10 +79,7 @@ public class MainActivity extends AppCompatActivity implements ScopeLogger {
         super.onCreate(savedInstanceState);
         setContentView(piano.pianotrainer.R.layout.main);
 
-        String filename = getIntent().getStringExtra("filename");
-        SharedPreferences.Editor sharedPreferences = getSharedPreferences(SUMMARY_PREFS, MODE_PRIVATE).edit();
-        sharedPreferences.putString("filename", filename);
-        sharedPreferences.apply();
+        filename = getIntent().getStringExtra("filename");
 
         ParseNotes parseNotes = new ParseNotes();
 
@@ -217,8 +214,8 @@ public class MainActivity extends AppCompatActivity implements ScopeLogger {
         intentMain.putExtra("filename", filename);
         SharedPreferences.Editor sharedPreferences = getSharedPreferences(SUMMARY_PREFS, MODE_PRIVATE).edit();
 
-        sharedPreferences.putInt("incorrectNotes", incorrectNotes);
-        sharedPreferences.putInt("notesCount", notesCount);
+        sharedPreferences.putInt(filename + "incorrectNotes", incorrectNotes);
+        sharedPreferences.putInt(filename + "totalNotes", notesCount);
         sharedPreferences.apply();
         finish();
         MainActivity.this.startActivity(intentMain);
