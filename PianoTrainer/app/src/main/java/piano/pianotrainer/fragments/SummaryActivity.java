@@ -1,5 +1,6 @@
 package piano.pianotrainer.fragments;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -40,5 +41,12 @@ public class SummaryActivity extends AppCompatActivity {
                     "Accuracy: " + String.format("%.2f", accuracyRate) + "%";
         summaryTextView.setText(summaryMessage);
         summaryTextView.setTextSize(21);
+    }
+
+    @Override
+    public void onBackPressed() {
+        Intent intentHome = new Intent(this , HomeActivity.class);
+        finish();
+        SummaryActivity.this.startActivity(intentHome);
     }
 }
