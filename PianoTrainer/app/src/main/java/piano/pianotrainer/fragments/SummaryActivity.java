@@ -48,7 +48,7 @@ public class SummaryActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         Intent intentHome = new Intent(this , HomeActivity.class);
-        finish();
         SummaryActivity.this.startActivity(intentHome);
+        finish();
     }
 }

@@ -84,6 +84,7 @@ public class MusicDialogFragment extends DialogFragment {
                             Intent intentMain = new Intent(getActivity() , SummaryActivity.class);
                             intentMain.putExtra("filename", filename);
                             getActivity().startActivity(intentMain);
+                            getActivity().finish();
                         }
                     }
                 });

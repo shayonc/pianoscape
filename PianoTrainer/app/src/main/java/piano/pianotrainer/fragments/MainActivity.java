@@ -225,7 +225,7 @@ public class MainActivity extends AppCompatActivity implements ScopeLogger {
         sharedPreferences.putInt(filename + "incorrectNotes", incorrectNotes);
         sharedPreferences.putInt(filename + "totalNotes", notesCount);
         sharedPreferences.apply();
-        finish();
         MainActivity.this.startActivity(intentMain);
+        finish();
     }
 }
