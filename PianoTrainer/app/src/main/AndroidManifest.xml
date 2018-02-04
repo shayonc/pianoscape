@@ -33,7 +33,8 @@
         </activity>
         <activity
             android:name=".fragments.MainActivity"
-            android:label="MIDI Scope">
+            android:label="MIDI Scope"
+            android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 
