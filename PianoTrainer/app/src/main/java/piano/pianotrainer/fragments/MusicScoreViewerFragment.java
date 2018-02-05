@@ -50,7 +50,7 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
      */
     private static final String STATE_CURRENT_PAGE_INDEX = "current_page_index";
 
-    private static final String FILENAME = "twinkle_twinkle_little_star.pdf";
+    private static final String FILENAME = "handel_sonatina.pdf";
 
     private static final String TRAINING = "training_set";
 
@@ -376,33 +376,38 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
 
                     //TRAINING SETS FOR SYMBOLS
                     //load the training images and train symbol detection
-                    // R:10,B:20,G:30,M:40,C:50,Y:60,R2:70,B2:80,G2:90,M2:100,C2:110,Y2:120
+                    //rbgmcy
+                    //Clefs:
                     //works
                     addTrainingImages("training_set/g_clef", 10);
                     //works
                     addTrainingImages("training_set/f_clef", 20);
-//                    addTrainingImages("training_set/dot_set", 30);
-                    //works
+                    //Brace works
                     addTrainingImages("training_set/brace", 30);
-                    //works
+                    //Time signatures
+                    //4/4 works
+                    //TODO: find other timing signatures
                     addTrainingImages("training_set/time_four_four", 40);
+                    addTrainingImages("training_set/time_three_four", 50);
+                    addTrainingImages("training_set/time_six_eight", 60);
+                    addTrainingImages("training_set/time_two_four", 70);
+                    //Rests
+                    //we can logically test whole/half note rests since its just a rect
                     //works
-                    addTrainingImages("training_set/quarter_rest", 50);
-                    //not tested
-                    addTrainingImages("training_set/sharp", 60);
-                    //works: however need to add eigth note rest to train
-                    addTrainingImages("training_set/natural", 70);
+                    addTrainingImages("training_set/quarter_rest", 80);
                     //works
-                    addTrainingImages("training_set/flat", 80);
-                    //TODO: fix inv mordent masked on top staff line
-                    addTrainingImages("training_set/mordent", 90);
-                    addTrainingImages("training_set/inverted_mordent", 100);
-                    //TODO: Whole notes not working..maybe just use circle detection?
-                    //addTrainingImages("training_set/whole_note", 110);
-                    addTrainingImages("training_set/whole_note_2", 120);
-                    //not working..only 1 training img
-                    //addTrainingImages("training_set/common_time", 90);
+                    addTrainingImages("training_set/eight_rest", 90);
 
+                    addTrainingImages("training_set/one_16th_rest", 100);
+                    //sharp not tested
+                    addTrainingImages("training_set/sharp", 110);
+                    //TODO: confuses naturals with sharps: might have a heuristic classifier after
+                    addTrainingImages("training_set/natural", 120);
+                    //works
+                    addTrainingImages("training_set/flat", 130);
+                    //TODO: knn for mordent is an inv mordent - need heuristic filter to distinguish
+                    //training with inv mordent classifies mordents/inv mordents (but classifying with mordent doesn't!)
+                    addTrainingImages("training_set/inverted_mordent", 140);
 
                     //Train
                     scoreProc.trainKnn();
@@ -424,7 +429,7 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
                     Utils.matToBitmap(scoreProc.noStaffLinesImg, testBmp);
 
                     Canvas cnvs = new Canvas(testBmp);
-                    //...setting paint objects with brute force
+                    //...setting paint objects with brute force >_>
                     Paint paintR=new Paint();
                     paintR.setStyle(Paint.Style.STROKE);
                     paintR.setColor(Color.RED);
@@ -444,16 +449,6 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
                     Paint paintC =new Paint();
                     paintC.setStyle(Paint.Style.STROKE);
                     paintC.setColor(Color.CYAN);
-
-                    Paint paintC2 =new Paint();
-                    paintC2.setStyle(Paint.Style.STROKE);
-                    paintC2.setColor(Color.CYAN);
-                    paintC2.setStrokeWidth(5);
-
-                    Paint paintY2 =new Paint();
-                    paintY2.setStyle(Paint.Style.STROKE);
-                    paintY2.setColor(Color.YELLOW);
-                    paintY2.setStrokeWidth(5);
 
                     Paint paintY =new Paint();
                     paintY.setStyle(Paint.Style.STROKE);
@@ -479,6 +474,31 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
                     paintM2.setStyle(Paint.Style.STROKE);
                     paintM2.setColor(Color.MAGENTA);
                     paintM2.setStrokeWidth(5);
+
+                    Paint paintC2 =new Paint();
+                    paintC2.setStyle(Paint.Style.STROKE);
+                    paintC2.setColor(Color.CYAN);
+                    paintC2.setStrokeWidth(5);
+
+                    Paint paintY2 =new Paint();
+                    paintY2.setStyle(Paint.Style.STROKE);
+                    paintY2.setColor(Color.YELLOW);
+                    paintY2.setStrokeWidth(5);
+
+                    Paint paintR3 =new Paint();
+                    paintR3.setStyle(Paint.Style.STROKE);
+                    paintR3.setColor(Color.RED);
+                    paintR3.setStrokeWidth(10);
+
+                    Paint paintB3 =new Paint();
+                    paintB3.setStyle(Paint.Style.STROKE);
+                    paintB3.setColor(Color.BLUE);
+                    paintB3.setStrokeWidth(10);
+
+                    Paint paintG3 =new Paint();
+                    paintG3.setStyle(Paint.Style.STROKE);
+                    paintG3.setColor(Color.GREEN);
+                    paintG3.setStrokeWidth(10);
 
 
                     for(int i = 0; i < staffObjects.size(); i++){
@@ -518,6 +538,12 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
                             }
                             if(knnResults.get(i).get(j) == 120){
                                 cnvs.drawRect(staffObjects.get(i).get(j), paintY2);
+                            }
+                            if(knnResults.get(i).get(j) == 130){
+                                cnvs.drawRect(staffObjects.get(i).get(j), paintR3);
+                            }
+                            if(knnResults.get(i).get(j) == 140){
+                                cnvs.drawRect(staffObjects.get(i).get(j), paintB3);
                             }
                         }
                     }

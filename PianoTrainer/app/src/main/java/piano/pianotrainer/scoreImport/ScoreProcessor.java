@@ -299,11 +299,13 @@ public class ScoreProcessor {
 
         //int i = 0;
         List<Integer> staffLines;
-        int topBound, bottomBound, leftBound, rightBound;
+        int topBound, bottomBound, leftBound, rightBound, increment;
         for(int i = 0 ; i < staffs.size(); i++){
             staffLines = staffs.get(i);
             staffObjects.add(new ArrayList<Rect>());
-            topBound = staffLines.get(0);
+            //use this as a relative measure for elements on top of the staffline
+            increment = staffLines.get(1) - staffLines.get(0);
+            topBound = staffLines.get(0) - increment;
             bottomBound = staffLines.get(9);
             leftBound = 0;
             rightBound = noStaffLinesImg.width();
