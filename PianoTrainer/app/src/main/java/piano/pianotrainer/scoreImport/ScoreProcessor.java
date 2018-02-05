@@ -67,6 +67,7 @@ public class ScoreProcessor {
     int staffLineDiff;
     List<List<Integer>> staffs;
     List<List<Rect>> staffObjects;
+    List<List<Integer>> knnResults;
 
     // intermediate values to keep track of object bounds
     int curObjectTop;
@@ -363,6 +364,7 @@ public class ScoreProcessor {
         Size size = new Size(TRAIN_WIDTH,TRAIN_HEIGHT);
         Mat resizedImg = new Mat();
         Mat curFeatureRgba = new Mat();
+        //we only want one 8bit channel of interest to train the knn process (curFeatureR)
         Mat curFeatureGba, curFeatureR;
         Utils.bitmapToMat(bmp, curFeatureRgba);
         List<Mat> inputMats = new ArrayList<Mat>();
@@ -386,6 +388,7 @@ public class ScoreProcessor {
         Mat curRow = curFeatureR.row(10);
         String rowInfo = curRow.dump();
         //stay consistent since our original image is gray-inverted
+        //0s map to white, 255s map to whites
         curFeatureR = invertGrayImg(curFeatureR);
         curRow = curFeatureR.row(10);
         rowInfo = curRow.dump();
@@ -401,6 +404,20 @@ public class ScoreProcessor {
         trainLabs.add(label);
     }
 
+    public Mat getStaffObjectMat(int staffline, int objIndex){
+        if(staffline < 0 && staffline > staffObjects.size() - 1){
+            throw new Error("staffline index not in range!");
+        }
+        if(objIndex < 0 && objIndex > staffObjects.get(staffline).size()){
+            throw new Error("objIndex not in range!");
+        }
+        Rect staffObjRect = staffObjects.get(staffline).get(objIndex);
+        Mat noStaffLineImgRoi = noStaffLinesImg.submat(staffObjRect.top, staffObjRect.bottom,
+                                                        staffObjRect.left, staffObjRect.right);
+        return noStaffLineImgRoi;
+
+    }
+
     public Mat invertGrayImg(Mat grayImg){
         double curVal;
         for(int i = 0; i < grayImg.rows(); i++){
@@ -413,18 +430,23 @@ public class ScoreProcessor {
     }
 
     public boolean testMusicObjects(){
-        List<List<Integer>> results = new ArrayList<List<Integer>>();
+        knnResults = new ArrayList<List<Integer>>();
 
         Rect curRect;
         boolean passed = true;
         for(int i = 0; i < staffObjects.size(); i++){
-            results.add(new ArrayList<Integer>());
+            knnResults.add(new ArrayList<Integer>());
             for(int j = 0; j < staffObjects.get(i).size(); j++){
                 curRect = staffObjects.get(i).get(j);
-                results.get(i).add(testKnnMat(extractFromNoStaffImg(curRect)));
+                knnResults.get(i).add(testKnnMat(extractFromNoStaffImg(curRect)));
             }
         }
         return true;
+    }
+
+    //getter
+    public List<List<Integer>> getKnnResults() {
+        return knnResults;
     }
 
     public Mat extractFromNoStaffImg(Rect r){
@@ -439,48 +461,6 @@ public class ScoreProcessor {
         Bitmap bmp = Bitmap.createBitmap(staffObjects.get(staffLine).get(index).width(),staffObjects.get(staffLine).get(index).height(),Bitmap.Config.ARGB_8888);
         Utils.matToBitmap(extractFromNoStaffImg(staffObjects.get(staffLine).get(index)), bmp);
         return bmp;
-    }
-
-    //Finds the nearest neighbour of a bitmap img and returns whether its label is what we expect
-    public boolean testKnn(Bitmap bmp, int label){
-        //Convert to Mat
-        Mat curFeatureRgba = new Mat();
-        Mat curFeatureGba, curFeatureR;
-        Utils.bitmapToMat(bmp, curFeatureRgba);
-        List<Mat> inputMats = new ArrayList<Mat>();
-        inputMats.add(curFeatureRgba);
-        List<Mat> outputMats = new ArrayList<Mat>();
-        curFeatureGba = new Mat(curFeatureRgba.rows(), curFeatureRgba.cols(), CvType.CV_8UC3);
-        curFeatureR = new Mat(curFeatureRgba.rows(), curFeatureRgba.cols(), CvType.CV_8UC1);
-        outputMats.add(curFeatureR);
-        outputMats.add(curFeatureGba);
-        //one to one mapping; first channel of input -> first channel of output
-        //total channel size of inputs and outputs must be equal: 8UC4 = 8UC3 + 8UC1
-        int[] channelMapArray = {0,0,1,1,2,2,3,3};
-        MatOfInt channelMapping = new MatOfInt(channelMapArray);
-        try{
-            Core.mixChannels(inputMats, outputMats, channelMapping);
-        }
-        catch(Exception e){
-            String exc = e.toString();
-        }
-        curFeatureR = outputMats.get(0);
-        curFeatureR = invertGrayImg(curFeatureR);
-        return testKnnMat(curFeatureR, label);
-    }
-
-    public boolean testKnnMat(Mat symbolToTest, int label){
-        symbolToTest.convertTo(symbolToTest, CvType.CV_32F);
-        Size size = new Size(TRAIN_WIDTH, TRAIN_HEIGHT);
-        Mat resizedImg = new Mat();
-        Imgproc.resize(symbolToTest, resizedImg, size);
-        resizedImg.convertTo(resizedImg, CvType.CV_32F);
-        resizedImg = resizedImg.reshape(1,1);
-        Mat res = new Mat();
-        res.convertTo(res, CvType.CV_32F);
-        //Test Mat against KNN
-        float p = knn.findNearest(resizedImg.reshape(1,1), 1 ,res);
-        return Math.round(p) == label;
     }
 
     public int testKnnMat(Mat symbolToTest){
@@ -499,29 +479,7 @@ public class ScoreProcessor {
 
     public void trainKnn(){
         knn.train(trainData, Ml.ROW_SAMPLE, Converters.vector_int_to_Mat(trainLabs));
-
-        //Load the image
-        //Didn't work likely using train overwrites previous data?
-//        Mat curSymbol = new Mat();
-//        Mat trainData = new Mat();
-//        trainData.convertTo(trainData, CvType.CV_32F);
-//        Mat testData = new Mat();
-//        List<Integer> trainLabs = new ArrayList<Integer>(),
-//                testLabs = new ArrayList<Integer>();
-//        Size size = new Size(20,30);
-//        Mat resizedImg = new Mat();
-//
-//        Utils.bitmapToMat(bmp, curSymbol);
-//        Imgproc.resize(curSymbol, resizedImg, size);
-//        resizedImg.convertTo(resizedImg, CvType.CV_32F);
-//        testData.push_back(resizedImg.reshape(1,1));
-//        trainLabs.add(label);
-//        this.knn.train(resizedImg.reshape(1,1), Ml.ROW_SAMPLE, Converters.vector_int_to_Mat(trainLabs).reshape(1,1));
-//
-
-
     }
-
 
     private void fillSearch(int row, int col, boolean[][] staffsVisited) {
 
@@ -551,11 +509,7 @@ public class ScoreProcessor {
         if (!staffsVisited[row][col+1] && noStaffLinesImg.get(row, col+1)[0] == 255.0) {
             fillSearch(row, col+1, staffsVisited);
         }
-
-
-
     }
-
 
     private void markObjectRects(int padding, boolean[][] staffsVisited) {
         for (int row = curObjectTop-padding; row < curObjectBottom+padding; row++) {

@@ -50,7 +50,7 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
      */
     private static final String STATE_CURRENT_PAGE_INDEX = "current_page_index";
 
-    private static final String FILENAME = "handel_sonatina.pdf";
+    private static final String FILENAME = "twinkle_twinkle_little_star.pdf";
 
     private static final String TRAINING = "training_set";
 
@@ -219,6 +219,67 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
         return mPdfHelper.getPageCount();
     }
 
+//    public boolean addTrainingImages(String fileDir){
+//        Resources res = getResources();
+//        AssetManager am = res.getAssets();
+//        Bitmap curBmp;
+//        InputStream inputstream;
+//        try {
+//            //Primitive testing only two different training sets first
+//            //get all the file names under the specified training set
+//            //train with all the even indexed images in each of the directories
+//            String fileList[] = am.list(fileDir);
+//
+//            if (fileList != null)
+//            {
+//                for ( int i = 0;i<fileList.length;i++)
+//                {
+//                    inputstream = appContext.getAssets().open(fileDir + fileList[i]);
+//                    curBmp = BitmapFactory.decodeStream(inputstream);
+//                    Log.d("",fileList[i]);
+//                    if(i % 2 == 0){
+//                        scoreProc.addSample(curBmp, 10);
+//                    }
+//                }
+//
+//            }
+//            else{
+//                Log.d("","NULL filelist!!");
+//            }
+//    }
+
+    public boolean addTrainingImages( String fileDir, int label){
+        Resources res = getResources();
+        AssetManager am = res.getAssets();
+        Bitmap curBmp;
+        InputStream inputstream;
+        try{
+            String fileList[] = am.list(fileDir);
+
+            if (fileList != null)
+            {
+                for ( int i = 0;i<fileList.length;i++)
+                {
+                    inputstream=appContext.getAssets().open(fileDir + "/" +fileList[i]);
+                    curBmp = BitmapFactory.decodeStream(inputstream);
+                    Log.d("",fileList[i]);
+                    scoreProc.addSample(curBmp, label);
+                }
+                return true;
+            }
+            else{
+                Log.d("","NULL filelist!!");
+                return false;
+            }
+        }
+
+        catch(IOException exc){
+            Log.d("","IOException caught!");
+            return false;
+        }
+
+    }
+
     @Override
     public void onClick(View view) {
         switch (view.getId()) {
@@ -313,106 +374,40 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
                         }
                     }
 
-
-
-
-
-
-
-
-
                     //TRAINING SETS FOR SYMBOLS
                     //load the training images and train symbol detection
-                    Resources res = getResources();
-                    AssetManager am = res.getAssets();
-                    String dirPath = "assets//" + TRAINING + "//" + "g_clef";
-                    Bitmap curBmp;
-                    InputStream inputstream;
-                    try {
-                        //Primitive testing only two different training sets first
-                        //get all the file names under the specified training set
-                        //train with all the even indexed images in each of the directories
-                        String fileList[] = am.list("training_set/g_clef");
-
-                        if (fileList != null)
-                        {
-                            for ( int i = 0;i<fileList.length;i++)
-                            {
-                                inputstream=appContext.getAssets().open("training_set/g_clef/"
-                                        +fileList[i]);
-                                curBmp = BitmapFactory.decodeStream(inputstream);
-                                Log.d("",fileList[i]);
-                                if(i % 2 == 0){
-                                    scoreProc.addSample(curBmp, 10);
-                                }
-                            }
-
-                        }
-                        else{
-                            Log.d("","NULL filelist!!");
-                        }
-                        String fileList2[] = am.list("training_set/f_clef");
-                        if (fileList2 != null)
-                        {
-                            for ( int i = 0;i<fileList2.length;i++)
-                            {
-                                inputstream=appContext.getAssets().open("training_set/f_clef/"
-                                        +fileList2[i]);
-                                curBmp = BitmapFactory.decodeStream(inputstream);
-                                Log.d("",fileList2[i]);
-                                if(i % 2 == 0){
-                                    scoreProc.addSample(curBmp, 20);
-                                }
-                            }
-
-                            //Train
-                            scoreProc.trainKnn();
-                            //Test: with odd indexed images in the training set directory
-                            Bitmap bmpFclef, bmpGclef;
-                            int testsPassedG = 0;
-                            int testsPassedF = 0;
-                            int totalTestsG = 0;
-                            int totalTestsF = 0;
-                            for(int j = 0; j < fileList.length; j++){
-                                //there are more g clefs than f clefs in train data for now
-                                inputstream = appContext.getAssets().open("training_set/g_clef/" + fileList[j]);
-                                bmpGclef = BitmapFactory.decodeStream(inputstream);
-                                if(j % 2 != 0){
-                                    if(scoreProc.testKnn(bmpGclef, 10)){
-                                        testsPassedG++;
-                                    }
-                                    totalTestsG++;
-                                }
-                            }
-                            for(int i = 0 ; i < fileList2.length; i++){
-                                inputstream=appContext.getAssets().open("training_set/f_clef/"
-                                        +fileList2[i]);
-                                bmpFclef = BitmapFactory.decodeStream(inputstream);
+                    // R:10,B:20,G:30,M:40,C:50,Y:60,R2:70,B2:80,G2:90,M2:100,C2:110,Y2:120
+                    //works
+                    addTrainingImages("training_set/g_clef", 10);
+                    //works
+                    addTrainingImages("training_set/f_clef", 20);
+//                    addTrainingImages("training_set/dot_set", 30);
+                    //works
+                    addTrainingImages("training_set/brace", 30);
+                    //works
+                    addTrainingImages("training_set/time_four_four", 40);
+                    //works
+                    addTrainingImages("training_set/quarter_rest", 50);
+                    //not tested
+                    addTrainingImages("training_set/sharp", 60);
+                    //works: however need to add eigth note rest to train
+                    addTrainingImages("training_set/natural", 70);
+                    //works
+                    addTrainingImages("training_set/flat", 80);
+                    //TODO: fix inv mordent masked on top staff line
+                    addTrainingImages("training_set/mordent", 90);
+                    addTrainingImages("training_set/inverted_mordent", 100);
+                    //TODO: Whole notes not working..maybe just use circle detection?
+                    //addTrainingImages("training_set/whole_note", 110);
+                    addTrainingImages("training_set/whole_note_2", 120);
+                    //not working..only 1 training img
+                    //addTrainingImages("training_set/common_time", 90);
 
 
-                                if(i % 2 != 0){
-                                    //test two different ones
-                                    if(scoreProc.testKnn(bmpFclef, 20)){
-                                        testsPassedF++;
-                                    }
-                                    totalTestsF++;
-                                }
-                            }
-                            String logTest = String.format("G: %d/%d , F: %d/%d", testsPassedG, totalTestsG, testsPassedF, totalTestsF);
-                            Log.d("", logTest);
-                            //Test some symbols
-                            scoreProc.testMusicObjects();
-
-                        }
-                        else{
-                            Log.d("","NULL filelist!!");
-                        }
-
-                    }
-                    catch(Exception e){
-                        Log.d("","ERROR in am.list");
-                    }
-
+                    //Train
+                    scoreProc.trainKnn();
+                    //test all
+                    scoreProc.testMusicObjects();
                     try {
 //                        int numCircles = scoreProc.classifyNoteGroup();
 //                        mDebugView.setText(String.format("Number of circles: %d", numCircles));
@@ -424,18 +419,110 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
                         mDebugView.setText(e.toString());
                     }
 
-                    Canvas cnvs = new Canvas(bitmap);
-                    Paint paint=new Paint();
-                    paint.setStyle(Paint.Style.STROKE);
-                    paint.setColor(Color.RED);
-                    for(List<Rect> rectList : staffObjects){
-                        for(Rect symbolRect : rectList){
-                            cnvs.drawRect(symbolRect, paint);
-                        }
-                    }
+                    List<List<Integer>> knnResults = scoreProc.getKnnResults();
                     Bitmap testBmp = Bitmap.createBitmap(scoreProc.noStaffLinesImg.width(),scoreProc.noStaffLinesImg.height(),Bitmap.Config.ARGB_8888);
                     Utils.matToBitmap(scoreProc.noStaffLinesImg, testBmp);
+
+                    Canvas cnvs = new Canvas(testBmp);
+                    //...setting paint objects with brute force
+                    Paint paintR=new Paint();
+                    paintR.setStyle(Paint.Style.STROKE);
+                    paintR.setColor(Color.RED);
+
+                    Paint paintB=new Paint();
+                    paintB.setStyle(Paint.Style.STROKE);
+                    paintB.setColor(Color.BLUE);
+
+                    Paint paintG =new Paint();
+                    paintG.setStyle(Paint.Style.STROKE);
+                    paintG.setColor(Color.GREEN);
+
+                    Paint paintM =new Paint();
+                    paintM.setStyle(Paint.Style.STROKE);
+                    paintM.setColor(Color.MAGENTA);
+
+                    Paint paintC =new Paint();
+                    paintC.setStyle(Paint.Style.STROKE);
+                    paintC.setColor(Color.CYAN);
+
+                    Paint paintC2 =new Paint();
+                    paintC2.setStyle(Paint.Style.STROKE);
+                    paintC2.setColor(Color.CYAN);
+                    paintC2.setStrokeWidth(5);
+
+                    Paint paintY2 =new Paint();
+                    paintY2.setStyle(Paint.Style.STROKE);
+                    paintY2.setColor(Color.YELLOW);
+                    paintY2.setStrokeWidth(5);
+
+                    Paint paintY =new Paint();
+                    paintY.setStyle(Paint.Style.STROKE);
+                    paintY.setColor(Color.YELLOW);
+
+
+                    Paint paintR2 =new Paint();
+                    paintR2.setStyle(Paint.Style.STROKE);
+                    paintR2.setColor(Color.RED);
+                    paintR2.setStrokeWidth(5);
+
+                    Paint paintB2 =new Paint();
+                    paintB2.setStyle(Paint.Style.STROKE);
+                    paintB2.setColor(Color.BLUE);
+                    paintB2.setStrokeWidth(5);
+
+                    Paint paintG2 =new Paint();
+                    paintG2.setStyle(Paint.Style.STROKE);
+                    paintG2.setColor(Color.GREEN);
+                    paintG2.setStrokeWidth(5);
+
+                    Paint paintM2 =new Paint();
+                    paintM2.setStyle(Paint.Style.STROKE);
+                    paintM2.setColor(Color.MAGENTA);
+                    paintM2.setStrokeWidth(5);
+
+
+                    for(int i = 0; i < staffObjects.size(); i++){
+                        for(int j = 0; j < staffObjects.get(i).size(); j++){
+                            if(knnResults.get(i).get(j) == 10){
+                                cnvs.drawRect(staffObjects.get(i).get(j), paintR);
+                            }
+                            if(knnResults.get(i).get(j) == 20){
+                                cnvs.drawRect(staffObjects.get(i).get(j), paintB);
+                            }
+                            if(knnResults.get(i).get(j) == 30){
+                                cnvs.drawRect(staffObjects.get(i).get(j), paintG);
+                            }
+                            if(knnResults.get(i).get(j) == 40){
+                                cnvs.drawRect(staffObjects.get(i).get(j), paintM);
+                            }
+                            if(knnResults.get(i).get(j) == 50){
+                                cnvs.drawRect(staffObjects.get(i).get(j), paintC);
+                            }
+                            if(knnResults.get(i).get(j) == 60){
+                                cnvs.drawRect(staffObjects.get(i).get(j), paintY);
+                            }
+                            if(knnResults.get(i).get(j) == 70){
+                                cnvs.drawRect(staffObjects.get(i).get(j), paintR2);
+                            }
+                            if(knnResults.get(i).get(j) == 80){
+                                cnvs.drawRect(staffObjects.get(i).get(j), paintB2);
+                            }
+                            if(knnResults.get(i).get(j) == 90){
+                                cnvs.drawRect(staffObjects.get(i).get(j), paintG2);
+                            }
+                            if(knnResults.get(i).get(j) == 100){
+                                cnvs.drawRect(staffObjects.get(i).get(j), paintM2);
+                            }
+                            if(knnResults.get(i).get(j) == 110){
+                                cnvs.drawRect(staffObjects.get(i).get(j), paintC2);
+                            }
+                            if(knnResults.get(i).get(j) == 120){
+                                cnvs.drawRect(staffObjects.get(i).get(j), paintY2);
+                            }
+                        }
+                    }
                     mImageView.setImageBitmap(testBmp);
+
                 }
                 else {
                     mDebugView.setText("pfd or pdfRenderer not instantiated.");
