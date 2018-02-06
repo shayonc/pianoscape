@@ -32,7 +32,6 @@ public class HomeActivity extends AppCompatActivity {
     private String filename = "";
     private static final String OUTPUT_FOLDER = "XMLFiles";
     private static final String ROOT_FOLDER = "Piano";
-    private static final String WRONG_NOTES_FOLDER = "WrongPianoNotes";
     private GridView gridview;
     private ArrayList<MusicFile> musicFileList = new ArrayList<>();
     private ImageAdapter imageAdapter;
