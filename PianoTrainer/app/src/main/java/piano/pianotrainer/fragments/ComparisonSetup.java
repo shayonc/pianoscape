@@ -78,7 +78,14 @@ public class ComparisonSetup {
                 //}
                 // Add new note to voice channel
                 if (!note.isChord()) {
-                    playNotes.get(voicesPlace[note.getVoice()]).add(note);
+                    try {
+                        playNotes.get(voicesPlace[note.getVoice()]).add(note);
+                    } catch(IndexOutOfBoundsException e) {
+                        for (int ii = 0; ii < measureDivs; ii++) {
+                            playNotes.add(new ArrayList<Note>());
+                        }
+                        playNotes.get(voicesPlace[note.getVoice()]).add(note);
+                    }
                 }
                 else {
                     playNotes.get(lastPlace[note.getVoice()]).add(note);

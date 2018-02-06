@@ -86,6 +86,11 @@ public class MusicDialogFragment extends DialogFragment {
                             getActivity().startActivity(intentMain);
                             getActivity().finish();
                         }
+                        else if (which == 3) { //Preview Debug
+                            Intent intentMain = new Intent(getActivity(), PreviewDebugActivity.class);
+                            intentMain.putExtra("filename", filename);
+                            getActivity().startActivity(intentMain);
+                        }
                     }
                 });
         return builder.create();
