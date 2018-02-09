@@ -23,7 +23,10 @@ import android.support.v4.app.DialogFragment;
 import android.util.Log;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.locks.Lock;
 
 import piano.pianotrainer.fragments.MainActivity;
@@ -42,7 +45,7 @@ public class NoteReceiver extends MidiReceiver {
     private long mStartTime;
     private ScopeLogger mLogger;
     private long mLastTimeStamp = 0;
-    private List<Note> notes;
+    private ArrayList<List<Note>> notes;
     private Lock compLock;
     private int curNote;
     private int incorrectCount;
@@ -51,8 +54,9 @@ public class NoteReceiver extends MidiReceiver {
     private boolean isChord = false;
     private boolean lastNote = false;
     private boolean songOver = false;
+    //private Set<Note> tieOnNotes = new HashSet<>();
 
-    public NoteReceiver(ScopeLogger logger, List<Note> notes, Lock compLock, int curNote) {
+    public NoteReceiver(ScopeLogger logger, ArrayList<List<Note>> notes, Lock compLock, int curNote) {
         mStartTime = System.nanoTime();
         mLogger = logger;
         this.notes = notes;
@@ -90,8 +94,19 @@ public class NoteReceiver extends MidiReceiver {
 
         compLock.lock();
 
-        //Compare notes here
+        //skip rests here, also skip on tie stop
+        //ToDo add in way to alow user to play tieOff if they want
+        while(notes.get(curNote).size() == 0 || isTieSkip(notes.get(curNote).get(0))){
+            if(notes.get(curNote).size() == 0){
+                Log.d("NoteReciever: ", "Skipped because of rest  curNote: " + curNote + " ");
+            }else{
+                Log.d("NoteReciever: ", "Skipped because of Tie  curNote: " + curNote + " ");
+            }
+            curNoteAdd(1);
+            restCount++;
+        }
 
+        //Compare notes here
         if(!note.getNoteOn() && isChord){
             incorrectCount += chordComparator.getNoteCount() - chordComparator.getCorrectCount();
             //released cord too early, clear Chord Comparator
@@ -99,29 +114,28 @@ public class NoteReceiver extends MidiReceiver {
             sb.append("A key was released before chord completed, chord has been reset\n");
             chordComparator.displayExpected();
         }
-        if (note.getNoteOn() && !songOver) {
-            //skip rests here
-            while(notes.get(curNote).isRest()){
-                curNoteAdd(1);
-                restCount++;
-            }
 
-            Note expNote = notes.get(curNote);
+        if (note.getNoteOn() && !songOver) {
 
             //chord detection
-            if(!isChord && !lastNote && notes.get(curNote + 1).isChord()){
-                chordComparator = new ChordComparator(notes, curNote);
+            if(!isChord && notes.get(curNote).size() > 1){
+                chordComparator = new ChordComparator(notes.get(curNote));
                 isChord = true;
                 sb.append("chord detected!!!!\n");
             }
-
             //ToDo step compare will not work for flats, midi is only converted to sharp
 
             if(!isChord) {
+                Note expNote = notes.get(curNote).get(0);
                 if (expNote.getOctave() == note.getOctave() && expNote.getStep().equals(note.getStep())) {
                     //Note is correct
                     sb.append("\nNote " + curNote + " was correct\n");
                     curNoteAdd(1);
+                    //add to tie list
+                    /*if(expNote.isTieStart()){
+                        tieOnNotes.add(expNote);
+                    }*/
+
                 } else {
                     sb.append("\nNote " + curNote + " was incorrect\n");
                     sb.append("Expected octave " + expNote.getOctave() + " and step " + expNote.getStep() + "\n");
@@ -132,7 +146,7 @@ public class NoteReceiver extends MidiReceiver {
             else {
                 if(chordComparator.compareNotes(note) == 0){
                     isChord = false;
-                    curNoteAdd(chordComparator.getCorrectCount());
+                    curNoteAdd(1);
                     sb.append("chord completed successfully\n");
                 }
             }
@@ -162,5 +176,15 @@ public class NoteReceiver extends MidiReceiver {
             ((MainActivity)mLogger).openSummaryPage(incorrectCount, notes.size() - restCount);
         }
     }
+    private boolean isTieSkip(Note note){
+        if(note.isTieStop()){
+            return true;
+        }
+        else if(note.isTieStart()){
+            //tieOnNotes.add(note);
+            return false;
+        }
 
+        return false;
+    }
 }
