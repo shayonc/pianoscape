@@ -38,56 +38,6 @@ public class ParseNotes {
             Manifest.permission.READ_EXTERNAL_STORAGE,
             Manifest.permission.WRITE_EXTERNAL_STORAGE
     };
-
-    public ArrayList<List<Note>> compareWrongNotes(String filename, Context context, Activity activity) {
-        try {
-            if (isExternalStorageWritable()) {
-                correctSyncedNotes.clear();
-                wrongSyncedNotes.clear();
-
-                verifyStoragePermissions(activity);
-                int permissionCheck = ContextCompat.checkSelfPermission(activity,
-                        Manifest.permission.WRITE_EXTERNAL_STORAGE);
-                rightxmlparser = null;
-                rightxmlparser = new XMLMusicParser(filename, ROOT_FOLDER, OUTPUT_FOLDER);
-                rightxmlparser.parseMXL(); // parse the .mxl file
-                /**
-                 *   if called again, the value of the reference will keep adding.
-                 *   Needs to be cleared at end or else will keep adding to same mem space.
-                 * */
-                List<Note> correctParsedNotes = xmlparser.parseXML(); // parse the .xml file
-                Log.d("HomeActivity1", String.valueOf(correctParsedNotes.size()));
-                rightComparison = new ComparisonSetup();
-                correctSyncedNotes = rightComparison.SyncNotes(correctParsedNotes);
-                correctParsedNotes.clear();
-
-                verifyStoragePermissions(activity);
-                int permissionCheck2 = ContextCompat.checkSelfPermission(activity,
-                        Manifest.permission.WRITE_EXTERNAL_STORAGE);
-                wrongxmlparser = null;
-                wrongxmlparser = new XMLMusicParser(filename, WRONG_NOTES_FOLDER, OUTPUT_FOLDER);
-                wrongxmlparser.parseMXL(); // parse the .mxl file
-                List<Note> WrongParsedNotes = wrongxmlparser.parseXML(); // parse the .xml file
-                Log.d("HomeActivity2", String.valueOf(WrongParsedNotes.size()));
-                wrongComparison = new ComparisonSetup();
-                wrongSyncedNotes = wrongComparison.SyncNotes(WrongParsedNotes);
-                WrongParsedNotes.clear();
-//                String WrongtoPrint = wrongComparison.CompareDebugPrintSync(correctSyncedNotes, wrongSyncedNotes);
-//                buttonResult.setText(WrongtoPrint);
-                return wrongSyncedNotes;
-            }
-            else  {
-                CharSequence text = "External storage not available for read and write.";
-                int duration = Toast.LENGTH_SHORT;
-                Toast toast = Toast.makeText(context, text, duration);
-                toast.show();
-            }
-        }
-        catch (IOException ie) {
-            ie.printStackTrace();
-        }
-        return wrongSyncedNotes;
-    }
     
     public List<Note> parseTheNotes(String filename, Context context, Activity activity) {
         Log.d("ParseNotes.java", filename);
