@@ -10,6 +10,7 @@
         <item>Edit XML File</item>
         <item>Summary</item>
         <item>Preview Debug</item>
+        <item>WebView</item>
     </string-array>
     <string name="header_text">Select a MIDI source or send messages to Mobileer MIDI Scope.</string>
     <string name="button_clear">Clear Log</string>
@@ -19,4 +20,5 @@
         <item>"none"</item>
     </string-array>
     <string name="title_activity_summary">Summary</string>
+    <string name="title_activity_webview">Webview</string>
 </resources>

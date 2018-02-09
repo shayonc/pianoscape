@@ -1,0 +1,20 @@
+<!DOCTYPE HTML>
+<meta charset="utf-8"/>
+<html>
+    <head>
+        <title>Page Title</title>
+        <script src="osmd.js"></script>
+        <script>
+            var div = document.createElement("div");
+            var osmd = new opensheetmusicdisplay.OSMD(div);
+            osmd.load("http://downloads2.makemusic.com/musicxml/MozaVeilSample.xml").then(
+              function() {
+                osmd.render();
+              }
+            );
+        </script>
+    </head>
+    <body>
+    The content of the document......
+    </body>
+</html>

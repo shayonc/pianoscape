@@ -6,6 +6,7 @@
     <!-- http://www.flaticon.com/free-icon/piano-keyboard_65096#term=piano keyboard&page=1&position=38 -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <uses-feature
         android:name="android.software.leanback"
@@ -69,14 +70,15 @@
         <activity
             android:name=".fragments.SummaryActivity"
             android:label="@string/title_activity_summary"
-            android:theme="@style/AppTheme.NoActionBar">
-        </activity>
-
+            android:theme="@style/AppTheme.NoActionBar"></activity>
         <activity
             android:name=".fragments.PreviewDebugActivity"
             android:label="Preview Debug"
-            android:theme="@style/AppTheme.NoActionBar">
-        </activity>
+            android:theme="@style/AppTheme.NoActionBar"></activity>
+        <activity
+            android:name=".fragments.Webview"
+            android:label="@string/title_activity_webview"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
     </application>
 
 </manifest>
