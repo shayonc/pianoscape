@@ -23,6 +23,7 @@ import android.media.midi.MidiReceiver;
 import com.mobileer.miditools.MidiFramer;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 
@@ -58,7 +59,7 @@ public class MidiScope extends MidiDeviceService {
         return mScopeLogger;
     }
 
-    public static void setScopeLogger(ScopeLogger logger, List<Note> notesArray, Lock compLock, int curNote) {
+    public static void setScopeLogger(ScopeLogger logger, ArrayList<List<Note>> notesArray, Lock compLock, int curNote) {
         if (logger != null) {
             // Receiver that prints the messages.
             NoteReceiver noteReceiver = new NoteReceiver(logger, notesArray, compLock, curNote);

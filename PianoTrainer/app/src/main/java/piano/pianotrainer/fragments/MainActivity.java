@@ -31,6 +31,7 @@ import android.view.WindowManager;
 import android.widget.CheckBox;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import android.support.v4.app.DialogFragment;
 
 import midi.scope.MidiPrinter;
 import midi.scope.MidiScope;
@@ -50,6 +51,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import midi.scope.LoggingReceiver;
 import midi.scope.ScopeLogger;
 import piano.pianotrainer.model.Note;
+import piano.pianotrainer.parser.XMLMusicParser;
 
 /*
  * Print incoming MIDI messages to the screen.
@@ -69,13 +71,18 @@ public class MainActivity extends AppCompatActivity implements ScopeLogger {
     private MyDirectReceiver mDirectReceiver;
     private boolean mShowRaw;
     private Context context;
-    private List<Note> notesArray = new ArrayList<>();;
+    private XMLMusicParser xmlparser;
+    private ComparisonSetup comparison;
+    private ArrayList<List<Note>> notesArray;;
+    private static final String OUTPUT_FOLDER = "XMLFiles";
+    private static final String ROOT_FOLDER = "Piano";
     private Lock compLock = new ReentrantLock();
-    private int curNote = 170;
+    private int curNote = 0;
     private String filename = "";
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        this.requestWindowFeature(Window.FEATURE_NO_TITLE);
         super.onCreate(savedInstanceState);
 
         getWindow().getDecorView().setSystemUiVisibility(
@@ -85,7 +92,6 @@ public class MainActivity extends AppCompatActivity implements ScopeLogger {
                         | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                         | View.SYSTEM_UI_FLAG_FULLSCREEN
                         | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
-        this.requestWindowFeature(Window.FEATURE_NO_TITLE);
         this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(piano.pianotrainer.R.layout.main);
 
@@ -93,7 +99,26 @@ public class MainActivity extends AppCompatActivity implements ScopeLogger {
 
         ParseNotes parseNotes = new ParseNotes();
 
-        notesArray = parseNotes.parseTheNotes(filename, context, MainActivity.this);
+        //notesArray = parseNotes.parseTheNotes(filename, context, MainActivity.this);
+
+        try {
+            xmlparser = new XMLMusicParser(filename, ROOT_FOLDER, OUTPUT_FOLDER);
+        } catch (IOException e) {
+            // Everything will fail
+        }
+        xmlparser.parseMXL(); // parse the .mxl file
+        List<Note> parsedNotes = xmlparser.parseXML(); // parse the .xml file
+        comparison = new ComparisonSetup();
+        String toPrint = "";
+        try {
+            notesArray = comparison.SyncNotes(parsedNotes);
+        } catch (IndexOutOfBoundsException e) {
+            toPrint = "MusicXML is formatted in a way that has its" +
+                    " notes exceeding the measure divisions.\n" +
+                    "This is likely because the the song is not meant" +
+                    " for Piano or has wrong measure line placements.";
+            Log.d("MainActivity: ", toPrint);
+        }
 
         Log.d("MainActivity size: ", Integer.toString(notesArray.size()));
 
