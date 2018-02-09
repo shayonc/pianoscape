@@ -94,6 +94,18 @@ public class NoteReceiver extends MidiReceiver {
 
         compLock.lock();
 
+        //skip rests here, also skip on tie stop
+        //ToDo add in way to alow user to play tieOff if they want
+        while(notes.get(curNote).size() == 0 || isTieSkip(notes.get(curNote).get(0))){
+            if(notes.get(curNote).size() == 0){
+                Log.d("NoteReciever: ", "Skipped because of rest  curNote: " + curNote + " ");
+            }else{
+                Log.d("NoteReciever: ", "Skipped because of Tie  curNote: " + curNote + " ");
+            }
+            curNoteAdd(1);
+            restCount++;
+        }
+
         //Compare notes here
         if(!note.getNoteOn() && isChord){
             incorrectCount += chordComparator.getNoteCount() - chordComparator.getCorrectCount();
@@ -110,20 +122,7 @@ public class NoteReceiver extends MidiReceiver {
                 chordComparator = new ChordComparator(notes.get(curNote));
                 isChord = true;
                 sb.append("chord detected!!!!\n");
-            }else{
-                //skip rests here, also skip on tie stop
-                //ToDo add in way to alow user to play tieOff if they want
-                while(notes.get(curNote).size() == 0 || isTieSkip(notes.get(curNote).get(0))){
-                    if(notes.get(curNote).size() == 0){
-                        Log.d("NoteReciever: ", "Skipped because of rest  curNote: " + curNote + " ");
-                    }else{
-                        Log.d("NoteReciever: ", "Skipped because of Tie  curNote: " + curNote + " ");
-                    }
-                    curNoteAdd(1);
-                    restCount++;
-                }
             }
-
             //ToDo step compare will not work for flats, midi is only converted to sharp
 
             if(!isChord) {
