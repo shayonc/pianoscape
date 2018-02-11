@@ -1,0 +1,17 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <item android:id="@+id/nextfile" android:title="Next" android:enabled="true"
+        android:showAsAction="always"></item>
+    <item android:id="@+id/LButton" android:title="L" android:enabled="true"
+        android:showAsAction="never"></item>
+    <item android:id="@+id/RButton" android:title="R" android:enabled="true"
+        android:showAsAction="never"></item>
+    <item android:id="@+id/plus" android:title="+" android:enabled="true"
+        android:showAsAction="never"></item>
+    <item android:id="@+id/minus" android:title="-" android:enabled="true"
+        android:showAsAction="never"></item>
+    <item android:id="@+id/loopLButton" android:title="loopStart" android:enabled="true"
+        android:showAsAction="never"></item>
+    <item android:id="@+id/loopRButton" android:title="loopEnd" android:enabled="true"
+        android:showAsAction="never"></item>
+</menu>

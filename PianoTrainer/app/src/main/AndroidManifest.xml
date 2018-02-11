@@ -23,7 +23,7 @@
         android:theme="@style/AppTheme"
         tools:replace="android:icon">
         <activity
-            android:name=".fragments.HomeActivity"
+            android:name="uk.co.dolphin_com.seescoreandroid.MainActivity"
             android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
