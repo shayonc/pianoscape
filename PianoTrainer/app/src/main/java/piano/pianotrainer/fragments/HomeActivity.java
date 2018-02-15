@@ -7,6 +7,8 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Environment;
 import java.io.File;
+
+import android.os.FileObserver;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.content.ContextCompat;
@@ -50,6 +52,8 @@ public class HomeActivity extends AppCompatActivity {
             Manifest.permission.WRITE_EXTERNAL_STORAGE
     };
 
+    public static FileObserver observer;
+
     //Parsed Xml
 
     @Override
@@ -90,6 +94,24 @@ public class HomeActivity extends AppCompatActivity {
                     }
                 }
         );
+
+        // check for file changes
+        observer = new FileObserver(directoryPath) {
+            @Override
+            public void onEvent(int event, String file) {
+
+                if (event == CREATE || event == DELETE || event == MODIFY || event == MOVED_TO) {
+                    // refresh if activity
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            refreshGrid();
+                        }
+                    });
+                }
+            }
+        };
+        observer.startWatching();
     }
     public void loadMusicFileList() {
         try {
