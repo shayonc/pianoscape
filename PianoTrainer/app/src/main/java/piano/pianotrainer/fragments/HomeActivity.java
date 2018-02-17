@@ -122,20 +122,17 @@ public class HomeActivity extends AppCompatActivity {
         FloatingActionButton importMxlFab = findViewById(R.id.importMxlFab);
         importMxlFab.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v) {
-                Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-                Uri uri = Uri.parse(Environment.getExternalStorageDirectory().getPath());
+            try {
+                Intent LaunchIntent = getPackageManager().getLaunchIntentForPackage("com.asus.filemanager");
+                startActivity(LaunchIntent);
 
-                intent.setDataAndType(uri, "*/*");
-//                intent.addCategory(Intent.CATEGORY_OPENABLE);
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-//                intent.setFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-                intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-//                intent.setFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
-                intent.putExtra(Intent.EXTRA_LOCAL_ONLY, true);
-                startActivity(Intent.createChooser(intent, "Open folder"));
                 Toast toast;
                 toast = Toast.makeText(getApplicationContext(),"Please import an .mxl file into the /Piano folder.",Toast.LENGTH_LONG);
                 toast.show();
+            }
+            catch (Exception e) {
+                e.printStackTrace();
+            }
             }
         });
     }
