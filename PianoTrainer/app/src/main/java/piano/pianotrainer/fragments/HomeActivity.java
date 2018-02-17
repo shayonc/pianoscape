@@ -124,7 +124,6 @@ public class HomeActivity extends AppCompatActivity {
             public void onClick(View v) {
                 Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
                 Uri uri = Uri.parse(Environment.getExternalStorageDirectory().getPath());
-//                Log.d("sdasdsad", Environment.getExternalStorageDirectory().getPath());
 
                 intent.setDataAndType(uri, "*/*");
 //                intent.addCategory(Intent.CATEGORY_OPENABLE);
