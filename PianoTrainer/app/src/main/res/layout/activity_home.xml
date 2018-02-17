@@ -7,7 +7,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     tools:context="piano.pianotrainer.fragments.HomeActivity">
-
+    <!-- http://www.flaticon.com/free-icon/piano-keyboard_65096#term=piano keyboard&page=1&position=38 -->
     <FrameLayout
         android:id="@+id/content"
         android:layout_width="match_parent"
@@ -31,23 +31,23 @@
             android:paddingRight="16dp">
 
             <!--<Spinner-->
-                <!--android:id="@+id/mxlFileSpinner"-->
-                <!--android:layout_width="fill_parent"-->
-                <!--android:layout_height="wrap_content"-->
-                <!--android:background="@android:drawable/btn_dropdown"-->
-                <!--android:spinnerMode="dropdown"-->
-                <!--android:textSize="14sp" />-->
+            <!--android:id="@+id/mxlFileSpinner"-->
+            <!--android:layout_width="fill_parent"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:background="@android:drawable/btn_dropdown"-->
+            <!--android:spinnerMode="dropdown"-->
+            <!--android:textSize="14sp" />-->
 
             <!--<Button-->
-                <!--android:id="@+id/printSyncButton"-->
-                <!--android:layout_width="96dp"-->
-                <!--android:layout_height="wrap_content"-->
-                <!--android:layout_below="@+id/mxlFileSpinner"-->
-                <!--android:layout_marginStart="19dp"-->
-                <!--android:layout_toEndOf="@+id/compareNotesButton"-->
-                <!--android:text="Parse Notes"-->
-                <!--android:textAllCaps="false"-->
-                <!--android:textSize="10sp" />-->
+            <!--android:id="@+id/printSyncButton"-->
+            <!--android:layout_width="96dp"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:layout_below="@+id/mxlFileSpinner"-->
+            <!--android:layout_marginStart="19dp"-->
+            <!--android:layout_toEndOf="@+id/compareNotesButton"-->
+            <!--android:text="Parse Notes"-->
+            <!--android:textAllCaps="false"-->
+            <!--android:textSize="10sp" />-->
 
             <!--<Button-->
             <!--android:id="@+id/startAtPaceEvalButton"-->
@@ -60,53 +60,55 @@
             <!--android:text="At-Pace Eval" />-->
 
             <!--<Button-->
-                <!--android:id="@+id/compareNotesButton"-->
-                <!--android:layout_width="96dp"-->
-                <!--android:layout_height="wrap_content"-->
-                <!--android:layout_alignParentLeft="true"-->
-                <!--android:layout_alignParentStart="true"-->
-                <!--android:layout_below="@+id/mxlFileSpinner"-->
-                <!--android:text="Compare wrong notes"-->
-                <!--android:textAllCaps="false"-->
-                <!--android:textSize="10sp" />-->
+            <!--android:id="@+id/compareNotesButton"-->
+            <!--android:layout_width="96dp"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:layout_alignParentLeft="true"-->
+            <!--android:layout_alignParentStart="true"-->
+            <!--android:layout_below="@+id/mxlFileSpinner"-->
+            <!--android:text="Compare wrong notes"-->
+            <!--android:textAllCaps="false"-->
+            <!--android:textSize="10sp" />-->
 
             <!--<TextView-->
-                <!--android:id="@+id/simpleTextView"-->
-                <!--android:layout_width="fill_parent"-->
-                <!--android:layout_height="wrap_content"-->
-                <!--android:layout_below="@id/mxlFileSpinner"-->
-                <!--android:gravity="center_horizontal"-->
-                <!--android:scrollbars="vertical"-->
-                <!--android:text="Placeholder"-->
-                <!--android:textSize="14sp" />-->
+            <!--android:id="@+id/simpleTextView"-->
+            <!--android:layout_width="fill_parent"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:layout_below="@id/mxlFileSpinner"-->
+            <!--android:gravity="center_horizontal"-->
+            <!--android:scrollbars="vertical"-->
+            <!--android:text="Placeholder"-->
+            <!--android:textSize="14sp" />-->
 
-            <android.support.v4.widget.SwipeRefreshLayout
-                xmlns:android="http://schemas.android.com/apk/res/android"
+            <android.support.v4.widget.SwipeRefreshLayout xmlns:android="http://schemas.android.com/apk/res/android"
                 android:id="@+id/swiperefresh"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
-            <GridView xmlns:android="http://schemas.android.com/apk/res/android"
-                android:id="@+id/gridview"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:columnWidth="90dp"
-                android:numColumns="auto_fit"
-                android:verticalSpacing="10dp"
-                android:horizontalSpacing="10dp"
-                android:stretchMode="columnWidth"
-                android:gravity="center"
-                />
+
+                <GridView xmlns:android="http://schemas.android.com/apk/res/android"
+                    android:id="@+id/gridview"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:columnWidth="90dp"
+                    android:gravity="center"
+                    android:horizontalSpacing="10dp"
+                    android:numColumns="auto_fit"
+                    android:stretchMode="columnWidth"
+                    android:verticalSpacing="10dp">
+
+                </GridView>
             </android.support.v4.widget.SwipeRefreshLayout>
+
             <android.support.design.widget.FloatingActionButton
-                android:id="@+id/floatingActionButton"
+                android:id="@+id/importMxlFab"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentBottom="true"
-                android:layout_centerHorizontal="true"
+                android:layout_alignParentRight="true"
                 android:layout_marginBottom="25dp"
                 android:clickable="true"
                 app:backgroundTint="@color/colorPrimary"
-                app:srcCompat="@drawable/camera" /> <!--center horizontal gravity-->
+                app:srcCompat="@android:drawable/ic_input_add" /> <!--center horizontal gravity-->
 
         </RelativeLayout>
 

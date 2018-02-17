@@ -3,17 +3,21 @@ package piano.pianotrainer.fragments;
 import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import java.io.File;
 
 import android.os.FileObserver;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.GridView;
 import android.widget.Toast;
@@ -26,6 +30,8 @@ import piano.pianotrainer.model.MusicFile;
 import piano.pianotrainer.parser.XMLMusicParser;
 import java.util.ArrayList;
 import java.util.Date;
+
+import static android.content.Intent.CATEGORY_DEFAULT;
 
 public class HomeActivity extends AppCompatActivity {
 
@@ -112,6 +118,27 @@ public class HomeActivity extends AppCompatActivity {
             }
         };
         observer.startWatching();
+
+        FloatingActionButton importMxlFab = findViewById(R.id.importMxlFab);
+        importMxlFab.setOnClickListener(new View.OnClickListener(){
+            public void onClick(View v) {
+                Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+                Uri uri = Uri.parse(Environment.getExternalStorageDirectory().getPath());
+//                Log.d("sdasdsad", Environment.getExternalStorageDirectory().getPath());
+
+                intent.setDataAndType(uri, "*/*");
+//                intent.addCategory(Intent.CATEGORY_OPENABLE);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+//                intent.setFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+//                intent.setFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
+                intent.putExtra(Intent.EXTRA_LOCAL_ONLY, true);
+                startActivity(Intent.createChooser(intent, "Open folder"));
+                Toast toast;
+                toast = Toast.makeText(getApplicationContext(),"Please import an .mxl file into the /Piano folder.",Toast.LENGTH_LONG);
+                toast.show();
+            }
+        });
     }
     public void loadMusicFileList() {
         try {

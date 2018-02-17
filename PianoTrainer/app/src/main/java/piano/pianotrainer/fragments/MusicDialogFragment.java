@@ -90,10 +90,12 @@ public class MusicDialogFragment extends DialogFragment {
                             Intent intentMain = new Intent(getActivity(), PreviewDebugActivity.class);
                             intentMain.putExtra("filename", filename);
                             getActivity().startActivity(intentMain);
+                            getActivity().finish();
                         }
                         else if (which == 4) {
                             Intent intentMain = new Intent(getActivity(), Webview.class);
                             getActivity().startActivity(intentMain);
+                            getActivity().finish();
                         }
                     }
                 });
