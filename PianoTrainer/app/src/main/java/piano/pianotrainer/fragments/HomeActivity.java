@@ -17,7 +17,6 @@ import android.support.v4.app.DialogFragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 import android.widget.GridView;
 import android.widget.Toast;
@@ -30,8 +29,6 @@ import piano.pianotrainer.model.MusicFile;
 import piano.pianotrainer.parser.XMLMusicParser;
 import java.util.ArrayList;
 import java.util.Date;
-
-import static android.content.Intent.CATEGORY_DEFAULT;
 
 public class HomeActivity extends AppCompatActivity {
 

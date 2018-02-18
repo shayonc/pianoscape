@@ -11,11 +11,9 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.content.FileProvider;
-import android.util.Log;
 import android.widget.Toast;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 
 import piano.pianotrainer.R;
