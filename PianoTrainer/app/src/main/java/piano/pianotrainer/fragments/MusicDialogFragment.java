@@ -1,7 +1,6 @@
 package piano.pianotrainer.fragments;
 
 import android.app.AlertDialog;
-
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -12,12 +11,9 @@ import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.content.FileProvider;
 import android.widget.Toast;
-
 import java.io.File;
 import java.util.List;
-
 import piano.pianotrainer.R;
-import piano.pianotrainer.model.Note;
 import piano.pianotrainer.parser.XMLMusicParser;
 
 /**
@@ -87,11 +83,6 @@ public class MusicDialogFragment extends DialogFragment {
                         else if (which == 3) { //Preview Debug
                             Intent intentMain = new Intent(getActivity(), PreviewDebugActivity.class);
                             intentMain.putExtra("filename", filename);
-                            getActivity().startActivity(intentMain);
-                            getActivity().finish();
-                        }
-                        else if (which == 4) {
-                            Intent intentMain = new Intent(getActivity(), Webview.class);
                             getActivity().startActivity(intentMain);
                             getActivity().finish();
                         }

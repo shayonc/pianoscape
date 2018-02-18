@@ -111,6 +111,14 @@ public class XMLMusicParser {
         }
     }
 
+    public String getXmlFilePath() {
+        return xmlFilePath;
+    }
+
+    public void setXmlFilePath(String xmlFilePath) {
+        this.xmlFilePath = xmlFilePath;
+    }
+
     public List<Note> parseXML() {
         try {
             SAXParserFactory factory = SAXParserFactory.newInstance();

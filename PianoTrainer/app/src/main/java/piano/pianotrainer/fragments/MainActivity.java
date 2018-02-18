@@ -41,6 +41,7 @@ import com.mobileer.miditools.MidiFramer;
 import com.mobileer.miditools.MidiOutputPortSelector;
 import com.mobileer.miditools.MidiPortWrapper;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -97,16 +98,15 @@ public class MainActivity extends AppCompatActivity implements ScopeLogger {
 
         filename = getIntent().getStringExtra("filename");
 
-        ParseNotes parseNotes = new ParseNotes();
-
-        //notesArray = parseNotes.parseTheNotes(filename, context, MainActivity.this);
-
         try {
             xmlparser = new XMLMusicParser(filename, ROOT_FOLDER, OUTPUT_FOLDER);
         } catch (IOException e) {
             // Everything will fail
         }
-        xmlparser.parseMXL(); // parse the .mxl file
+        File file = new File(xmlparser.getXmlFilePath());
+        if (!file.exists()) {
+            xmlparser.parseMXL(); // parse the .mxl file
+        }
         List<Note> parsedNotes = xmlparser.parseXML(); // parse the .xml file
         comparison = new ComparisonSetup();
         String toPrint = "";
@@ -243,7 +243,6 @@ public class MainActivity extends AppCompatActivity implements ScopeLogger {
     }
 
     public void openSummaryPage(int incorrectNotes, int notesCount) {
-        Log.d("openSummaryPage", "Should open summary");
         Log.d("openSummaryPage", "incorrect notes: " + incorrectNotes + " totalNotes: " + notesCount);
         Intent intentMain = new Intent(this , SummaryActivity.class);
         intentMain.putExtra("filename", filename);

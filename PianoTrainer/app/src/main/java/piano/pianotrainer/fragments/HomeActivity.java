@@ -5,11 +5,9 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import java.io.File;
-
 import android.os.FileObserver;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
@@ -56,8 +54,6 @@ public class HomeActivity extends AppCompatActivity {
     };
 
     public static FileObserver observer;
-
-    //Parsed Xml
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -174,30 +170,6 @@ public class HomeActivity extends AppCompatActivity {
         bundle.putString("xmlFilePath", xmlFilePath);
         dialogFragment.setArguments(bundle);
         dialogFragment.show(getSupportFragmentManager(), "musicOptions");
-    }
-
-    public String[] GetMxlFiles(){
-        try {
-            if (isExternalStorageWritable()) {
-                verifyStoragePermissions(HomeActivity.this);
-                int permissionCheck = ContextCompat.checkSelfPermission(HomeActivity.this,
-                        Manifest.permission.WRITE_EXTERNAL_STORAGE);
-                xmlparser = new XMLMusicParser(filename, ROOT_FOLDER, OUTPUT_FOLDER);
-                //setup dropdown
-                String mxlItems[] = xmlparser.getMxlFiles().toArray(new String[0]);
-                return mxlItems;
-            }
-            else  {
-                CharSequence text = "External storage not available for read and write.";
-                int duration = Toast.LENGTH_SHORT;
-                Toast toast = Toast.makeText(context, text, duration);
-                toast.show();
-            }
-        }
-        catch (IOException ie) {
-            ie.printStackTrace();
-        }
-        return null;
     }
 
     public String GetFirstFilename() {
