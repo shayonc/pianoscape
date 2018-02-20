@@ -59,6 +59,7 @@ public class ScoreProcessor {
     Mat originalImgRgb;
     Mat grayImg;
     Mat binarizedImg;
+    Mat isoStaffLinesImg;
     public Mat noStaffLinesImg;
 
     final int MAX_STAFF_LINE_THICKNESS = 2; //TODO detect this dynamically
@@ -107,6 +108,7 @@ public class ScoreProcessor {
 
         //---
         binarizedImg = new Mat(bmpImg.getHeight(), bmpImg.getWidth(), CvType.CV_8UC1);
+        isoStaffLinesImg = new Mat(bmpImg.getHeight(), bmpImg.getWidth(), CvType.CV_8UC1);
         noStaffLinesImg = new Mat(bmpImg.getHeight(), bmpImg.getWidth(), CvType.CV_8UC1);
 
         //android uses BGR default -> switch B and R channels
@@ -137,7 +139,7 @@ public class ScoreProcessor {
 
     //Uses horizontal morphology and subtracts from the original img
     public void removeStaffLines(){
-        Mat isoStaffLinesImg = new Mat();
+
         // Relative measure which seemed ok
         int horizontalsize = binarizedImg.cols() / 30;
         Size kernelWidth = new Size(horizontalsize,1);
@@ -159,6 +161,18 @@ public class ScoreProcessor {
         Imgproc.dilate(noStaffLinesImg,noStaffLinesImg,verticalStructure,pt,2);
         //internally make note of stafflines and locations
         staffLineDetect(isoStaffLinesImg);
+    }
+
+    public void removeStaffLines2(){
+        // Create structure element for extracting vertical lines through morphology operations
+        Point pt = new Point(-1,-1); //"default"
+        //via paint max staff line width is 2
+        Size kernelHeight = new Size(1,5);
+        Mat verticalStructure = Imgproc.getStructuringElement(MORPH_RECT, kernelHeight);
+        //erode out the lines
+        Imgproc.erode(binarizedImg,noStaffLinesImg,verticalStructure,pt,1);
+        //should re-amp the blackness of remaining black things in the picture
+         Imgproc.dilate(noStaffLinesImg,noStaffLinesImg,verticalStructure,pt,1);
     }
 
 
@@ -196,7 +210,21 @@ public class ScoreProcessor {
         Utils.matToBitmap(noStaffLinesImgRgba,bmp);
         return bmp;
     }
-
+    //isoStaffLinesImg
+    public Bitmap getIsoStaffImg(){
+        Bitmap bmp = Bitmap.createBitmap(isoStaffLinesImg.cols(),noStaffLinesImg.rows(),Bitmap.Config.ARGB_8888);
+        Mat isoStaffLinesImgRgba = new Mat(isoStaffLinesImg.rows(), isoStaffLinesImg.cols(), CvType.CV_8UC4);
+        List<Mat> inputMats = new ArrayList<Mat>();
+        inputMats.add(originalImgRgb);
+        inputMats.add(isoStaffLinesImg);
+        List<Mat> outputMats = new ArrayList<Mat>();
+        outputMats.add(isoStaffLinesImgRgba);
+        int[] channelMapArray = {0,0,1,1,2,2,3,3};
+        MatOfInt channelMap = new MatOfInt(channelMapArray);
+        Core.mixChannels(inputMats, outputMats, channelMap);
+        Utils.matToBitmap(isoStaffLinesImgRgba,bmp);
+        return bmp;
+    }
     //Returns the original image after binarization as a Bitmap
     public Bitmap getBinImg(){
         Bitmap bmp = Bitmap.createBitmap(binarizedImg.cols(),binarizedImg.rows(),Bitmap.Config.ARGB_8888);
@@ -215,29 +243,23 @@ public class ScoreProcessor {
         return bmp;
     }
 
+    public Bitmap getGrayNoStaffImg(){
+        Bitmap bmp = Bitmap.createBitmap(noStaffLinesImg.cols(),noStaffLinesImg.rows(),Bitmap.Config.ARGB_8888);
+        //reconvert to rgb format to use with android bitmap
+        Mat rgbFormatMat = new Mat();
+        cvtColor(grayImg,rgbFormatMat,Imgproc.COLOR_GRAY2RGBA, 4 );
+        Utils.matToBitmap(rgbFormatMat,bmp);
+        Log.d(TAG,String.format("Creating binarized %d by %d img",bmp.getWidth(),bmp.getHeight()));
+        return bmp;
+    }
+
     public Bitmap getOriginalImg() {
         Bitmap bmp = Bitmap.createBitmap(originalGrayInvImg.cols(),originalGrayInvImg.rows(),Bitmap.Config.ARGB_8888);
-        Mat gray = new Mat();
-        Mat endImg = new Mat();
-        int rowToTest = 100;
-        List<Mat> lRgb = new ArrayList<Mat>(3);
-        Core.split(originalGrayInvImg, lRgb);
-        Mat mR = lRgb.get(0).row(rowToTest);
-        Mat mG = lRgb.get(1).row(rowToTest);
-        Mat mB = lRgb.get(2).row(rowToTest);
-        Mat mA = lRgb.get(3).row(rowToTest);
-        String sR = mR.dump();
-        String sG = mG.dump();
-        String sB = mB.dump();
-        String sA = mA.dump();
-        cvtColor(originalGrayInvImg, gray, Imgproc.COLOR_RGB2GRAY);
-        //String s = gray.dump();
-        Mat x = gray.row(rowToTest);
-        String s = x.dump();
-
-        cvtColor(gray, endImg, Imgproc.COLOR_GRAY2RGB);
-        Utils.matToBitmap(endImg,bmp);
-        Log.d(TAG,String.format("Creating original %d by %d img",bmp.getWidth(),bmp.getHeight()));
+//        Mat endImg = new Mat();
+//        cvtColor(originalGrayInvImg, endImg, Imgproc.COLOR_GRAY2RGB);
+//        Utils.matToBitmap(endImg,bmp);
+//        Log.d(TAG,String.format("Creating original %d by %d img",bmp.getWidth(),bmp.getHeight()));
+        Utils.matToBitmap(originalGrayInvImg, bmp);
         return bmp;
     }
 

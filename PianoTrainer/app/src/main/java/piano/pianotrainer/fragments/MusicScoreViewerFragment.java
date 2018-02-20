@@ -4,7 +4,9 @@ package piano.pianotrainer.fragments;
  * Created by Ekteshaf Chowdhury on 2017-07-10.
  */
 
+import android.Manifest;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
@@ -16,7 +18,9 @@ import android.graphics.Rect;
 import android.graphics.pdf.PdfRenderer;
 import android.os.Bundle;
 import android.os.ParcelFileDescriptor;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -37,6 +41,7 @@ import java.io.InputStream;
 import java.util.*;
 
 import piano.pianotrainer.R;
+import piano.pianotrainer.scoreImport.ImageUtils;
 import piano.pianotrainer.scoreImport.PDFHelper;
 import piano.pianotrainer.scoreImport.ScoreProcessor;
 import piano.pianotrainer.scoreModels.ElementType;
@@ -46,11 +51,16 @@ import piano.pianotrainer.scoreModels.Staff;
 
 public class MusicScoreViewerFragment extends Fragment implements View.OnClickListener{
     /**
+     * Variables for requiesting permissions, API 25+
+     */
+    private int requestCode;
+    private int grantResults[];
+    /**
      * Key string for saving the state of current page index.
      */
     private static final String STATE_CURRENT_PAGE_INDEX = "current_page_index";
 
-    private static final String FILENAME = "handel_sonatina.pdf";
+    private static final String FILENAME = "twinkle_twinkle_little_star.pdf";
 
     private static final String TRAINING = "training_set";
 
@@ -86,9 +96,6 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //Pass variables
-        //fragment is already tied to an activity
-        this.appContext = getActivity().getApplicationContext();
     }
 
     @Override
@@ -176,6 +183,8 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
         }
     }
 
+
+
     private void showObject(int index) {
         Bitmap bmpObject = scoreProc.getStaffObject(0, index);
         mImageView.setImageBitmap(bmpObject);
@@ -260,7 +269,7 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
             {
                 for ( int i = 0;i<fileList.length;i++)
                 {
-                    inputstream=appContext.getAssets().open(fileDir + "/" +fileList[i]);
+                    inputstream=am.open(fileDir + "/" +fileList[i]);
                     curBmp = BitmapFactory.decodeStream(inputstream);
                     Log.d("",fileList[i]);
                     scoreProc.addSample(curBmp, label);
@@ -333,6 +342,7 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
                     //Threshold so Mat will only have 0s and 255s
                     scoreProc.binarize();
                     scoreProc.removeStaffLines();
+//                    scoreProc.removeStaffLines2();
                     scoreProc.refineStaffLines();
 
                     boolean grandStaff = scoreProc.isGrandStaff();
@@ -379,7 +389,13 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
                     //rbgmcy
                     //Clefs:
                     //works
-                    addTrainingImages("training_set/g_clef", 10);
+                    try{
+                        addTrainingImages("training_set/g_clef", 10);
+                    }
+                    catch(Exception e){
+                        String x = e.toString();
+                    }
+
                     //works
                     addTrainingImages("training_set/f_clef", 20);
                     //Brace works
@@ -548,6 +564,7 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
                         }
                     }
                     mImageView.setImageBitmap(testBmp);
+                    ImageUtils.saveImageToExternal(scoreProc.getIsoStaffImg(), "twinkle_inverted.png");
 
                 }
                 else {
