@@ -1,8 +1,12 @@
 package piano.pianotrainer.scoreImport;
+import android.content.Context;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Interpolator;
+import android.graphics.Paint;
 import android.graphics.Rect;
 import android.os.Environment;
 import android.util.Log;
@@ -32,6 +36,7 @@ import org.opencv.utils.Converters;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.io.OutputStreamWriter;
 import java.util.*;
 
 import static org.opencv.core.CvType.CV_8UC3;
@@ -141,7 +146,7 @@ public class ScoreProcessor {
     public void removeStaffLines(){
 
         // Relative measure which seemed ok
-        int horizontalsize = binarizedImg.cols() / 30;
+        int horizontalsize = binarizedImg.cols() / 10;
         Size kernelWidth = new Size(horizontalsize,1);
         Point pt = new Point(-1,-1); //current pixel is the 'center' when applying operations
         // Create structure element for extracting horizontal lines through morphology operations
@@ -161,6 +166,7 @@ public class ScoreProcessor {
         Imgproc.dilate(noStaffLinesImg,noStaffLinesImg,verticalStructure,pt,2);
         //internally make note of stafflines and locations
         staffLineDetect(isoStaffLinesImg);
+        invertImgColor(noStaffLinesImg);
     }
 
     public void removeStaffLines2(){
@@ -292,21 +298,34 @@ public class ScoreProcessor {
                     staffCount++;
                     staffs.add(new ArrayList<Integer>());
                 }
-                if (i+1 < staffLineRowIndices.size()) {
-                    prevRow = staffLineRowIndices.get(i+1)-1;
-                }
-                lineAvg = 0;
-                rowCountPerLine = 0;
+
+                lineAvg = curRow;
+                rowCountPerLine = 1;
+                prevRow = curRow;
             }
         }
+        if (rowCountPerLine > 0) {
+            lineAvg = lineAvg / rowCountPerLine;
+            staffs.get(staffCount).add(lineAvg);
+        }
 
-        // TODO: maybe get the average row diff between staff lines
-        List<Integer> staff1 = staffs.get(0);
-        staffLineDiff = staffs.get(0).get(3)-staffs.get(0).get(2);
-
-        //TODO: instead of this hack, we need to fix the bug of why the last staff line is not detected
-        int lastSize = staffs.get(staffCount).size();
-        staffs.get(staffCount).add( staffs.get(staffCount).get(lastSize-1) + staffLineDiff );
+        int staffLineDiffInit = staffs.get(0).get(1)-staffs.get(0).get(0);
+        int lineDiffAvg = 0;
+        int numDiffs = 0;
+        for (int i = 0; i < staffs.size(); i++) {
+            for (int j = 1; j < staffs.get(i).size(); j++) {
+                if ((staffs.get(i).get(j) - staffs.get(i).get(j-1)) < (int)(1.5*staffLineDiffInit)) {
+                    lineDiffAvg += (staffs.get(i).get(j) - staffs.get(i).get(j - 1));
+                    numDiffs++;
+                }
+            }
+        }
+        if (numDiffs > 0) {
+            staffLineDiff = (int)(lineDiffAvg / numDiffs);
+        }
+        else {
+            staffLineDiff = staffs.get(0).get(3)-staffs.get(0).get(2);
+        }
 
         return staffs;
     }
@@ -337,7 +356,7 @@ public class ScoreProcessor {
             curObjectBottom = 0;
             curObjectLeft = noStaffLinesImg.width();
             curObjectRight = 0;
-            int padding = 4;
+            int padding = 1;
 
             for (int col = leftBound; col < rightBound; col++) {
                 for (int row = topBound; row < bottomBound; row++) {
@@ -345,7 +364,7 @@ public class ScoreProcessor {
                     if (!staffsVisited[row][col]) {
                         double[] data = noStaffLinesImg.get(row, col);
                         //nostafflinesimg should be 8UC1
-                        if (data[0] == 255.0) {
+                        if (data[0] == 0.0) {
                             fillSearch(row, col, staffsVisited);
                             staffObjects.get(i).add(new Rect(curObjectLeft-padding, curObjectTop-padding, curObjectRight+padding, curObjectBottom+padding));
                             //tabuRects.add(new Rect(curObjectLeft, curObjectTop, curObjectRight, curObjectBottom));
@@ -480,7 +499,7 @@ public class ScoreProcessor {
 
     public Bitmap getStaffObject(int staffLine, int index) {
         if(index < 0 || index >= staffObjects.get(staffLine).size()){
-            throw new IndexOutOfBoundsException();
+            return null;
         }
         Bitmap bmp = Bitmap.createBitmap(staffObjects.get(staffLine).get(index).width(),staffObjects.get(staffLine).get(index).height(),Bitmap.Config.ARGB_8888);
         Utils.matToBitmap(extractFromNoStaffImg(staffObjects.get(staffLine).get(index)), bmp);
@@ -521,16 +540,16 @@ public class ScoreProcessor {
         }
         staffsVisited[row][col] = true;
 
-        if (!staffsVisited[row-1][col] && noStaffLinesImg.get(row-1, col)[0] == 255.0) {
+        if (!staffsVisited[row-1][col] && noStaffLinesImg.get(row-1, col)[0] == 0.0) {
             fillSearch(row-1, col, staffsVisited);
         }
-        if (!staffsVisited[row+1][col] && noStaffLinesImg.get(row+1, col)[0] == 255.0) {
+        if (!staffsVisited[row+1][col] && noStaffLinesImg.get(row+1, col)[0] == 0.0) {
             fillSearch(row+1, col, staffsVisited);
         }
-        if (!staffsVisited[row][col-1] && noStaffLinesImg.get(row, col-1)[0] == 255.0) {
+        if (!staffsVisited[row][col-1] && noStaffLinesImg.get(row, col-1)[0] == 0.0) {
             fillSearch(row, col-1, staffsVisited);
         }
-        if (!staffsVisited[row][col+1] && noStaffLinesImg.get(row, col+1)[0] == 255.0) {
+        if (!staffsVisited[row][col+1] && noStaffLinesImg.get(row, col+1)[0] == 0.0) {
             fillSearch(row, col+1, staffsVisited);
         }
     }
@@ -557,18 +576,13 @@ public class ScoreProcessor {
 //        ImageUtils.saveImageToExternal(bmpObject, "testNote.bmp");
         String root = Environment.getExternalStorageDirectory().toString();
 //        Mat noteGroupMat = Imgcodecs.imread(root + "/Piano/Images/quarterNote2.png");
-//        for (int i = 0; i < staffObjects.get(0).size(); i++) {
-//            Rect rect_i = staffObjects.get(0).get(i);
-//            Mat printMat = extractFromNoStaffImg(rect_i);
-//            invertImgColor(printMat);
-//            Imgcodecs.imwrite(root + String.format("/Piano/Images/element_%02d.png", i), printMat);
-//        }
+
 
         List<Double> notePixels = new ArrayList<Double>();
         int lastStaffIndex = staffObjects.size()-1;
         Rect rect = staffObjects.get(lastStaffIndex).get(staffObjects.get(lastStaffIndex).size()-5);
         Mat noteGroupMat = extractFromNoStaffImg(rect);
-        invertImgColor(noteGroupMat);
+//        invertImgColor(noteGroupMat);
 
         Imgcodecs.imwrite(root + "/Piano/Images/inverted.png", noteGroupMat);
         Mat colorMat = new Mat();
@@ -596,6 +610,49 @@ public class ScoreProcessor {
 //        Bitmap bmp = Bitmap.createBitmap(bmpObject.width(),bmpObject.height(),Bitmap.Config.ARGB_8888);
 //        Utils.matToBitmap(resultMat, bmp);
         return circles;
+    }
+
+    public void exportRects(Context context) {
+        String root = Environment.getExternalStorageDirectory().toString();
+
+//        File file = new File(root + "/Piano/Images/", "staffLines.txt");
+//        try {
+//            FileOutputStream stream = new FileOutputStream(file);
+//            stream.write(staffLineRowIndices.toString().getBytes());
+//            stream.write("\n\n".getBytes());
+//            stream.write(staffs.toString().getBytes());
+//            stream.close();
+//        }
+//        catch (Exception e){
+//            Log.d(TAG, "Exception: File write failed: " + e.toString());
+//        }
+
+        Imgcodecs.imwrite(root + "/Piano/Images/full_score_lines.png", binarizedImg);
+        Imgcodecs.imwrite(root + "/Piano/Images/full_score.png", noStaffLinesImg);
+
+        Bitmap bitmap = Bitmap.createBitmap(noStaffLinesImg.width(),noStaffLinesImg.height(),Bitmap.Config.ARGB_8888);
+        Utils.matToBitmap(noStaffLinesImg, bitmap);
+        Canvas cnvs = new Canvas(bitmap);
+        Paint paint=new Paint();
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setColor(Color.RED);
+        for(List<Rect> rectList : staffObjects){
+            for(Rect symbolRect : rectList){
+                cnvs.drawRect(symbolRect, paint);
+            }
+        }
+        Mat noStaffLinesImgBoxed = new Mat(bitmap.getHeight(), bitmap.getWidth(), CvType.CV_8UC4);
+        Utils.bitmapToMat(bitmap, noStaffLinesImgBoxed);
+        Imgcodecs.imwrite(root + "/Piano/Images/full_score_boxed.png", noStaffLinesImgBoxed);
+
+//        for (int i = 0; i < staffObjects.size(); i++) {
+//            for (int j = 0; j < staffObjects.get(i).size(); j++) {
+//                Rect rect_j = staffObjects.get(i).get(j);
+//                Mat printMat = extractFromNoStaffImg(rect_j);
+////                invertImgColor(printMat);
+//                Imgcodecs.imwrite(root + String.format("/Piano/Images/staff_%02d_element_%02d.png", i, j), printMat);
+//            }
+//        }
     }
 
     public List<Integer> classifyObjects() {
@@ -647,7 +704,7 @@ public class ScoreProcessor {
                     note = 'C';
                 }
                 else {
-                    int padding = 4;
+                    int padding = 1;
                     int col = obj.left + padding;
                     int rowAvg = 0;
                     int rowCount = 0;

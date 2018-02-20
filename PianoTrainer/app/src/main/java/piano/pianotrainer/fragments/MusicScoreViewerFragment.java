@@ -4,9 +4,7 @@ package piano.pianotrainer.fragments;
  * Created by Ekteshaf Chowdhury on 2017-07-10.
  */
 
-import android.Manifest;
 import android.content.Context;
-import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
@@ -18,9 +16,7 @@ import android.graphics.Rect;
 import android.graphics.pdf.PdfRenderer;
 import android.os.Bundle;
 import android.os.ParcelFileDescriptor;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
-import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -41,7 +37,6 @@ import java.io.InputStream;
 import java.util.*;
 
 import piano.pianotrainer.R;
-import piano.pianotrainer.scoreImport.ImageUtils;
 import piano.pianotrainer.scoreImport.PDFHelper;
 import piano.pianotrainer.scoreImport.ScoreProcessor;
 import piano.pianotrainer.scoreModels.ElementType;
@@ -51,16 +46,11 @@ import piano.pianotrainer.scoreModels.Staff;
 
 public class MusicScoreViewerFragment extends Fragment implements View.OnClickListener{
     /**
-     * Variables for requiesting permissions, API 25+
-     */
-    private int requestCode;
-    private int grantResults[];
-    /**
      * Key string for saving the state of current page index.
      */
     private static final String STATE_CURRENT_PAGE_INDEX = "current_page_index";
 
-    private static final String FILENAME = "twinkle_twinkle_little_star.pdf";
+    private static final String FILENAME = "handel_sonatina.pdf";
 
     private static final String TRAINING = "training_set";
 
@@ -96,6 +86,9 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        //Pass variables
+        //fragment is already tied to an activity
+        this.appContext = getActivity().getApplicationContext();
     }
 
     @Override
@@ -183,8 +176,6 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
         }
     }
 
-
-
     private void showObject(int index) {
         Bitmap bmpObject = scoreProc.getStaffObject(0, index);
         mImageView.setImageBitmap(bmpObject);
@@ -269,7 +260,7 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
             {
                 for ( int i = 0;i<fileList.length;i++)
                 {
-                    inputstream=am.open(fileDir + "/" +fileList[i]);
+                    inputstream=appContext.getAssets().open(fileDir + "/" +fileList[i]);
                     curBmp = BitmapFactory.decodeStream(inputstream);
                     Log.d("",fileList[i]);
                     scoreProc.addSample(curBmp, label);
@@ -295,7 +286,9 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
             case R.id.previous: {
                 // Move to the previous page
 //                showPage(mPdfHelper.getCurPage().getIndex() - 1);
-                objectIndex--;
+                if (objectIndex > 0) {
+                    objectIndex--;
+                }
                 showObject(objectIndex);
                 break;
             }
@@ -342,7 +335,6 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
                     //Threshold so Mat will only have 0s and 255s
                     scoreProc.binarize();
                     scoreProc.removeStaffLines();
-//                    scoreProc.removeStaffLines2();
                     scoreProc.refineStaffLines();
 
                     boolean grandStaff = scoreProc.isGrandStaff();
@@ -357,10 +349,12 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
                     List<List<Rect>> staffObjects = scoreProc.detectObjects();
                     for (int i = 0; i < staffObjects.size(); i++) {
                         Staff staff = new Staff(true);
+                        score.addStaff(staff);
                         List<Rect> objects = staffObjects.get(i);
 
-                        List<Measure> measures = new ArrayList<Measure>();
                         Measure curMeasure = new Measure();
+                        staff.addMeasure(curMeasure);
+
                         boolean firstVertBar = true;
                         int numElemsInMeasure = 0;
                         Map<Integer, ElementType> elementTypeMap = new HashMap<>(objects.size());
@@ -376,7 +370,7 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
                             }
                             else if (scoreProc.isMeasureBar(obj) && !firstVertBar) {
                                 elementTypeMap.put(j, ElementType.MeasureBar);
-                                measures.add(curMeasure);
+                                staff.addMeasure(curMeasure);
                                 numElemsInMeasure = 0;
                                 curMeasure = new Measure();
                             }
@@ -389,13 +383,7 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
                     //rbgmcy
                     //Clefs:
                     //works
-                    try{
-                        addTrainingImages("training_set/g_clef", 10);
-                    }
-                    catch(Exception e){
-                        String x = e.toString();
-                    }
-
+                    addTrainingImages("training_set/g_clef", 10);
                     //works
                     addTrainingImages("training_set/f_clef", 20);
                     //Brace works
@@ -440,132 +428,146 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
                         mDebugView.setText(e.toString());
                     }
 
-                    List<List<Integer>> knnResults = scoreProc.getKnnResults();
+//                    List<List<Integer>> knnResults = scoreProc.getKnnResults();
+//                    Bitmap testBmp = Bitmap.createBitmap(scoreProc.noStaffLinesImg.width(),scoreProc.noStaffLinesImg.height(),Bitmap.Config.ARGB_8888);
+//                    Utils.matToBitmap(scoreProc.noStaffLinesImg, testBmp);
+//
+//                    Canvas cnvs = new Canvas(testBmp);
+//                    //...setting paint objects with brute force >_>
+//                    Paint paintR=new Paint();
+//                    paintR.setStyle(Paint.Style.STROKE);
+//                    paintR.setColor(Color.RED);
+//
+//                    Paint paintB=new Paint();
+//                    paintB.setStyle(Paint.Style.STROKE);
+//                    paintB.setColor(Color.BLUE);
+//
+//                    Paint paintG =new Paint();
+//                    paintG.setStyle(Paint.Style.STROKE);
+//                    paintG.setColor(Color.GREEN);
+//
+//                    Paint paintM =new Paint();
+//                    paintM.setStyle(Paint.Style.STROKE);
+//                    paintM.setColor(Color.MAGENTA);
+//
+//                    Paint paintC =new Paint();
+//                    paintC.setStyle(Paint.Style.STROKE);
+//                    paintC.setColor(Color.CYAN);
+//
+//                    Paint paintY =new Paint();
+//                    paintY.setStyle(Paint.Style.STROKE);
+//                    paintY.setColor(Color.YELLOW);
+//
+//
+//                    Paint paintR2 =new Paint();
+//                    paintR2.setStyle(Paint.Style.STROKE);
+//                    paintR2.setColor(Color.RED);
+//                    paintR2.setStrokeWidth(5);
+//
+//                    Paint paintB2 =new Paint();
+//                    paintB2.setStyle(Paint.Style.STROKE);
+//                    paintB2.setColor(Color.BLUE);
+//                    paintB2.setStrokeWidth(5);
+//
+//                    Paint paintG2 =new Paint();
+//                    paintG2.setStyle(Paint.Style.STROKE);
+//                    paintG2.setColor(Color.GREEN);
+//                    paintG2.setStrokeWidth(5);
+//
+//                    Paint paintM2 =new Paint();
+//                    paintM2.setStyle(Paint.Style.STROKE);
+//                    paintM2.setColor(Color.MAGENTA);
+//                    paintM2.setStrokeWidth(5);
+//
+//                    Paint paintC2 =new Paint();
+//                    paintC2.setStyle(Paint.Style.STROKE);
+//                    paintC2.setColor(Color.CYAN);
+//                    paintC2.setStrokeWidth(5);
+//
+//                    Paint paintY2 =new Paint();
+//                    paintY2.setStyle(Paint.Style.STROKE);
+//                    paintY2.setColor(Color.YELLOW);
+//                    paintY2.setStrokeWidth(5);
+//
+//                    Paint paintR3 =new Paint();
+//                    paintR3.setStyle(Paint.Style.STROKE);
+//                    paintR3.setColor(Color.RED);
+//                    paintR3.setStrokeWidth(10);
+//
+//                    Paint paintB3 =new Paint();
+//                    paintB3.setStyle(Paint.Style.STROKE);
+//                    paintB3.setColor(Color.BLUE);
+//                    paintB3.setStrokeWidth(10);
+//
+//                    Paint paintG3 =new Paint();
+//                    paintG3.setStyle(Paint.Style.STROKE);
+//                    paintG3.setColor(Color.GREEN);
+//                    paintG3.setStrokeWidth(10);
+//
+//
+//                    for(int i = 0; i < staffObjects.size(); i++){
+//                        for(int j = 0; j < staffObjects.get(i).size(); j++){
+//                            if(knnResults.get(i).get(j) == 10){
+//                                cnvs.drawRect(staffObjects.get(i).get(j), paintR);
+//                            }
+//                            if(knnResults.get(i).get(j) == 20){
+//                                cnvs.drawRect(staffObjects.get(i).get(j), paintB);
+//                            }
+//                            if(knnResults.get(i).get(j) == 30){
+//                                cnvs.drawRect(staffObjects.get(i).get(j), paintG);
+//                            }
+//                            if(knnResults.get(i).get(j) == 40){
+//                                cnvs.drawRect(staffObjects.get(i).get(j), paintM);
+//                            }
+//                            if(knnResults.get(i).get(j) == 50){
+//                                cnvs.drawRect(staffObjects.get(i).get(j), paintC);
+//                            }
+//                            if(knnResults.get(i).get(j) == 60){
+//                                cnvs.drawRect(staffObjects.get(i).get(j), paintY);
+//                            }
+//                            if(knnResults.get(i).get(j) == 70){
+//                                cnvs.drawRect(staffObjects.get(i).get(j), paintR2);
+//                            }
+//                            if(knnResults.get(i).get(j) == 80){
+//                                cnvs.drawRect(staffObjects.get(i).get(j), paintB2);
+//                            }
+//                            if(knnResults.get(i).get(j) == 90){
+//                                cnvs.drawRect(staffObjects.get(i).get(j), paintG2);
+//                            }
+//                            if(knnResults.get(i).get(j) == 100){
+//                                cnvs.drawRect(staffObjects.get(i).get(j), paintM2);
+//                            }
+//                            if(knnResults.get(i).get(j) == 110){
+//                                cnvs.drawRect(staffObjects.get(i).get(j), paintC2);
+//                            }
+//                            if(knnResults.get(i).get(j) == 120){
+//                                cnvs.drawRect(staffObjects.get(i).get(j), paintY2);
+//                            }
+//                            if(knnResults.get(i).get(j) == 130){
+//                                cnvs.drawRect(staffObjects.get(i).get(j), paintR3);
+//                            }
+//                            if(knnResults.get(i).get(j) == 140){
+//                                cnvs.drawRect(staffObjects.get(i).get(j), paintB3);
+//                            }
+//                        }
+//                    }
+//                    mImageView.setImageBitmap(testBmp);
+
+//                    Canvas cnvs = new Canvas(bitmap);
+//                    Paint paint=new Paint();
+//                    paint.setStyle(Paint.Style.STROKE);
+//                    paint.setColor(Color.RED);
+//                    for(List<Rect> rectList : staffObjects){
+//                        for(Rect symbolRect : rectList){
+//                            cnvs.drawRect(symbolRect, paint);
+//                        }
+//                    }
                     Bitmap testBmp = Bitmap.createBitmap(scoreProc.noStaffLinesImg.width(),scoreProc.noStaffLinesImg.height(),Bitmap.Config.ARGB_8888);
                     Utils.matToBitmap(scoreProc.noStaffLinesImg, testBmp);
-
-                    Canvas cnvs = new Canvas(testBmp);
-                    //...setting paint objects with brute force >_>
-                    Paint paintR=new Paint();
-                    paintR.setStyle(Paint.Style.STROKE);
-                    paintR.setColor(Color.RED);
-
-                    Paint paintB=new Paint();
-                    paintB.setStyle(Paint.Style.STROKE);
-                    paintB.setColor(Color.BLUE);
-
-                    Paint paintG =new Paint();
-                    paintG.setStyle(Paint.Style.STROKE);
-                    paintG.setColor(Color.GREEN);
-
-                    Paint paintM =new Paint();
-                    paintM.setStyle(Paint.Style.STROKE);
-                    paintM.setColor(Color.MAGENTA);
-
-                    Paint paintC =new Paint();
-                    paintC.setStyle(Paint.Style.STROKE);
-                    paintC.setColor(Color.CYAN);
-
-                    Paint paintY =new Paint();
-                    paintY.setStyle(Paint.Style.STROKE);
-                    paintY.setColor(Color.YELLOW);
-
-
-                    Paint paintR2 =new Paint();
-                    paintR2.setStyle(Paint.Style.STROKE);
-                    paintR2.setColor(Color.RED);
-                    paintR2.setStrokeWidth(5);
-
-                    Paint paintB2 =new Paint();
-                    paintB2.setStyle(Paint.Style.STROKE);
-                    paintB2.setColor(Color.BLUE);
-                    paintB2.setStrokeWidth(5);
-
-                    Paint paintG2 =new Paint();
-                    paintG2.setStyle(Paint.Style.STROKE);
-                    paintG2.setColor(Color.GREEN);
-                    paintG2.setStrokeWidth(5);
-
-                    Paint paintM2 =new Paint();
-                    paintM2.setStyle(Paint.Style.STROKE);
-                    paintM2.setColor(Color.MAGENTA);
-                    paintM2.setStrokeWidth(5);
-
-                    Paint paintC2 =new Paint();
-                    paintC2.setStyle(Paint.Style.STROKE);
-                    paintC2.setColor(Color.CYAN);
-                    paintC2.setStrokeWidth(5);
-
-                    Paint paintY2 =new Paint();
-                    paintY2.setStyle(Paint.Style.STROKE);
-                    paintY2.setColor(Color.YELLOW);
-                    paintY2.setStrokeWidth(5);
-
-                    Paint paintR3 =new Paint();
-                    paintR3.setStyle(Paint.Style.STROKE);
-                    paintR3.setColor(Color.RED);
-                    paintR3.setStrokeWidth(10);
-
-                    Paint paintB3 =new Paint();
-                    paintB3.setStyle(Paint.Style.STROKE);
-                    paintB3.setColor(Color.BLUE);
-                    paintB3.setStrokeWidth(10);
-
-                    Paint paintG3 =new Paint();
-                    paintG3.setStyle(Paint.Style.STROKE);
-                    paintG3.setColor(Color.GREEN);
-                    paintG3.setStrokeWidth(10);
-
-
-                    for(int i = 0; i < staffObjects.size(); i++){
-                        for(int j = 0; j < staffObjects.get(i).size(); j++){
-                            if(knnResults.get(i).get(j) == 10){
-                                cnvs.drawRect(staffObjects.get(i).get(j), paintR);
-                            }
-                            if(knnResults.get(i).get(j) == 20){
-                                cnvs.drawRect(staffObjects.get(i).get(j), paintB);
-                            }
-                            if(knnResults.get(i).get(j) == 30){
-                                cnvs.drawRect(staffObjects.get(i).get(j), paintG);
-                            }
-                            if(knnResults.get(i).get(j) == 40){
-                                cnvs.drawRect(staffObjects.get(i).get(j), paintM);
-                            }
-                            if(knnResults.get(i).get(j) == 50){
-                                cnvs.drawRect(staffObjects.get(i).get(j), paintC);
-                            }
-                            if(knnResults.get(i).get(j) == 60){
-                                cnvs.drawRect(staffObjects.get(i).get(j), paintY);
-                            }
-                            if(knnResults.get(i).get(j) == 70){
-                                cnvs.drawRect(staffObjects.get(i).get(j), paintR2);
-                            }
-                            if(knnResults.get(i).get(j) == 80){
-                                cnvs.drawRect(staffObjects.get(i).get(j), paintB2);
-                            }
-                            if(knnResults.get(i).get(j) == 90){
-                                cnvs.drawRect(staffObjects.get(i).get(j), paintG2);
-                            }
-                            if(knnResults.get(i).get(j) == 100){
-                                cnvs.drawRect(staffObjects.get(i).get(j), paintM2);
-                            }
-                            if(knnResults.get(i).get(j) == 110){
-                                cnvs.drawRect(staffObjects.get(i).get(j), paintC2);
-                            }
-                            if(knnResults.get(i).get(j) == 120){
-                                cnvs.drawRect(staffObjects.get(i).get(j), paintY2);
-                            }
-                            if(knnResults.get(i).get(j) == 130){
-                                cnvs.drawRect(staffObjects.get(i).get(j), paintR3);
-                            }
-                            if(knnResults.get(i).get(j) == 140){
-                                cnvs.drawRect(staffObjects.get(i).get(j), paintB3);
-                            }
-                        }
-                    }
                     mImageView.setImageBitmap(testBmp);
-                    ImageUtils.saveImageToExternal(scoreProc.getIsoStaffImg(), "twinkle_inverted.png");
-
+                    mDebugView.setText("Rects exporting...");
+                    scoreProc.exportRects(getActivity());
+                    mDebugView.setText("Rects exported!");
                 }
                 else {
                     mDebugView.setText("pfd or pdfRenderer not instantiated.");
