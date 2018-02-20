@@ -28,7 +28,7 @@ public class Measure {
     public Measure() {
         this.numPulses = 0;
         this.basicPulse = 0;
-        this.dynamics = dynamics;
+        this.dynamics = 0;
         noteGroups = new HashMap<Double, NoteGroup>();
         rests = new HashMap<Double, Rest>();
         keySigs = new HashMap<Pitch, Integer>();

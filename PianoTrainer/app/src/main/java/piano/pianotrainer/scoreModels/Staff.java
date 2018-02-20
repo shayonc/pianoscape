@@ -24,4 +24,8 @@ public class Staff {
         grandStaff = grand;
         volumeDynamics = new HashMap<Pair<Float, Float>, Boolean>();
     }
+
+    public void addMeasure(Measure measure) {
+        measures.add(measure);
+    }
 }
