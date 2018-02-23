@@ -38,7 +38,10 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.util.*;
+import piano.pianotrainer.scoreModels.Note;
+import piano.pianotrainer.scoreModels.NoteGroup;
 
+import static org.opencv.core.CvType.CV_8UC1;
 import static org.opencv.core.CvType.CV_8UC3;
 import static org.opencv.imgproc.Imgproc.CHAIN_APPROX_SIMPLE;
 import static org.opencv.imgproc.Imgproc.CV_HOUGH_GRADIENT;
@@ -340,13 +343,13 @@ public class ScoreProcessor {
 
         //int i = 0;
         List<Integer> staffLines;
-        int topBound, bottomBound, leftBound, rightBound, increment;
+        int topBound, bottomBound, leftBound, rightBound;
         for(int i = 0 ; i < staffs.size(); i++){
             staffLines = staffs.get(i);
             staffObjects.add(new ArrayList<Rect>());
             //use this as a relative measure for elements on top of the staffline
-            increment = staffLines.get(1) - staffLines.get(0);
-            topBound = staffLines.get(0) - increment;
+//            increment = staffLines.get(1) - staffLines.get(0);
+            topBound = staffLines.get(0);
             bottomBound = staffLines.get(9);
             leftBound = 0;
             rightBound = noStaffLinesImg.width();
@@ -564,44 +567,139 @@ public class ScoreProcessor {
         }
     }
 
-    public Mat classifyNoteGroup()  {
-//        ImageUtils.saveImageToExternal(bmpObject, "testNote.bmp");
-        String root = Environment.getExternalStorageDirectory().toString();
-//        Mat noteGroupMat = Imgcodecs.imread(root + "/Piano/Images/quarterNote2.png");
+    public NoteGroup classifyNoteGroup(Rect rect, int staffNum)  {
+        Mat objMat = extractFromNoStaffImg(rect);
+        Mat allCircles = new Mat();
 
+        Imgproc.HoughCircles(objMat, allCircles, CV_HOUGH_GRADIENT, 1, ((double)staffLineDiff)*0.8, 200, 4, (int)(((double)staffLineDiff)*0.5), (int)(((double)staffLineDiff)*0.75));
+        Map<Point, Integer> circles = new HashMap<Point, Integer>();
+        Map<Point, Double> circlesBlackRatios = new HashMap<>();
 
-        List<Double> notePixels = new ArrayList<Double>();
-        int lastStaffIndex = staffObjects.size()-1;
-        Rect rect = staffObjects.get(lastStaffIndex).get(staffObjects.get(lastStaffIndex).size()-5);
-        Mat noteGroupMat = extractFromNoStaffImg(rect);
-//        invertImgColor(noteGroupMat);
-
-        Imgcodecs.imwrite(root + "/Piano/Images/inverted.png", noteGroupMat);
-        Mat colorMat = new Mat();
-        cvtColor(noteGroupMat, colorMat, Imgproc.COLOR_GRAY2BGR);
-
-//        for (int r = 0; r < noteGroupMat.height(); r++) {
-//            for (int c = 0; c < noteGroupMat.width(); c++) {
-//                notePixels.add(noteGroupMat.get(r,c)[0]);
-//            }
-//        }
-
-        Mat circles = new Mat();
-        Imgproc.HoughCircles(noteGroupMat, circles, CV_HOUGH_GRADIENT, 1, ((double)staffLineDiff)*0.8, 200, 4, (int)(((double)staffLineDiff)*0.5), (int)(((double)staffLineDiff)*0.75));
-
-        for (int i = 0; i < circles.cols(); i++) {
-            double[] vCircle = circles.get(0, i);
-
+        for (int k = 0; k < allCircles.cols(); k++) {
+            double[] vCircle = allCircles.get(0, k);
             Point pt = new Point(Math.round(vCircle[0]), Math.round(vCircle[1]));
             int radius = (int)Math.round(vCircle[2]);
 
-            circle(colorMat, pt, radius, new Scalar(0,0,150), 1);
+            Mat mask = Mat.zeros(objMat.size(), CV_8UC1);
+            circle(mask, pt, radius, new Scalar(255), -1);
+
+            int blackCount = 0;
+            int totCount = 0;
+            for (int r = 0; r < objMat.rows(); r++) {
+                for (int c = 0; c < objMat.cols(); c++) {
+                    if (mask.get(r,c)[0] > 0.0) {
+                        totCount++;
+                        if (objMat.get(r,c)[0] < 255.0) {
+                            blackCount++;
+                        }
+                    }
+                }
+            }
+
+            // filtering out false positives
+            double blackRatio = (double)blackCount / (double)totCount;
+            if (blackRatio > 0.6) {
+                circles.put(pt, radius);
+                circlesBlackRatios.put(pt, blackRatio);
+            }
         }
 
-        Imgcodecs.imwrite(root + "/Piano/Images/circles.png", colorMat);
-//        Bitmap bmp = Bitmap.createBitmap(bmpObject.width(),bmpObject.height(),Bitmap.Config.ARGB_8888);
-//        Utils.matToBitmap(resultMat, bmp);
-        return circles;
+        if (circles.size() == 0) return null;
+        boolean inTreble = inTrebleCleff(rect.top, rect.bottom, staffNum);
+        NoteGroup noteGroup = new NoteGroup(new ArrayList<Note>(), 0, 0);
+
+        for (Map.Entry<Point, Integer> circle : circles.entrySet()) {
+            Note note = new Note();
+            populatePitchAndScale(note, circle.getKey(), rect.top, inTreble, staffNum);
+
+            noteGroup.notes.add(note);
+        }
+
+//        String root = Environment.getExternalStorageDirectory().toString();
+//        Imgcodecs.imwrite(root + "/Piano/Images/full_score_mask.png", mask);
+        return null;
+    }
+
+    public void populatePitchAndScale(Note note, Point pt, int topOffset, boolean inTreble, int staffNum) {
+        List<Integer> staffLines = staffs.get(staffNum);
+        double yPos = pt.y + topOffset;
+
+        int i;
+        for (i = 0; i < staffLines.size(); i++) {
+            if (yPos < staffLines.get(i)) {
+                break;
+            }
+        }
+
+        if (i > 0 && i < 5) {
+            // treble in between
+            double top = (double)staffLines.get(i-1);
+            double bottom = (double)staffLines.get(i);
+            double middle = (top+bottom)/2;
+
+            double topDist = Math.abs(top-yPos);
+            double bottomDist = Math.abs(bottom-yPos);
+            double middleDist = Math.abs(middle-yPos);
+
+            if (topDist < bottomDist && topDist < middleDist) {
+
+            }
+            else if (bottomDist < topDist && bottomDist < middleDist) {
+
+            }
+            else {
+
+            }
+
+        }
+        else if (i > 5 && i < 10) {
+            // bass in between
+        }
+        else if (i == 0){
+            // top of treble
+
+        }
+        else if (i == 5) {
+            // in between treble and bass
+        }
+        else {
+            // bottom of bass
+        }
+
+    }
+
+    public boolean inTrebleCleff(int rectTop, int rectBottom, int staffNum) {
+        List<Integer> staffLines = staffs.get(staffNum);
+        int trebleTop = staffLines.get(0);
+        int trebleBottom = staffLines.get(4);
+        int bassTop = staffLines.get(5);
+        int bassBottom = staffLines.get(9);
+
+        int trebleDistance = Math.abs(rectTop-trebleTop) + Math.abs(rectBottom-trebleBottom);
+        int bassDistance = Math.abs(rectTop-bassTop) + Math.abs(rectBottom-bassBottom);
+        if (trebleDistance <= bassDistance) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    public void getAllCircles()  {
+        Mat colorFullMat = new Mat();
+        cvtColor(noStaffLinesImg, colorFullMat, Imgproc.COLOR_GRAY2BGR);
+        Mat circles = new Mat();
+
+        Imgproc.HoughCircles(noStaffLinesImg, circles, CV_HOUGH_GRADIENT, 1, ((double)staffLineDiff)*0.8, 200, 4, (int)(((double)staffLineDiff)*0.5), (int)(((double)staffLineDiff)*0.75));
+        for (int k = 0; k < circles.cols(); k++) {
+            double[] vCircle = circles.get(0, k);
+
+            Point pt = new Point(Math.round(vCircle[0]), Math.round(vCircle[1]));
+            int radius = (int)Math.round(vCircle[2]);
+            circle(colorFullMat, pt, radius, new Scalar(0,0,150), 1);
+        }
+        String root = Environment.getExternalStorageDirectory().toString();
+        Imgcodecs.imwrite(root + "/Piano/Images/full_score_circles.png", colorFullMat);
     }
 
     public void exportRects(Context context) {
@@ -645,6 +743,26 @@ public class ScoreProcessor {
 //                Imgcodecs.imwrite(root + String.format("/Piano/Images/staff_%02d_element_%02d.png", i, j), printMat);
 //            }
 //        }
+    }
+
+
+    public List<Boolean[]> getSonatinaNoteGroups() {
+        List<Boolean[]> list = new ArrayList<>();
+
+        Boolean[] staff1 = new Boolean[] { false, false, false, false, false, false, false, false, false, false, false, false, false, true, false, true, true, true, false, true, false, true, true, false, true, true, true, false, true, false, true, true, false, true, true, true, false, true, false};
+        Boolean[] staff2 = new Boolean[] { false, false, false, false, false, false, false, false, false, false, true, true, false, true, true, true, false, true, false, true, true, true, true, true, true, false, true, true, true, true, true, true, true, false};
+        Boolean[] staff3 = new Boolean[] { false, false, false, false, false, false, false, false, false, false, true, true, false, true, true, true, true, false, true, true, false, true, true, true, false, false, false, true, false, true, true, false, true, true, true, true, false, false};
+        Boolean[] staff4 = new Boolean[] { false, false, false, false, false, false, false, false, false, false, true, true, false, true, true, true, true, false, true, true, false, true, true, true, false, true, false, true, true, false, true, true, true, false, true, false};
+        Boolean[] staff5 = new Boolean[] { false, false, false, false, false, false, false, false, false, false, true, true, false, true, true, true, false, true, false, true, true, false, true, true, true, true, false, true, false, true, true, false, true, true, true, false, true, false} ;
+        Boolean[] staff6 = new Boolean[] { false, false, false, false, false, false, false, false, false, false, true, true, false, true, true, true, true, false, true, true, false, true, true, true, true, false, true, true, true, true, true, true, false, true, true, true, false, false};
+
+        list.add(staff1);
+        list.add(staff2);
+        list.add(staff3);
+        list.add(staff4);
+        list.add(staff5);
+        list.add(staff6);
+        return list;
     }
 
     public List<Integer> classifyObjects() {

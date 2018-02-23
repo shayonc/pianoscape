@@ -7,12 +7,12 @@ import java.util.List;
  */
 
 public class NoteGroup {
-    List<Note> notes;
+    public List<Note> notes;
     // the slope of the beam. Can be negative or positive
-    int beamSlope;
+    public int beamSlope;
     // location of beam. []
     // [none, top, bottom] : [0, 1, 2]
-    int beamLoc;
+    public int beamLoc;
 
     public NoteGroup(List<Note> notes, int beamSlope, int beamLoc) {
         this.notes = notes;

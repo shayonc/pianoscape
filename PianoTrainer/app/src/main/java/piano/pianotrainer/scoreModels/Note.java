@@ -5,16 +5,17 @@ package piano.pianotrainer.scoreModels;
  */
 
 public class Note {
-    double weight;
-    boolean hasDot;
-    Accidental accidental;
-    Pitch pitch;
+    public double weight;
+    public boolean hasDot;
+    public Accidental accidental;
+    public Pitch pitch;
+    public int scale;
     // 0 refers to treble clef, 1 refers to bass clef
-    int clef;
+    public int clef;
     // position of line w.r.t the note circle
     // [none, top-left, top-right, bottom-left, bottom-right] = [0,1,2,3,4]
-    int linePosition;
-    boolean hasStaccato;
+    public int linePosition;
+    public boolean hasStaccato;
 
     public Note(double weight, boolean hasDot, Accidental accidental, Pitch pitch, int clef, int linePosition, boolean hasStaccato) {
         this.weight = weight;
@@ -25,4 +26,6 @@ public class Note {
         this.linePosition = linePosition;
         this.hasStaccato = hasStaccato;
     }
+
+    public Note() { }
 }

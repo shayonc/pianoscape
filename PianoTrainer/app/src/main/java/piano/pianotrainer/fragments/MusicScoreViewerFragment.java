@@ -28,6 +28,7 @@ import android.widget.Toast;
 
 import org.opencv.android.Utils;
 import org.opencv.core.Mat;
+import org.opencv.core.RotatedRect;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -42,6 +43,7 @@ import piano.pianotrainer.scoreImport.PDFHelper;
 import piano.pianotrainer.scoreImport.ScoreProcessor;
 import piano.pianotrainer.scoreModels.ElementType;
 import piano.pianotrainer.scoreModels.Measure;
+import piano.pianotrainer.scoreModels.NoteGroup;
 import piano.pianotrainer.scoreModels.Score;
 import piano.pianotrainer.scoreModels.Staff;
 
@@ -51,7 +53,7 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
      */
     private static final String STATE_CURRENT_PAGE_INDEX = "current_page_index";
 
-    private static final String FILENAME = "zimmer_pirate.pdf";
+    private static final String FILENAME = "handel_sonatina.pdf";
 
     private static final String TRAINING = "training_set";
 
@@ -348,6 +350,10 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
                     int numPulses = 0;
                     double basicPulse = 0;
                     List<List<Rect>> staffObjects = scoreProc.detectObjects();
+
+                    // Generating hard-coded symbols data
+                    List<Boolean[]> sonatina_symbols = scoreProc.getSonatinaNoteGroups();
+
                     for (int i = 0; i < staffObjects.size(); i++) {
                         Staff staff = new Staff(true);
                         score.addStaff(staff);
@@ -356,28 +362,35 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
                         Measure curMeasure = new Measure();
                         staff.addMeasure(curMeasure);
 
-                        boolean firstVertBar = true;
+                        boolean firstVertBar = false;
                         int numElemsInMeasure = 0;
                         Map<Integer, ElementType> elementTypeMap = new HashMap<>(objects.size());
+                        Boolean[] isNoteGroup = sonatina_symbols.get(i);
 
                         for (int j = 0; j < objects.size(); j++) {
                             Rect obj = objects.get(j);
                             // TODO: add symbol detection here
-                            // if not a symbol, then run following code
-                            if (j < 10) continue;
-                            if (scoreProc.isMeasureBar(obj) && firstVertBar) {
+                            if (scoreProc.isMeasureBar(obj)) {
                                 elementTypeMap.put(j, ElementType.MeasureBar);
-                                firstVertBar = false;
+                                if (!firstVertBar) {
+                                    firstVertBar = true;
+                                }
+                                else {
+                                    curMeasure = new Measure();
+                                    staff.addMeasure(curMeasure);
+                                }
                             }
-                            else if (scoreProc.isMeasureBar(obj) && !firstVertBar) {
-                                elementTypeMap.put(j, ElementType.MeasureBar);
-                                staff.addMeasure(curMeasure);
-                                numElemsInMeasure = 0;
-                                curMeasure = new Measure();
+                            else if (isNoteGroup[j]){
+                                NoteGroup notegroup = scoreProc.classifyNoteGroup(objects.get(j), i);
+                                break;
                             }
-
+                            else {
+                                // Ekteshaf: place your knn testing for each object here
+                            }
                         }
+                        break;
                     }
+
 
                     //TRAINING SETS FOR SYMBOLS
                     //load the training images and train symbol detection
@@ -411,16 +424,16 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
                     scoreProc.trainKnn();
                     //test all
                     scoreProc.testMusicObjects();
-                    try {
-//                        int numCircles = scoreProc.classifyNoteGroup();
-//                        mDebugView.setText(String.format("Number of circles: %d", numCircles));
-                        Mat circles = scoreProc.classifyNoteGroup();
-                        mDebugView.setText(String.format("%d", circles.cols()));
-//                        mImageView.setImageBitmap(ngBmp);
-                    }
-                    catch (Exception e) {
-                        mDebugView.setText(e.toString());
-                    }
+//                    try {
+////                        int numCircles = scoreProc.classifyNoteGroup();
+////                        mDebugView.setText(String.format("Number of circles: %d", numCircles));
+//                        Mat circles = scoreProc.classifyNoteGroup();
+//                        mDebugView.setText(String.format("%d", circles.cols()));
+////                        mImageView.setImageBitmap(ngBmp);
+//                    }
+//                    catch (Exception e) {
+//                        mDebugView.setText(e.toString());
+//                    }
 
                     List<List<Integer>> knnResults = scoreProc.getKnnResults();
                     Bitmap testBmp = Bitmap.createBitmap(scoreProc.noStaffLinesImg.width(),scoreProc.noStaffLinesImg.height(),Bitmap.Config.ARGB_8888);
