@@ -28,7 +28,6 @@ import android.widget.Toast;
 
 import org.opencv.android.Utils;
 import org.opencv.core.Mat;
-import org.opencv.core.RotatedRect;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -37,6 +36,8 @@ import java.io.InputStream;
 import java.util.*;
 
 import piano.pianotrainer.R;
+import piano.pianotrainer.scoreImport.ImageUtils;
+import piano.pianotrainer.scoreImport.KnnLabels;
 import piano.pianotrainer.scoreImport.PDFHelper;
 import piano.pianotrainer.scoreImport.ScoreProcessor;
 import piano.pianotrainer.scoreModels.ElementType;
@@ -50,7 +51,7 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
      */
     private static final String STATE_CURRENT_PAGE_INDEX = "current_page_index";
 
-    private static final String FILENAME = "handel_sonatina.pdf";
+    private static final String FILENAME = "zimmer_pirate.pdf";
 
     private static final String TRAINING = "training_set";
 
@@ -380,38 +381,31 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
 
                     //TRAINING SETS FOR SYMBOLS
                     //load the training images and train symbol detection
-                    //rbgmcy
-                    //Clefs:
-                    //works
-                    addTrainingImages("training_set/g_clef", 10);
-                    //works
-                    addTrainingImages("training_set/f_clef", 20);
-                    //Brace works
-                    addTrainingImages("training_set/brace", 30);
-                    //Time signatures
-                    //4/4 works
-                    //TODO: find other timing signatures
-                    addTrainingImages("training_set/time_four_four", 40);
-                    addTrainingImages("training_set/time_three_four", 50);
-                    addTrainingImages("training_set/time_six_eight", 60);
-                    addTrainingImages("training_set/time_two_four", 70);
-                    //Rests
-                    //we can logically test whole/half note rests since its just a rect
-                    //works
-                    addTrainingImages("training_set/quarter_rest", 80);
-                    //works
-                    addTrainingImages("training_set/eight_rest", 90);
+                    addTrainingImages("training_set/g_clef", KnnLabels.G_CLEF);
+                    addTrainingImages("training_set/f_clef", KnnLabels.F_CLEF);
+                    addTrainingImages("training_set/brace", KnnLabels.BRACE);
 
-                    addTrainingImages("training_set/one_16th_rest", 100);
-                    //sharp not tested
-                    addTrainingImages("training_set/sharp", 110);
-                    //TODO: confuses naturals with sharps: might have a heuristic classifier after
-                    addTrainingImages("training_set/natural", 120);
-                    //works
-                    addTrainingImages("training_set/flat", 130);
-                    //TODO: knn for mordent is an inv mordent - need heuristic filter to distinguish
-                    //training with inv mordent classifies mordents/inv mordents (but classifying with mordent doesn't!)
-                    addTrainingImages("training_set/inverted_mordent", 140);
+                    addTrainingImages("training_set/time_four_four", KnnLabels.TIME_44);
+                    addTrainingImages("training_set/time_three_four", KnnLabels.TIME_34);
+                    addTrainingImages("training_set/time_six_eight", KnnLabels.TIME_68);
+                    addTrainingImages("training_set/time_two_four", KnnLabels.TIME_24);
+                    addTrainingImages("training_set/common_time", KnnLabels.TIME_C);
+                    //Rests
+                    //TODO: Distinguish whole/half or ignore (85%)
+                    addTrainingImages("training_set/whole_half_rest", KnnLabels.WHOLE_HALF_REST);
+                    addTrainingImages("training_set/quarter_rest", KnnLabels.QUARTER_REST);
+                    addTrainingImages("training_set/eight_rest", KnnLabels.EIGHTH_REST);
+                    addTrainingImages("training_set/one_16th_rest", KnnLabels.ONE_SIXTEENTH_REST);
+                    addTrainingImages("training_set/whole_note", KnnLabels.WHOLE_NOTE);
+                    addTrainingImages("training_set/whole_note_2", KnnLabels.WHOLE_NOTE_2);
+                    //accidentals
+                    addTrainingImages("training_set/sharp", KnnLabels.SHARP_ACC);
+                    addTrainingImages("training_set/natural", KnnLabels.NATURAL_ACC);
+                    addTrainingImages("training_set/flat", KnnLabels.FLAT_ACC);
+                    //others
+                    addTrainingImages("training_set/slur", KnnLabels.TIE);
+                    addTrainingImages("training_set/dynamics_f", KnnLabels.DYNAMICS_F);
+                    addTrainingImages("training_set/dot_set", KnnLabels.DOT);
 
                     //Train
                     scoreProc.trainKnn();
@@ -428,130 +422,63 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
                         mDebugView.setText(e.toString());
                     }
 
-//                    List<List<Integer>> knnResults = scoreProc.getKnnResults();
-//                    Bitmap testBmp = Bitmap.createBitmap(scoreProc.noStaffLinesImg.width(),scoreProc.noStaffLinesImg.height(),Bitmap.Config.ARGB_8888);
-//                    Utils.matToBitmap(scoreProc.noStaffLinesImg, testBmp);
-//
-//                    Canvas cnvs = new Canvas(testBmp);
-//                    //...setting paint objects with brute force >_>
-//                    Paint paintR=new Paint();
-//                    paintR.setStyle(Paint.Style.STROKE);
-//                    paintR.setColor(Color.RED);
-//
-//                    Paint paintB=new Paint();
-//                    paintB.setStyle(Paint.Style.STROKE);
-//                    paintB.setColor(Color.BLUE);
-//
-//                    Paint paintG =new Paint();
-//                    paintG.setStyle(Paint.Style.STROKE);
-//                    paintG.setColor(Color.GREEN);
-//
-//                    Paint paintM =new Paint();
-//                    paintM.setStyle(Paint.Style.STROKE);
-//                    paintM.setColor(Color.MAGENTA);
-//
-//                    Paint paintC =new Paint();
-//                    paintC.setStyle(Paint.Style.STROKE);
-//                    paintC.setColor(Color.CYAN);
-//
-//                    Paint paintY =new Paint();
-//                    paintY.setStyle(Paint.Style.STROKE);
-//                    paintY.setColor(Color.YELLOW);
-//
-//
-//                    Paint paintR2 =new Paint();
-//                    paintR2.setStyle(Paint.Style.STROKE);
-//                    paintR2.setColor(Color.RED);
-//                    paintR2.setStrokeWidth(5);
-//
-//                    Paint paintB2 =new Paint();
-//                    paintB2.setStyle(Paint.Style.STROKE);
-//                    paintB2.setColor(Color.BLUE);
-//                    paintB2.setStrokeWidth(5);
-//
-//                    Paint paintG2 =new Paint();
-//                    paintG2.setStyle(Paint.Style.STROKE);
-//                    paintG2.setColor(Color.GREEN);
-//                    paintG2.setStrokeWidth(5);
-//
-//                    Paint paintM2 =new Paint();
-//                    paintM2.setStyle(Paint.Style.STROKE);
-//                    paintM2.setColor(Color.MAGENTA);
-//                    paintM2.setStrokeWidth(5);
-//
-//                    Paint paintC2 =new Paint();
-//                    paintC2.setStyle(Paint.Style.STROKE);
-//                    paintC2.setColor(Color.CYAN);
-//                    paintC2.setStrokeWidth(5);
-//
-//                    Paint paintY2 =new Paint();
-//                    paintY2.setStyle(Paint.Style.STROKE);
-//                    paintY2.setColor(Color.YELLOW);
-//                    paintY2.setStrokeWidth(5);
-//
-//                    Paint paintR3 =new Paint();
-//                    paintR3.setStyle(Paint.Style.STROKE);
-//                    paintR3.setColor(Color.RED);
-//                    paintR3.setStrokeWidth(10);
-//
-//                    Paint paintB3 =new Paint();
-//                    paintB3.setStyle(Paint.Style.STROKE);
-//                    paintB3.setColor(Color.BLUE);
-//                    paintB3.setStrokeWidth(10);
-//
-//                    Paint paintG3 =new Paint();
-//                    paintG3.setStyle(Paint.Style.STROKE);
-//                    paintG3.setColor(Color.GREEN);
-//                    paintG3.setStrokeWidth(10);
-//
-//
-//                    for(int i = 0; i < staffObjects.size(); i++){
-//                        for(int j = 0; j < staffObjects.get(i).size(); j++){
-//                            if(knnResults.get(i).get(j) == 10){
-//                                cnvs.drawRect(staffObjects.get(i).get(j), paintR);
-//                            }
-//                            if(knnResults.get(i).get(j) == 20){
-//                                cnvs.drawRect(staffObjects.get(i).get(j), paintB);
-//                            }
-//                            if(knnResults.get(i).get(j) == 30){
-//                                cnvs.drawRect(staffObjects.get(i).get(j), paintG);
-//                            }
-//                            if(knnResults.get(i).get(j) == 40){
-//                                cnvs.drawRect(staffObjects.get(i).get(j), paintM);
-//                            }
-//                            if(knnResults.get(i).get(j) == 50){
-//                                cnvs.drawRect(staffObjects.get(i).get(j), paintC);
-//                            }
-//                            if(knnResults.get(i).get(j) == 60){
-//                                cnvs.drawRect(staffObjects.get(i).get(j), paintY);
-//                            }
-//                            if(knnResults.get(i).get(j) == 70){
-//                                cnvs.drawRect(staffObjects.get(i).get(j), paintR2);
-//                            }
-//                            if(knnResults.get(i).get(j) == 80){
-//                                cnvs.drawRect(staffObjects.get(i).get(j), paintB2);
-//                            }
-//                            if(knnResults.get(i).get(j) == 90){
-//                                cnvs.drawRect(staffObjects.get(i).get(j), paintG2);
-//                            }
-//                            if(knnResults.get(i).get(j) == 100){
-//                                cnvs.drawRect(staffObjects.get(i).get(j), paintM2);
-//                            }
-//                            if(knnResults.get(i).get(j) == 110){
-//                                cnvs.drawRect(staffObjects.get(i).get(j), paintC2);
-//                            }
-//                            if(knnResults.get(i).get(j) == 120){
-//                                cnvs.drawRect(staffObjects.get(i).get(j), paintY2);
-//                            }
-//                            if(knnResults.get(i).get(j) == 130){
-//                                cnvs.drawRect(staffObjects.get(i).get(j), paintR3);
-//                            }
-//                            if(knnResults.get(i).get(j) == 140){
-//                                cnvs.drawRect(staffObjects.get(i).get(j), paintB3);
-//                            }
-//                        }
-//                    }
-//                    mImageView.setImageBitmap(testBmp);
+                    List<List<Integer>> knnResults = scoreProc.getKnnResults();
+                    Bitmap testBmp = Bitmap.createBitmap(scoreProc.noStaffLinesImg.width(),scoreProc.noStaffLinesImg.height(),Bitmap.Config.ARGB_8888);
+                    Utils.matToBitmap(scoreProc.noStaffLinesImg, testBmp);
+
+                    Canvas cnvs = new Canvas(testBmp);
+                    //...setting paint objects with brute force >_>
+                    Paint paintR=new Paint();
+                    paintR.setStyle(Paint.Style.STROKE);
+                    paintR.setColor(Color.RED);
+
+                    Paint paintB=new Paint();
+                    paintB.setStyle(Paint.Style.STROKE);
+                    paintB.setColor(Color.BLUE);
+
+                    Paint paintG =new Paint();
+                    paintG.setStyle(Paint.Style.STROKE);
+                    paintG.setColor(Color.GREEN);
+
+                    Paint paintM =new Paint();
+                    paintM.setStyle(Paint.Style.STROKE);
+                    paintM.setColor(Color.MAGENTA);
+
+                    Paint paintC =new Paint();
+                    paintC.setStyle(Paint.Style.STROKE);
+                    paintC.setColor(Color.CYAN);
+
+                    Paint paintY =new Paint();
+                    paintY.setStyle(Paint.Style.STROKE);
+                    paintY.setColor(Color.YELLOW);
+
+                    Paint paintTxt =new Paint();
+                    paintTxt.setStyle(Paint.Style.FILL);
+                    paintTxt.setColor(Color.RED);
+                    paintTxt.setTextSize(30);
+
+                    for(int i = 0; i < staffObjects.size(); i++){
+                        for(int j = 0; j < staffObjects.get(i).size(); j++){
+                            if(knnResults.get(i).get(j)/10 == 0){
+                                cnvs.drawRect(staffObjects.get(i).get(j), paintR);
+                            }
+                            if(knnResults.get(i).get(j)/10 == 1){
+                                cnvs.drawRect(staffObjects.get(i).get(j), paintB);
+                            }
+                            if(knnResults.get(i).get(j)/10 == 2){
+                                cnvs.drawRect(staffObjects.get(i).get(j), paintG);
+                            }
+                            if(knnResults.get(i).get(j)/10 == 3){
+                                cnvs.drawRect(staffObjects.get(i).get(j), paintM);
+                            }
+                            if(knnResults.get(i).get(j)/10 == 4){
+                                cnvs.drawRect(staffObjects.get(i).get(j), paintC);
+                            }
+                            cnvs.drawText(knnResults.get(i).get(j).toString(),
+                                    staffObjects.get(i).get(j).left, staffObjects.get(i).get(j).top, paintTxt);
+                        }
+                    }
+                    mImageView.setImageBitmap(testBmp);
 
 //                    Canvas cnvs = new Canvas(bitmap);
 //                    Paint paint=new Paint();
@@ -562,9 +489,10 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
 //                            cnvs.drawRect(symbolRect, paint);
 //                        }
 //                    }
-                    Bitmap testBmp = Bitmap.createBitmap(scoreProc.noStaffLinesImg.width(),scoreProc.noStaffLinesImg.height(),Bitmap.Config.ARGB_8888);
-                    Utils.matToBitmap(scoreProc.noStaffLinesImg, testBmp);
+//                    Bitmap testBmp = Bitmap.createBitmap(scoreProc.noStaffLinesImg.width(),scoreProc.noStaffLinesImg.height(),Bitmap.Config.ARGB_8888);
+//                    Utils.matToBitmap(scoreProc.noStaffLinesImg, testBmp);
                     mImageView.setImageBitmap(testBmp);
+                    ImageUtils.saveImageToExternal(testBmp, "testSonatina.bmp");
                     mDebugView.setText("Rects exporting...");
                     scoreProc.exportRects(getActivity());
                     mDebugView.setText("Rects exported!");

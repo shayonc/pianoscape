@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.sqlite.SQLiteDatabase;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.annotation.NonNull;
@@ -30,7 +31,6 @@ import piano.pianotrainer.parser.XMLMusicParser;
 import piano.pianotrainer.scoreImport.PDFHelper;
 
 public class HomeActivity extends AppCompatActivity {
-
     private static final String TAG = "HomeActivity";
 
     static{
@@ -81,10 +81,13 @@ public class HomeActivity extends AppCompatActivity {
 
     };
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
+
+
 
         mTextMessage = (TextView) findViewById(R.id.message);
         BottomNavigationView navigation = (BottomNavigationView) findViewById(R.id.navigation);
@@ -94,6 +97,16 @@ public class HomeActivity extends AppCompatActivity {
         dbHelper = new DBHelper(this);
         db = dbHelper.getWritableDatabase(); // get writable
 
+        //new sdk runtime permissions\
+
+        if (isExternalStorageWritable()) {
+            verifyStoragePermissions(HomeActivity.this);
+            int permissionCheck = ContextCompat.checkSelfPermission(HomeActivity.this,
+                    Manifest.permission.WRITE_CALENDAR);
+        }
+        else{
+            Log.d(TAG, "isExternalStorageWritable() returned false");
+        }
 
         Button button = (Button) findViewById(R.id.button);
         button.setOnClickListener(new View.OnClickListener() {
