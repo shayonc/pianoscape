@@ -56,7 +56,7 @@ public class ScoreProcessor {
     static final String TAG = "ScoreProcessor";
 
     static final int TRAIN_WIDTH = 30;
-    static final int TRAIN_HEIGHT = 30;
+    static final int TRAIN_HEIGHT = 80;
 
     //Information channel (alpha) - inv since 0 is white, 255 is black
     Mat originalGrayInvImg;
@@ -184,7 +184,7 @@ public class ScoreProcessor {
 
     public void staffLineDetect(Mat staffLinesImg){
         //TODO: Make structured val not hacky estimate for threshold
-        int thresholdForStaffline = binarizedImg.cols()/2;
+        int thresholdForStaffline = binarizedImg.cols()/4;
         double[] rowTotalVals;
         int curRowTotal;
         double[] mVal;
@@ -427,14 +427,6 @@ public class ScoreProcessor {
         catch(Exception e){
             String exc = e.toString();
         }
-        curFeatureR = outputMats.get(0);
-        Mat curRow = curFeatureR.row(10);
-        String rowInfo = curRow.dump();
-        //stay consistent since our original image is gray-inverted
-        //0s map to white, 255s map to whites
-        curFeatureR = invertGrayImg(curFeatureR);
-        curRow = curFeatureR.row(10);
-        rowInfo = curRow.dump();
 
         Imgproc.resize(curFeatureR, resizedImg, size);
         //most examples suggest we need float data for knn
