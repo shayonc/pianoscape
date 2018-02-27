@@ -28,5 +28,5 @@ public class LicenceKeyInstance
     private static final int[] keycap = {0X12345,0X0};
     private static final int[] keycode = {0X12345678,0X12345678};
 
-    public static final SScoreKey SeeScoreLibKey = new SScoreKey("University of Waterloo, Canada", keycap, keycode);
+    public static final SScoreKey SeeScoreLibKey = new SScoreKey("University of Waterloo", keycap, keycode);
 }
