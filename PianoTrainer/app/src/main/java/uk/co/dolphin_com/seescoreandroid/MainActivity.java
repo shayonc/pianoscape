@@ -1413,23 +1413,9 @@ public class MainActivity extends Activity implements ScopeLogger {
 	    }
 	}
 
-
-
-
-
-
-
-
-
-
-
 	/*
 	* FROM fragments/MainActivity
-	*
-	*
 	* */
-
-
 
     @Override
     public void onDestroy() {
@@ -1459,9 +1445,7 @@ public class MainActivity extends Activity implements ScopeLogger {
         logLines.clear();
         logFromUiThread("");
     }
-
-
-
+    
     /**
      * @param string
      */
