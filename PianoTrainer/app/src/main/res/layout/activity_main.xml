@@ -85,8 +85,10 @@
         android:id="@+id/zoomText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/metronomeSwitch"
         android:layout_alignBottom="@+id/metronomeSwitch"
-        android:layout_alignEnd="@+id/zoomSlider"
+        android:layout_marginEnd="13dp"
+        android:layout_toStartOf="@+id/metronomeSwitch"
         android:singleLine="true"
         android:text="1.0"
         android:textAppearance="?android:attr/textAppearanceMedium"
@@ -129,6 +131,7 @@
         android:layout_alignRight="@+id/zoomText"
         android:layout_below="@+id/tempoSlider"
         android:singleLine="true"
+        android:visibility="invisible"
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:textStyle="normal" />
 
@@ -136,8 +139,8 @@
         android:id="@+id/playButton"
         android:layout_width="25dp"
         android:layout_height="25dp"
-        android:layout_alignStart="@+id/metronomeSwitch"
-        android:layout_alignTop="@+id/zoomText"
+        android:layout_alignTop="@+id/stopButton"
+        android:layout_toStartOf="@+id/stopButton"
         android:onClick="play_pause"
         android:src="@android:drawable/ic_media_play" />
 
@@ -155,9 +158,9 @@
         android:layout_width="150dp"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_marginEnd="24dp"
+        android:layout_marginEnd="1dp"
         android:layout_toEndOf="@+id/zoomLabel"
-        android:layout_toStartOf="@+id/playButton"
+        android:layout_toStartOf="@+id/zoomText"
         android:clickable="true"
         android:max="100"
         android:progress="50" />
