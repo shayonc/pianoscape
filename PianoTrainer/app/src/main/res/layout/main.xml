@@ -58,12 +58,7 @@
         android:onClick="onClearLog"
         />
 
-    <Spinner
-        android:id="@+id/spinner_senders"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:entries="@array/senders"
-        />
+
 
     <ScrollView android:id="@+id/scroll"
         android:layout_width="match_parent"

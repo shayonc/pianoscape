@@ -5,7 +5,11 @@
 package uk.co.dolphin_com.seescoreandroid;
 
 import android.app.Activity;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.AssetManager;
+import android.media.midi.MidiManager;
+import android.media.midi.MidiReceiver;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -16,11 +20,17 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnTouchListener;
 import android.view.ViewTreeObserver;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.CheckBox;
 import android.widget.ImageButton;
 import android.widget.ScrollView;
 import android.widget.SeekBar;
 import android.widget.TextView;
+
+import com.mobileer.miditools.MidiFramer;
+import com.mobileer.miditools.MidiOutputPortSelector;
+import com.mobileer.miditools.MidiPortWrapper;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
@@ -34,10 +44,21 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import midi.scope.MidiPrinter;
+import midi.scope.MidiScope;
+import midi.scope.NoteReceiver;
+import midi.scope.ScopeLogger;
+import piano.pianotrainer.fragments.ComparisonSetup;
+//import piano.pianotrainer.fragments.MidiOutputPortSelector;
+import piano.pianotrainer.fragments.SummaryActivity;
+import piano.pianotrainer.parser.XMLMusicParser;
 import uk.co.dolphin_com.seescoreandroid.SeeScoreView.ZoomNotification;
 import uk.co.dolphin_com.sscore.Component;
 import uk.co.dolphin_com.sscore.Header;
@@ -52,7 +73,7 @@ import uk.co.dolphin_com.sscore.playdata.PlayData;
 import uk.co.dolphin_com.sscore.playdata.UserTempo;
 import piano.pianotrainer.R;
 
-public class MainActivity extends Activity {
+public class MainActivity extends Activity implements ScopeLogger {
 
     private static final boolean PlayUsingMediaPlayer = true;
 
@@ -73,6 +94,26 @@ public class MainActivity extends Activity {
     private static final int kPlayLoopRepeats = 7;
     private String filename = "";
     private String rootpath = "";
+    private XMLMusicParser xmlparser;
+    private ComparisonSetup comparison;
+    private ArrayList<List<piano.pianotrainer.model.Note>> notesArray;;
+    private static final String OUTPUT_FOLDER = "XMLFiles";
+    private static final String ROOT_FOLDER = "Piano";
+    private static final String SUMMARY_PREFS = "SummaryPrefs";
+    private LinkedList<String> logLines = new LinkedList<String>();
+    private static final int MAX_LINES = 100;
+
+
+    private MidiOutputPortSelector mLogSenderSelector;
+    private MidiManager mMidiManager;
+    private MidiReceiver mNoteReceiver;
+    private MidiFramer mConnectFramer;
+    private MyDirectReceiver mDirectReceiver;
+    private TextView mLog;
+    private ScrollView mScroller;
+    private Lock compLock = new ReentrantLock();
+    private int curNote = 0;
+    private boolean mShowRaw;
 
     /**
 	 * set true to clear files in internal directory and reload from assets
@@ -167,6 +208,7 @@ public class MainActivity extends Activity {
      */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        this.requestWindowFeature(Window.FEATURE_NO_TITLE);
         super.onCreate(savedInstanceState);
 
         filename = getIntent().getStringExtra("filename");
@@ -234,7 +276,78 @@ public class MainActivity extends Activity {
                     showScore(currentScore, null); // toggle single part or all parts on long tap
             }
         });
+        getWindow().getDecorView().setSystemUiVisibility(
+                View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                        | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                        | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                        | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                        | View.SYSTEM_UI_FLAG_FULLSCREEN
+                        | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+        this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_main);
+
+        try {
+            xmlparser = new XMLMusicParser(filename, ROOT_FOLDER, OUTPUT_FOLDER);
+        } catch (IOException e) {
+            // Everything will fail
+        }
+        File file = new File(xmlparser.getXmlFilePath());
+        if (!file.exists()) {
+            xmlparser.parseMXL(); // parse the .mxl file
+        }
+        List<piano.pianotrainer.model.Note> parsedNotes = xmlparser.parseXML(); // parse the .xml file
+        Log.d("MainActivity SIZEEE", Integer.toString(parsedNotes.size()));
+        comparison = new ComparisonSetup();
+        String toPrint = "";
+        try {
+            notesArray = comparison.SyncNotes(parsedNotes);
+        } catch (IndexOutOfBoundsException e) {
+            toPrint = "MusicXML is formatted in a way that has its" +
+                    " notes exceeding the measure divisions.\n" +
+                    "This is likely because the the song is not meant" +
+                    " for Piano or has wrong measure line placements.";
+            Log.d("MainActivity: ", toPrint);
+        }
+
+        Log.d("MainActivity size: ", Integer.toString(notesArray.size()));
+
+        if(notesArray.size() == 0 ){
+            throw new java.lang.RuntimeException("Parsing failed");
+        }
+
+        mLog = (TextView) findViewById(R.id.log);
+        mScroller = (ScrollView) findViewById(R.id.scroll);
+
+        // Setup MIDI
+        mMidiManager = (MidiManager) getSystemService(MIDI_SERVICE);
+
+        // Receiver that prints the messages.
+        mNoteReceiver = new NoteReceiver(this, notesArray, compLock, curNote);
+
+        // Receivers that parses raw data into complete messages.
+        mConnectFramer = new MidiFramer(mNoteReceiver);
+
+        // Setup a menu to select an input source.
+        mLogSenderSelector = new MidiOutputPortSelector(mMidiManager, this,
+                R.id.spinner_senders) {
+
+            @Override
+            public void onPortSelected(final MidiPortWrapper wrapper) {
+                Log.d("getPortIndex", Integer.toString(wrapper.getPortIndex()));
+                super.onPortSelected(wrapper);
+                if (wrapper != null) {
+//                    log(MidiPrinter.formatDeviceInfo(wrapper.getDeviceInfo()));
+                }
+            }
+        };
+
+        mDirectReceiver = new MyDirectReceiver();
+        mLogSenderSelector.getSender().connect(mDirectReceiver);
+
+        // Tell the virtual device to log its messages here..
+        MidiScope.setScopeLogger(this, notesArray, compLock, curNote);
+
+
         TextView versionText = (TextView)findViewById(R.id.versionLabel);
         versionText.setText("SeeScoreLib Version:" + SScore.getVersion().toString());
         hideBeat();
@@ -373,6 +486,11 @@ public class MainActivity extends Activity {
     public Object onRetainNonConfigurationInstance ()
     {
         return currentScore;
+    }
+
+    @Override
+    public void onPointerCaptureChanged(boolean hasCapture) {
+
     }
 
     private enum PlayPause { play, pause};
@@ -1294,4 +1412,118 @@ public class MainActivity extends Activity {
 	            return super.onOptionsItemSelected(item);
 	    }
 	}
+
+
+
+
+
+
+
+
+
+
+
+	/*
+	* FROM fragments/MainActivity
+	*
+	*
+	* */
+
+
+
+    @Override
+    public void onDestroy() {
+        mLogSenderSelector.onClose();
+        // The scope will live on as
+        // a service so we need to tell it to stop
+        // writing log messages to this Activity.
+        MidiScope.setScopeLogger(null, null, null, 0);
+        super.onDestroy();
+    }
+
+    public void onToggleScreenLock(View view) {
+        boolean checked = ((CheckBox) view).isChecked();
+        if (checked) {
+            getWindow().addFlags(
+                    WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        } else {
+            getWindow().clearFlags(
+                    WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        }
+    }
+    public void onToggleShowRaw(View view) {
+        mShowRaw = ((CheckBox) view).isChecked();
+    }
+
+    public void onClearLog(@SuppressWarnings("unused") View view) {
+        logLines.clear();
+        logFromUiThread("");
+    }
+
+
+
+    /**
+     * @param string
+     */
+    @Override
+    public void log(final String string) {
+//        runOnUiThread(new Runnable() {
+//            @Override
+//            public void run() {
+//                logFromUiThread(string);
+//            }
+//        });
+    }
+
+    // Log a message to our TextView.
+    // Must run on UI thread.
+    private void logFromUiThread(String s) {
+        logLines.add(s);
+        if (logLines.size() > MAX_LINES) {
+            logLines.removeFirst();
+        }
+        // Render line buffer to one String.
+        StringBuilder sb = new StringBuilder();
+        for (String line : logLines) {
+            sb.append(line).append('\n');
+        }
+        mLog.setText(sb.toString());
+        mScroller.fullScroll(View.FOCUS_DOWN);
+    }
+
+    private void logByteArray(String prefix, byte[] value, int offset, int count) {
+        StringBuilder builder = new StringBuilder(prefix);
+        for (int i = 0; i < count; i++) {
+            builder.append(String.format("0x%02X", value[offset + i]));
+            if (i != count - 1) {
+                builder.append(", ");
+            }
+        }
+        log(builder.toString());
+    }
+
+    public void openSummaryPage(int incorrectNotes, int notesCount) {
+        Log.d("openSummaryPage", "incorrect notes: " + incorrectNotes + " totalNotes: " + notesCount);
+        Intent intentMain = new Intent(this , SummaryActivity.class);
+        intentMain.putExtra("filename", filename);
+        SharedPreferences.Editor sharedPreferences = getSharedPreferences(SUMMARY_PREFS, MODE_PRIVATE).edit();
+
+        sharedPreferences.putInt(filename + "incorrectNotes", incorrectNotes);
+        sharedPreferences.putInt(filename + "totalNotes", notesCount);
+        sharedPreferences.apply();
+        MainActivity.this.startActivity(intentMain);
+        finish();
+    }
+    class MyDirectReceiver extends MidiReceiver {
+        @Override
+        public void onSend(byte[] data, int offset, int count,
+                           long timestamp) throws IOException {
+            if (mShowRaw) {
+                String prefix = String.format("0x%08X, ", timestamp);
+                logByteArray(prefix, data, offset, count);
+            }
+            // Send raw data to be parsed into discrete messages.
+            mConnectFramer.send(data, offset, count, timestamp);
+        }
+    }
 }

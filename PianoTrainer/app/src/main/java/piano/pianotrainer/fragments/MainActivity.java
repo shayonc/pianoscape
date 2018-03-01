@@ -146,6 +146,7 @@ public class MainActivity extends AppCompatActivity implements ScopeLogger {
 
             @Override
             public void onPortSelected(final MidiPortWrapper wrapper) {
+                Log.d("getPortIndex", Integer.toString(wrapper.getPortIndex()));
                 super.onPortSelected(wrapper);
                 if (wrapper != null) {
                     log(MidiPrinter.formatDeviceInfo(wrapper.getDeviceInfo()));
