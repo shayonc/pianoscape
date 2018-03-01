@@ -29,10 +29,10 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 
-import piano.pianotrainer.fragments.MainActivity;
 import piano.pianotrainer.fragments.MusicDialogFragment;
 import piano.pianotrainer.model.ChordComparator;
 import piano.pianotrainer.model.Note;
+import uk.co.dolphin_com.seescoreandroid.MainActivity;
 
 /**
  * Convert incoming MIDI messages to a string and write them to a ScopeLogger.
