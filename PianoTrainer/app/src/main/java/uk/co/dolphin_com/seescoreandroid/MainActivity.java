@@ -733,6 +733,7 @@ public class MainActivity extends Activity {
 				nextFileIndex = (index + 1) % files.size();
 				if (sc != null)
 				{
+				    Log.d("SeescoreMain", file.getName());
 					currentFile = file;
 					currentScore = sc;
                     return sc;

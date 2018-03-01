@@ -15,6 +15,7 @@ import java.io.File;
 import java.util.List;
 import piano.pianotrainer.R;
 import piano.pianotrainer.parser.XMLMusicParser;
+import uk.co.dolphin_com.seescoreandroid.*;
 
 /**
  * Created by Matthew on 11/24/2017.
@@ -34,8 +35,7 @@ public class MusicDialogFragment extends DialogFragment {
                         String filename = bundle.getString("filename","");
                         String rootpath = bundle.getString("xmlFilePath","");
                         if (which == 0) { // own pace
-                            Intent intentMain = new Intent(getActivity() , MainActivity.class);
-                            intentMain.putExtra("filename", filename);
+                            Intent intentMain = new Intent(getActivity() , uk.co.dolphin_com.seescoreandroid.MainActivity.class);
                             getActivity().startActivity(intentMain);
                         }
                         else if (which == 1) { // edit xml file
