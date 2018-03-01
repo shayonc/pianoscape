@@ -10,6 +10,7 @@ import android.content.SharedPreferences;
 import android.content.res.AssetManager;
 import android.media.midi.MidiManager;
 import android.media.midi.MidiReceiver;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -1498,6 +1499,21 @@ public class MainActivity extends Activity implements ScopeLogger {
         MainActivity.this.startActivity(intentMain);
         finish();
     }
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        if(android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT && hasFocus) {
+            getWindow().getDecorView().setSystemUiVisibility(
+                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                            | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                            | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                            | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                            | View.SYSTEM_UI_FLAG_FULLSCREEN
+                            | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+        }
+    }
+
     class MyDirectReceiver extends MidiReceiver {
         @Override
         public void onSend(byte[] data, int offset, int count,
