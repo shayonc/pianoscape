@@ -348,8 +348,8 @@ public class MainActivity extends Activity implements ScopeLogger {
         MidiScope.setScopeLogger(this, notesArray, compLock, curNote);
 
 
-        TextView versionText = (TextView)findViewById(R.id.versionLabel);
-        versionText.setText("SeeScoreLib Version:" + SScore.getVersion().toString());
+//        TextView versionText = (TextView)findViewById(R.id.versionLabel);
+//        versionText.setText("SeeScoreLib Version:" + SScore.getVersion().toString());
         hideBeat();
         final ScrollView sv = (ScrollView) findViewById(R.id.scrollView1);
         sv.addView(ssview);

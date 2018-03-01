@@ -77,7 +77,7 @@
         android:layout_height="wrap_content"
         android:singleLine="true"
         android:textStyle="normal"
-        android:text="SeeScoreLib Version X.XX"
+        android:text=""
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         android:layout_alignParentBottom="true">
@@ -102,7 +102,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceMedium"
-        android:text="Tempo:"
+        android:text=""
         android:id="@+id/tempoLabel"
         android:textStyle="normal"
         android:singleLine="true"
@@ -140,8 +140,8 @@
         android:layout_alignEnd="@+id/zoomText" />
 
     <ImageButton
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="25dp"
+        android:layout_height="25dp"
         android:id="@+id/playButton"
         android:src="@android:drawable/ic_media_play"
         android:onClick="play_pause"
@@ -150,8 +150,8 @@
         android:layout_alignStart="@+id/metronomeSwitch" />
 
     <ImageButton
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="25dp"
+        android:layout_height="25dp"
         android:id="@+id/stopButton"
         android:src="@drawable/ic_media_stop"
         android:onClick="stop_play"
