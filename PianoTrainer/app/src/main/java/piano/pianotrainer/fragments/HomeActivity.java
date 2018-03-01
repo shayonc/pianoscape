@@ -131,7 +131,7 @@ public class HomeActivity extends AppCompatActivity {
     }
     public void loadMusicFileList() {
         try {
-            File file = new File(directoryPath);
+            File file = new File(xmlFilePath);
             //if Piano folder doesn't exist then create one
             if (!file.exists()) {
                 file.mkdir();

@@ -71,6 +71,8 @@ public class MainActivity extends Activity {
     private static final float initialZoom = 0.5F;
     private static final int initialZoomSliderVal = (int)(100 * (initialZoom - kMinZoom) / (kMaxZoom-kMinZoom));
     private static final int kPlayLoopRepeats = 7;
+    private String filename = "";
+    private String rootpath = "";
 
     /**
 	 * set true to clear files in internal directory and reload from assets
@@ -167,6 +169,10 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        filename = getIntent().getStringExtra("filename");
+        Log.d("SEE_SCORE_MAIN", filename);
+        rootpath = getIntent().getStringExtra("rootpath");
+        Log.d("SEE_SCORE_MAIN", rootpath);
         //Creating the cursor view
         final CursorView cursorView = new CursorView(this, new CursorView.OffsetCalculator() {
             public float getScrollY() {
@@ -481,16 +487,20 @@ public class MainActivity extends Activity {
 	 *
 	 * @return the List of {@link File}.
 	 */
-	private List<File> sourceXMLFiles()
+	private File sourceXMLFiles()
 	{
-		List<File> files = getXMLFiles();
-		List<String> assetsFiles = getXMLAssetsFilenames();
-		if (files.size() >= assetsFiles.size())
-		{
-			return files;
-		}
-		else
-			return moveFilesToInternalStorage();
+//		List<File> files = getXMLFiles();
+//		List<String> assetsFiles = getXMLAssetsFilenames();
+//		if (files.size() >= assetsFiles.size())
+//		{
+//			return files;
+//		}
+//		else
+//			return moveFilesToInternalStorage();
+        String fullPath = rootpath + File.separator + filename + ".xml";
+        File file = new File(fullPath);
+        return file;
+
 	}
 
 	/**
@@ -723,25 +733,31 @@ public class MainActivity extends Activity {
 	 */
 	private SScore loadNextFile()
 	{
-		List<File> files = sourceXMLFiles();
+		File file = sourceXMLFiles();
 		int index = 0;
-		for (File file : files)
-		{
-			if (index == nextFileIndex)
-			{
-				SScore sc = loadFile(file);
-				nextFileIndex = (index + 1) % files.size();
-				if (sc != null)
-				{
-				    Log.d("SeescoreMain", file.getName());
-					currentFile = file;
-					currentScore = sc;
-                    return sc;
-                }
-			}
-			++index;
-		}
-		return null;
+        SScore sc = loadFile(file);
+        Log.d("SeescoreMain", file.getName());
+        currentFile = file;
+        currentScore = sc;
+        return sc;
+
+//        for (File file : files)
+//		{
+//			if (index == nextFileIndex)
+//			{
+//				SScore sc = loadFile(file);
+//				nextFileIndex = (index + 1) % files.size();
+//				if (sc != null)
+//				{
+//				    Log.d("SeescoreMain", file.getName());
+//					currentFile = file;
+//					currentScore = sc;
+//                    return sc;
+//                }
+//			}
+//			++index;
+//		}
+//		return null;
 	}
 
 	/** show the text in the transpose TextView  */

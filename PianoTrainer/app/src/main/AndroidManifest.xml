@@ -76,7 +76,6 @@
             android:theme="@style/AppTheme.NoActionBar"></activity>
         <activity
             android:name="uk.co.dolphin_com.seescoreandroid.MainActivity"
-            android:theme="@android:style/Theme.DeviceDefault"
             ></activity>
     </application>
 

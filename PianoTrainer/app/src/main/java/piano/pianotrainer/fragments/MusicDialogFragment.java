@@ -36,6 +36,8 @@ public class MusicDialogFragment extends DialogFragment {
                         String rootpath = bundle.getString("xmlFilePath","");
                         if (which == 0) { // own pace
                             Intent intentMain = new Intent(getActivity() , uk.co.dolphin_com.seescoreandroid.MainActivity.class);
+                            intentMain.putExtra("filename", filename);
+                            intentMain.putExtra("rootpath", rootpath);
                             getActivity().startActivity(intentMain);
                         }
                         else if (which == 1) { // edit xml file
