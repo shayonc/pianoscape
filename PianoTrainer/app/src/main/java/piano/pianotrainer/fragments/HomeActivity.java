@@ -95,7 +95,7 @@ public class HomeActivity extends AppCompatActivity {
         );
 
         // check for file changes
-        observer = new FileObserver(directoryPath) {
+        observer = new FileObserver(xmlFilePath) {
             @Override
             public void onEvent(int event, String file) {
 

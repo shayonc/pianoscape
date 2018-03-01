@@ -108,6 +108,7 @@ public class MainActivity extends AppCompatActivity implements ScopeLogger {
             xmlparser.parseMXL(); // parse the .mxl file
         }
         List<Note> parsedNotes = xmlparser.parseXML(); // parse the .xml file
+        Log.d("MainActivity SIZEEE", Integer.toString(parsedNotes.size()));
         comparison = new ComparisonSetup();
         String toPrint = "";
         try {
