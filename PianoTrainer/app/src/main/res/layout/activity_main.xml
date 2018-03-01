@@ -24,10 +24,8 @@
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
         android:layout_alignParentTop="true"
-        android:maxLines="1"
         android:layout_alignRight="@+id/scrollView1"
-        android:text="0 semitones">
-    </TextView>
+        android:maxLines="1"></TextView>
 
     <ScrollView
         android:id="@+id/scrollView1"
@@ -87,16 +85,13 @@
         android:id="@+id/zoomText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/metronomeSwitch"
+        android:layout_alignEnd="@+id/zoomSlider"
         android:singleLine="true"
         android:text="1.0"
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:textSize="16sp"
-        android:textStyle="normal"
-        android:layout_above="@+id/metronomeSwitch"
-        android:layout_toLeftOf="@+id/playButton"
-        android:layout_toStartOf="@+id/playButton"
-        android:layout_marginRight="11dp"
-        android:layout_marginEnd="11dp"></TextView>
+        android:textStyle="normal"></TextView>
 
     <TextView
         android:layout_width="wrap_content"
@@ -130,70 +125,69 @@
         android:id="@+id/tempoText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:singleLine="true"
-        android:text="80"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:textStyle="normal"
-        android:layout_alignTop="@+id/tempoSlider"
+        android:layout_alignEnd="@+id/zoomText"
         android:layout_alignRight="@+id/zoomText"
-        android:layout_alignEnd="@+id/zoomText" />
+        android:layout_below="@+id/tempoSlider"
+        android:singleLine="true"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textStyle="normal" />
 
     <ImageButton
-        android:layout_width="25dp"
-        android:layout_height="25dp"
         android:id="@+id/playButton"
-        android:src="@android:drawable/ic_media_play"
-        android:onClick="play_pause"
-        android:layout_alignTop="@+id/stopButton"
-        android:layout_alignLeft="@+id/metronomeSwitch"
-        android:layout_alignStart="@+id/metronomeSwitch" />
-
-    <ImageButton
         android:layout_width="25dp"
         android:layout_height="25dp"
+        android:layout_alignStart="@+id/metronomeSwitch"
+        android:layout_alignTop="@+id/zoomText"
+        android:onClick="play_pause"
+        android:src="@android:drawable/ic_media_play" />
+
+    <ImageButton
         android:id="@+id/stopButton"
-        android:src="@drawable/ic_media_stop"
+        android:layout_width="25dp"
+        android:layout_height="25dp"
+        android:layout_alignParentEnd="true"
+        android:layout_alignTop="@+id/metronomeSwitch"
         android:onClick="stop_play"
-        android:layout_above="@+id/metronomeSwitch"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true" />
+        android:src="@drawable/ic_media_stop" />
 
     <SeekBar
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
         android:id="@+id/zoomSlider"
+        android:layout_width="150dp"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginEnd="24dp"
+        android:layout_toEndOf="@+id/zoomLabel"
+        android:layout_toStartOf="@+id/playButton"
         android:clickable="true"
         android:max="100"
-        android:progress="50"
-        android:layout_alignTop="@+id/zoomText"
-        android:layout_toStartOf="@+id/zoomText"
-        android:layout_toLeftOf="@+id/zoomText" />
+        android:progress="50" />
 
     <TextView
+        android:id="@+id/zoomLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:text="Zoom:"
-        android:id="@+id/zoomLabel"
-        android:layout_toLeftOf="@+id/zoomSlider"
-        android:layout_toStartOf="@+id/zoomSlider"
-        android:layout_alignTop="@+id/zoomSlider"
+        android:layout_alignBottom="@+id/versionLabel"
         android:layout_alignParentLeft="true"
-        android:layout_alignBottom="@+id/zoomSlider" />
+        android:layout_alignTop="@+id/zoomText"
+        android:text="Zoom:"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
 
     <CheckBox
         android:id="@+id/metronomeSwitch"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="metronome"
+        android:visibility="invisible"
         android:layout_alignTop="@+id/tempoText"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true" />
+
     <Spinner
         android:id="@+id/spinner_senders"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:entries="@array/senders"
-        />
+        android:layout_above="@+id/scrollView1"
+        android:layout_alignEnd="@+id/transposeLabel"
+        android:entries="@array/senders" />
 
 </RelativeLayout>
