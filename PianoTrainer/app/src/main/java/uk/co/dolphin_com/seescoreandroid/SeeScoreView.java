@@ -464,10 +464,13 @@ public class SeeScoreView extends LinearLayout {
 						new Handler(Looper.getMainLooper()).post(new Runnable(){
 
 							public void run() {
-								Runnable waitingRunnable = abortStack.pop();
-								abortStack.clear(); // remove any previous completion handlers - we only use the last
-								if (waitingRunnable != null) {
-									waitingRunnable.run();
+								Runnable waitingRunnable;
+								if (!abortStack.empty()) {
+									waitingRunnable = abortStack.pop();
+									abortStack.clear(); // remove any previous completion handlers - we only use the last
+									if (waitingRunnable != null) {
+										waitingRunnable.run();
+									}
 								}
 							}
 						});
