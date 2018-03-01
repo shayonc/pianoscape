@@ -456,7 +456,9 @@ public class SeeScoreView extends LinearLayout {
 				{
 					{
 						try {
-							layoutThread.join(); // await completion of abort
+							if (layoutThread != null) {
+								layoutThread.join(); // await completion of abort
+							}
 						} catch (InterruptedException e) {
 							// don't care if interrupted during join
 						}
