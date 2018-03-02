@@ -1,6 +1,6 @@
 # PianoScape
 
-Piano is root folder as per the tree structure below:
+Piano is root folder. XML files should be placed in XMLFiles folder:
 
 Piano/
 
@@ -9,7 +9,3 @@ Piano/
 │   ├── Serenade.xml
 
 │   ├── Prelude.xml
-
-└── Serenade.mxl
-
-└── Prelude.mxl
