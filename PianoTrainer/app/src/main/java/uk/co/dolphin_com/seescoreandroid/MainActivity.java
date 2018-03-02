@@ -1426,6 +1426,8 @@ public class MainActivity extends Activity implements ScopeLogger {
         // writing log messages to this Activity.
         MidiScope.setScopeLogger(null, null, null, 0);
         super.onDestroy();
+        Runtime.getRuntime().gc();
+        System.gc();
     }
 
     public void onToggleScreenLock(View view) {
