@@ -120,7 +120,7 @@ public class HomeActivity extends AppCompatActivity {
                 startActivity(LaunchIntent);
 
                 Toast toast;
-                toast = Toast.makeText(getApplicationContext(),"Please import an .mxl file into the /Piano folder.",Toast.LENGTH_LONG);
+                toast = Toast.makeText(getApplicationContext(),"Please import an .xml file into the /Piano/XMLFiles folder.",Toast.LENGTH_LONG);
                 toast.show();
             }
             catch (Exception e) {
