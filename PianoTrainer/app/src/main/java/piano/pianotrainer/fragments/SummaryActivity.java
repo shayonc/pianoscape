@@ -35,11 +35,11 @@ public class SummaryActivity extends AppCompatActivity {
         String summaryMessage = "";
 
             accuracyRate = ((double) correctNotes / (double) totalNotes) *100;
-            summaryMessage = "Music File: " + filename +
+            summaryMessage = getString(R.string.music_file) + filename +
                     System.getProperty("line.separator") +
-                    "Notes correctly played: " + correctNotes + "/" + totalNotes +
+                    getString(R.string.correct_notes_played) + correctNotes + "/" + totalNotes +
                     System.getProperty("line.separator") +
-                    "Accuracy: " + String.format("%.2f", accuracyRate) + "%";
+                    getString(R.string.accuracy_text) + String.format("%.2f", accuracyRate) + "%";
         summaryTextView.setText(summaryMessage);
         summaryTextView.setTextSize(21);
     }

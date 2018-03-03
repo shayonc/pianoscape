@@ -19,5 +19,9 @@
         <item>"none"</item>
     </string-array>
     <string name="title_activity_summary">Summary</string>
-    <string name="title_activity_webview">Webview</string>
+    <string name="music_file">Music File: </string>
+    <string name="correct_notes_played">Notes correctly played: </string>
+    <string name="accuracy_text">Accuracy: </string>
+    <string name="folder_info">Please import an .xml file into the /Piano/XMLFiles folder.</string>
+    <string name="zoom_text">Zoom:</string>
 </resources>

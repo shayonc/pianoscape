@@ -172,7 +172,7 @@
         android:layout_alignBottom="@+id/versionLabel"
         android:layout_alignParentLeft="true"
         android:layout_alignTop="@+id/zoomText"
-        android:text="Zoom:"
+        android:text="@string/zoom_text"
         android:textAppearance="?android:attr/textAppearanceMedium" />
 
     <CheckBox
