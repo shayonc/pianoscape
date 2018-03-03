@@ -61,6 +61,9 @@ public class ScoreProcessor {
     static final int TRAIN_WIDTH = 30;
     static final int TRAIN_HEIGHT = 80;
 
+    //how much W/L or L/W is greater than for it to be wide or long
+    static final double WL_RATIO = 1.5;
+
     //Information channel (alpha) - inv since 0 is white, 255 is black
     Mat originalGrayInvImg;
     //Just the first 3 channels (all 0s)
@@ -69,6 +72,8 @@ public class ScoreProcessor {
     Mat binarizedImg;
     Mat isoStaffLinesImg;
     public Mat noStaffLinesImg;
+
+    public Mat tmpImg;
 
     final int MAX_STAFF_LINE_THICKNESS = 2; //TODO detect this dynamically
     List<Integer> staffLineRowIndices;
@@ -118,7 +123,7 @@ public class ScoreProcessor {
         binarizedImg = new Mat(bmpImg.getHeight(), bmpImg.getWidth(), CvType.CV_8UC1);
         isoStaffLinesImg = new Mat(bmpImg.getHeight(), bmpImg.getWidth(), CvType.CV_8UC1);
         noStaffLinesImg = new Mat(bmpImg.getHeight(), bmpImg.getWidth(), CvType.CV_8UC1);
-
+        tmpImg = new Mat();
         //android uses BGR default -> switch B and R channels
 //        Imgproc.cvtColor(originalImg, originalImg, Imgproc.COLOR_BGRA2RGBA);
         //Used to train for various symbol by passing in a label and test data
@@ -403,12 +408,16 @@ public class ScoreProcessor {
         return false;
     }
 
+
+
+
+
     //Trains the knn with a label (ID for symbol) and the bitmap img
     //All images must be formatted to be the same size (resize) and a horizontal vector (reshape)
-    public void addSample(Bitmap bmp , int label){
+    public void addSample(Bitmap bmp , int label, boolean save){
         //most notes around 30x80
         Size size = new Size(TRAIN_WIDTH,TRAIN_HEIGHT);
-        Mat resizedImg = new Mat();
+        Mat resizedImg = new Mat(TRAIN_WIDTH, TRAIN_HEIGHT, CvType.CV_8UC1);
         Mat curFeatureRgba = new Mat();
         //we only want one 8bit channel of interest to train the knn process (curFeatureR)
         Mat curFeatureGba, curFeatureR;
@@ -432,6 +441,9 @@ public class ScoreProcessor {
         }
 
         Imgproc.resize(curFeatureR, resizedImg, size);
+        if(save){
+            tmpImg = resizedImg.clone();
+        }
         //most examples suggest we need float data for knn
         resizedImg.convertTo(resizedImg, CvType.CV_32F);
         //for opencv ml, each feature has to be a single row
@@ -480,6 +492,66 @@ public class ScoreProcessor {
             }
         }
         return true;
+    }
+
+    public boolean isRectLong(Rect r){
+        return ((double)r.height()) / ((double)r.width()) > WL_RATIO;
+    }
+
+    public boolean isRectWide(Rect r){
+        return ((double)r.width()) / ((double)r.height()) > WL_RATIO;
+    }
+
+    public boolean isLongerThanStafflineDiff(Rect r){
+        return r.height() > staffLineDiff;
+    }
+
+    public int wholeHalfRestFilter(Rect r){
+        int rY = (r.top + r.bottom )/2;
+        int curStaffPos = 0;
+        for(int i = 0; i < staffs.size(); i++){
+            for(int j = 0; j < staffs.get(i).size() - 1 ; j++){
+                curStaffPos = staffs.get(i).get(j);
+                if(rY - staffs.get(i).get(j) < staffLineDiff){
+                    if(rY -curStaffPos < staffLineDiff){
+                        if(rY - curStaffPos < staffs.get(i).get(j+1) - rY){
+                            return KnnLabels.WHOLE_REST;
+                        }
+                        else{
+                            return KnnLabels.HALF_REST;
+                        }
+                    }
+                }
+            }
+        }
+        //if the midpoint doesn't exist within stafflines
+        return 10;
+    }
+
+    public void dotFilter(){
+        List<Integer> curStaffResults;
+        Rect curRect;
+        for(int i = 0; i < knnResults.size(); i++){
+            for(int j = 0; j < knnResults.get(i).size(); j++){
+                if(knnResults.get(i).get(j) == KnnLabels.DOT){
+                    curRect = staffObjects.get(i).get(j);
+                    //length bigger than width by a big factor say its barline
+                    if(isRectLong(curRect) && isLongerThanStafflineDiff(curRect)){
+                        curStaffResults = knnResults.get(i);
+                        curStaffResults.set(j, KnnLabels.BAR);
+                        knnResults.set(i, curStaffResults);
+                    }
+                    //if its noticably wider - its a whole/half rest
+                    if(isRectWide(curRect) && !isLongerThanStafflineDiff(curRect)){
+                        curStaffResults = knnResults.get(i);
+                        curStaffResults.set(j, wholeHalfRestFilter(curRect));
+                        knnResults.set(i, curStaffResults);
+                    }
+                    //if neither ifs prompted its a dot
+
+                }
+            }
+        }
     }
 
     //getter

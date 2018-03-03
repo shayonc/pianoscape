@@ -15,25 +15,34 @@ public final class KnnLabels {
     public static final int EIGHTH_REST  = 12;
     public static final int ONE_SIXTEENTH_REST  = 13;
     public static final int WHOLE_NOTE  = 14;
+
     //two whole notes positioned vertically
     public static final int WHOLE_NOTE_2  = 15;
+    //after heuristic classifier
+    public static final int WHOLE_REST  = 16;
+    public static final int HALF_REST  = 17;
+
     //accidentals
     public static final int FLAT_ACC = 20;
     public static final int SHARP_ACC = 21;
     public static final int NATURAL_ACC = 22;
     //time signatures
     public static final int TIME_C = 30;
-    public static final int TIME_44 = 31;
+    public static final int TIME_22 = 31;
     public static final int TIME_24 = 32;
-    public static final int TIME_68 = 33;
-    public static final int TIME_34 = 34;
+    public static final int TIME_34 = 33;
+    public static final int TIME_44 = 34;
+    public static final int TIME_68 = 35;
+
 
     //no samples of time 34 - omit for now
     //others
     public static final int TIE = 40;
     public static final int DYNAMICS_F = 41;
     public static final int DOT = 42;
-    public static final int BRACE = 43  ;
+    public static final int BRACE = 43;
+    public static final int BAR = 44;
+
 
 
 

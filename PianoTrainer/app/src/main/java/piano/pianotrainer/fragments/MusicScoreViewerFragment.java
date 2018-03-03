@@ -53,7 +53,7 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
      */
     private static final String STATE_CURRENT_PAGE_INDEX = "current_page_index";
 
-    private static final String FILENAME = "handel_sonatina.pdf";
+    private static final String FILENAME = "zimmer_pirate.pdf";
 
     private static final String TRAINING = "training_set";
 
@@ -256,6 +256,7 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
         AssetManager am = res.getAssets();
         Bitmap curBmp;
         InputStream inputstream;
+        Bitmap tmpBmp;
         try{
             String fileList[] = am.list(fileDir);
 
@@ -266,7 +267,16 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
                     inputstream=appContext.getAssets().open(fileDir + "/" +fileList[i]);
                     curBmp = BitmapFactory.decodeStream(inputstream);
                     Log.d("",fileList[i]);
-                    scoreProc.addSample(curBmp, label);
+                    if(fileDir.contains("g_clef") && i == 0){
+                        scoreProc.addSample(curBmp, label, true);
+                        tmpBmp = Bitmap.createBitmap(scoreProc.tmpImg.width(),scoreProc.tmpImg.height(),Bitmap.Config.ARGB_8888);
+                        Utils.matToBitmap(scoreProc.tmpImg, tmpBmp);
+                        ImageUtils.saveImageToExternal(tmpBmp, "resizedClef.bmp");
+                        ImageUtils.saveImageToExternal(curBmp, "originalClef.bmp");
+                    }
+                    else{
+                        scoreProc.addSample(curBmp, label, false);
+                    }
                 }
                 return true;
             }
@@ -401,6 +411,7 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
                     addTrainingImages("training_set/time_four_four", KnnLabels.TIME_44);
                     addTrainingImages("training_set/time_three_four", KnnLabels.TIME_34);
                     addTrainingImages("training_set/time_six_eight", KnnLabels.TIME_68);
+                    addTrainingImages("training_set/time_two_two", KnnLabels.TIME_22);
                     addTrainingImages("training_set/time_two_four", KnnLabels.TIME_24);
                     addTrainingImages("training_set/common_time", KnnLabels.TIME_C);
                     //Rests
@@ -436,6 +447,7 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
 //                    }
 
                     List<List<Integer>> knnResults = scoreProc.getKnnResults();
+                    scoreProc.dotFilter();
                     Bitmap testBmp = Bitmap.createBitmap(scoreProc.noStaffLinesImg.width(),scoreProc.noStaffLinesImg.height(),Bitmap.Config.ARGB_8888);
                     Utils.matToBitmap(scoreProc.noStaffLinesImg, testBmp);
 
@@ -470,6 +482,8 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
                     paintTxt.setColor(Color.RED);
                     paintTxt.setTextSize(30);
 
+                    List<Boolean[]> sonatinaNoteGroups = scoreProc.getSonatinaNoteGroups();
+
                     for(int i = 0; i < staffObjects.size(); i++){
                         for(int j = 0; j < staffObjects.get(i).size(); j++){
                             if(knnResults.get(i).get(j)/10 == 0){
@@ -489,6 +503,25 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
                             }
                             cnvs.drawText(knnResults.get(i).get(j).toString(),
                                     staffObjects.get(i).get(j).left, staffObjects.get(i).get(j).top, paintTxt);
+//                            if(!sonatinaNoteGroups.get(i)[j]){
+//                                if(knnResults.get(i).get(j)/10 == 0){
+//                                    cnvs.drawRect(staffObjects.get(i).get(j), paintR);
+//                                }
+//                                if(knnResults.get(i).get(j)/10 == 1){
+//                                    cnvs.drawRect(staffObjects.get(i).get(j), paintB);
+//                                }
+//                                if(knnResults.get(i).get(j)/10 == 2){
+//                                    cnvs.drawRect(staffObjects.get(i).get(j), paintG);
+//                                }
+//                                if(knnResults.get(i).get(j)/10 == 3){
+//                                    cnvs.drawRect(staffObjects.get(i).get(j), paintM);
+//                                }
+//                                if(knnResults.get(i).get(j)/10 == 4){
+//                                    cnvs.drawRect(staffObjects.get(i).get(j), paintC);
+//                                }
+//                                cnvs.drawText(knnResults.get(i).get(j).toString(),
+//                                        staffObjects.get(i).get(j).left, staffObjects.get(i).get(j).top, paintTxt);
+//                            }
                         }
                     }
                     mImageView.setImageBitmap(testBmp);
