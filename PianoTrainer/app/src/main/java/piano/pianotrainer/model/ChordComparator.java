@@ -16,12 +16,12 @@ public class ChordComparator {
     //int cumIncorrectCount;
     //int cumCorrectCount;
     boolean isFirstAttempt;
-    List<Note> expNotes = new ArrayList<>();
+    List<uk.co.dolphin_com.sscore.playdata.Note> expNotes = new ArrayList<>();
 
-    public ChordComparator(List<Note> notes) {
+    public ChordComparator(List<uk.co.dolphin_com.sscore.playdata.Note> notes) {
         //add non tie off notes to expected list
-        for(Note note: notes){
-            if(!note.isTieStop()){
+        for(uk.co.dolphin_com.sscore.playdata.Note note: notes){
+            if(!note.rest){
                 expNotes.add(note);
             }
         }
@@ -33,8 +33,8 @@ public class ChordComparator {
     }
     // returns remaining number of correct notes to wait for
     public int compareNotes(Note note){
-        for (Note expNote: expNotes) {
-            if (expNote.getOctave() == note.getOctave() && expNote.getStep().equals(note.getStep())) {
+        for (uk.co.dolphin_com.sscore.playdata.Note expNote: expNotes) {
+            if (expNote.midiPitch == note.getMidiData()){
                 correctCount++;
                 //cumCorrectCount++;
                 //expNotes.remove(expNote);
@@ -48,8 +48,8 @@ public class ChordComparator {
     }
 
     public void displayExpected(){
-        for(Note note: expNotes){
-            Log.d("chordComparitor", "Expected octave " + note.getOctave() + " step " + note.getStep());
+        for(uk.co.dolphin_com.sscore.playdata.Note note: expNotes){
+            Log.d("chordComparitor", "Expected octave " + note.midiPitch / 12 + " step " + note.midiPitch % 12);
         }
         Log.d("chordComparitor", "End of expNotes");
     }

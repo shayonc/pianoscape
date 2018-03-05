@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.concurrent.locks.Lock;
 
 import piano.pianotrainer.model.Note;
+import uk.co.dolphin_com.seescoreandroid.Player;
 
 /**
  * Virtual MIDI Device that logs messages to a ScopeLogger.
@@ -59,10 +60,10 @@ public class MidiScope extends MidiDeviceService {
         return mScopeLogger;
     }
 
-    public static void setScopeLogger(ScopeLogger logger, ArrayList<List<Note>> notesArray, Lock compLock, int curNote) {
+    public static void setScopeLogger(ScopeLogger logger, ArrayList<List<uk.co.dolphin_com.sscore.playdata.Note>> notesArray, Lock compLock, int curNote, Player player) {
         if (logger != null) {
             // Receiver that prints the messages.
-            NoteReceiver noteReceiver = new NoteReceiver(logger, notesArray, compLock, curNote);
+            NoteReceiver noteReceiver = new NoteReceiver(logger, notesArray, compLock, curNote, player);
             mDeviceFramer = new MidiFramer(noteReceiver);
         }
         mScopeLogger = logger;

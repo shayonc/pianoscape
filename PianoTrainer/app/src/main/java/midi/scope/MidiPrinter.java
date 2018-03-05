@@ -134,6 +134,7 @@ public class MidiPrinter {
 
             note.setStep(noteNum);
             note.setOctave(octave);
+            note.setMidiData(dataVal);
 
             if(msg_status == "NoteOn"){
                 note.setNoteOn(true);

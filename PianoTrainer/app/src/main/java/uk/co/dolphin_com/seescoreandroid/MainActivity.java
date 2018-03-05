@@ -324,12 +324,6 @@ public class MainActivity extends Activity implements ScopeLogger {
         // Setup MIDI
         mMidiManager = (MidiManager) getSystemService(MIDI_SERVICE);
 
-        // Receiver that prints the messages.
-        mNoteReceiver = new NoteReceiver(this, notesArray, compLock, curNote);
-
-        // Receivers that parses raw data into complete messages.
-        mConnectFramer = new MidiFramer(mNoteReceiver);
-
         // Setup a menu to select an input source.
         mLogSenderSelector = new MidiOutputPortSelector(mMidiManager, this,
                 R.id.spinner_senders) {
@@ -344,11 +338,8 @@ public class MainActivity extends Activity implements ScopeLogger {
             }
         };
 
-        mDirectReceiver = new MyDirectReceiver();
-        mLogSenderSelector.getSender().connect(mDirectReceiver);
-
         // Tell the virtual device to log its messages here..
-//        MidiScope.setScopeLogger(this, notesArray, compLock, curNote);
+
 
 
 //        TextView versionText = (TextView)findViewById(R.id.versionLabel);
@@ -1263,6 +1254,7 @@ public class MainActivity extends Activity implements ScopeLogger {
                     grandNotes = player.getAllNotes();
                     // TODO: Figure out how to setScopeLogger
 //                    MidiScope.setScopeLogger(this, grandNotes, compLock, curNote);
+
                     break;
 
                 case Started:
@@ -1282,6 +1274,8 @@ public class MainActivity extends Activity implements ScopeLogger {
                     ssview.setCursorAtBar(currentBar, SeeScoreView.CursorType.line, 0);
                     player.startAt(currentBar, true/*countIn*/);
                     grandNotes = player.getAllNotes();
+
+
                     break;
             }
 
@@ -1291,6 +1285,26 @@ public class MainActivity extends Activity implements ScopeLogger {
             ssview.setCursorAtBar(currentBar, SeeScoreView.CursorType.line, 0);
             player.startAt(currentBar, true/*countIn*/);
             grandNotes = player.getAllNotes();
+
+            // Receiver that prints the messages.
+            mNoteReceiver = new NoteReceiver(this, grandNotes, compLock, curNote, player);
+
+            // Receivers that parses raw data into complete messages.
+            mConnectFramer = new MidiFramer(mNoteReceiver);
+
+            mDirectReceiver = new MyDirectReceiver();
+            mLogSenderSelector.getSender().connect(mDirectReceiver);
+            MidiScope.setScopeLogger(this, grandNotes, compLock, curNote, player);
+
+
+            for(List<Note> notes: grandNotes){
+                for(Note note: notes){
+                    if(note.rest){
+                        Log.d("RestNote:", note.toString());
+                    }
+                    Log.d("PrintingNotes:", note.toString());
+                }
+            }
         }
         updatePlayPauseButtonImage();
     }
@@ -1435,10 +1449,11 @@ public class MainActivity extends Activity implements ScopeLogger {
         // The scope will live on as
         // a service so we need to tell it to stop
         // writing log messages to this Activity.
-        MidiScope.setScopeLogger(null, null, null, 0);
+        MidiScope.setScopeLogger(null, null, null, 0, null);
         super.onDestroy();
         Runtime.getRuntime().gc();
         System.gc();
+        android.os.Process.killProcess(android.os.Process.myPid());
     }
 
     public void onToggleScreenLock(View view) {
@@ -1538,5 +1553,10 @@ public class MainActivity extends Activity implements ScopeLogger {
             // Send raw data to be parsed into discrete messages.
             mConnectFramer.send(data, offset, count, timestamp);
         }
+    }
+
+    @Override
+    public void onBackPressed() {
+        onDestroy();
     }
 }

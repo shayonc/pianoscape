@@ -30,6 +30,7 @@ public class Note {
     boolean tieStart;
     boolean tieStop;
     boolean noteOn;
+    int midiData;
 
     long startTime;
     long endTime;
@@ -40,6 +41,9 @@ public class Note {
     public boolean isTieStart() {
         return tieStart;
     }
+
+    public void setMidiData(int midiData){ this.midiData = midiData; }
+    public int getMidiData(){return midiData;};
 
     public void setTieStart(boolean tieStart) {
         this.tieStart = tieStart;

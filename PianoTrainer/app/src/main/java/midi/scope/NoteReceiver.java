@@ -33,6 +33,7 @@ import piano.pianotrainer.fragments.MusicDialogFragment;
 import piano.pianotrainer.model.ChordComparator;
 import piano.pianotrainer.model.Note;
 import uk.co.dolphin_com.seescoreandroid.MainActivity;
+import uk.co.dolphin_com.seescoreandroid.Player;
 
 /**
  * Convert incoming MIDI messages to a string and write them to a ScopeLogger.
@@ -45,7 +46,7 @@ public class NoteReceiver extends MidiReceiver {
     private long mStartTime;
     private ScopeLogger mLogger;
     private long mLastTimeStamp = 0;
-    private ArrayList<List<Note>> notes;
+    private ArrayList<List<uk.co.dolphin_com.sscore.playdata.Note>> notes;
     private Lock compLock;
     private int curNote;
     private int incorrectCount;
@@ -54,14 +55,16 @@ public class NoteReceiver extends MidiReceiver {
     private boolean isChord = false;
     private boolean lastNote = false;
     private boolean songOver = false;
+    private Player player;
     //private Set<Note> tieOnNotes = new HashSet<>();
 
-    public NoteReceiver(ScopeLogger logger, ArrayList<List<Note>> notes, Lock compLock, int curNote) {
+    public NoteReceiver(ScopeLogger logger, ArrayList<List<uk.co.dolphin_com.sscore.playdata.Note>> notes, Lock compLock, int curNote, Player player) {
         mStartTime = System.nanoTime();
         mLogger = logger;
         this.notes = notes;
         this.compLock = compLock;
         this.curNote = curNote;
+        this.player = player;
     }
 
     /*
@@ -94,9 +97,19 @@ public class NoteReceiver extends MidiReceiver {
 
         compLock.lock();
 
+        for(List<uk.co.dolphin_com.sscore.playdata.Note> noteList: notes){
+            try{
+                Thread.sleep(1000);
+            }catch(Exception e){
+
+            }
+            player.moveCursor(noteList);
+        }
+
+        Log.d("NoteReciever", "We made it here");
         //skip rests here, also skip on tie stop
         //ToDo add in way to alow user to play tieOff if they want
-        while(notes.get(curNote).size() == 0 || isTieSkip(notes.get(curNote).get(0))){
+       /*while(notes.get(curNote).size() == 0 || isTieSkip(notes.get(curNote).get(0))){
             if(notes.get(curNote).size() == 0){
                 Log.d("NoteReciever: ", "Skipped because of rest  curNote: " + curNote + " ");
             }else{
@@ -104,7 +117,21 @@ public class NoteReceiver extends MidiReceiver {
             }
             curNoteAdd(1);
             restCount++;
+        }*/
+        boolean skipping = true;
+        while(skipping) {
+            if (notes.size() == 1) {
+                if(notes.get(curNote).get(0).rest){
+                    curNoteAdd(1);
+                }else{
+                    skipping = false;
+                }
+            }
+            else{
+                skipping = false;
+            }
         }
+
 
         //Compare notes here
         if(!note.getNoteOn() && isChord){
@@ -126,8 +153,8 @@ public class NoteReceiver extends MidiReceiver {
             //ToDo step compare will not work for flats, midi is only converted to sharp
 
             if(!isChord) {
-                Note expNote = notes.get(curNote).get(0);
-                if (expNote.getOctave() == note.getOctave() && expNote.getStep().equals(note.getStep())) {
+                uk.co.dolphin_com.sscore.playdata.Note expNote = notes.get(curNote).get(0);
+                if (expNote.midiPitch == note.getMidiData()) {
                     //Note is correct
                     sb.append("\nNote " + curNote + " was correct\n");
                     curNoteAdd(1);
@@ -138,7 +165,7 @@ public class NoteReceiver extends MidiReceiver {
 
                 } else {
                     sb.append("\nNote " + curNote + " was incorrect\n");
-                    sb.append("Expected octave " + expNote.getOctave() + " and step " + expNote.getStep() + "\n");
+                    sb.append("Expected octave " + expNote.midiPitch / 12 + " and step " + expNote.midiPitch % 12 + "\n");
                     sb.append("Given octave " + note.getOctave() + " and step " + note.getStep() + "\n");
                     incorrectCount++;
                 }
@@ -165,6 +192,7 @@ public class NoteReceiver extends MidiReceiver {
     }
     private void curNoteAdd(int n){
         curNote += n;
+        player.moveCursor(notes.get(curNote));
         if(curNote == notes.size() - 1){
             Log.d("NoteReceiverEnd", "Last note of song");
             lastNote = true;
