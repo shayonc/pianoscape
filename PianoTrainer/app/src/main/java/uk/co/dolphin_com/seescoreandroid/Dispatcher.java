@@ -312,17 +312,19 @@ public class Dispatcher {
             }
         }
         Log.d("Dispatcher", Integer.toString( allNotes.size()));
-        int counter = 0;
-        for (List<Note> notes : allNotes) {
-            if (counter < 10) {
-                noteHandler.eventHandler.startNotes(notes);
-            }
-            counter++;
-        }
+
         // schedule the play end event
         scheduleEndEvent(cal.getTime());
 
         state = State.Started;
+    }
+
+    public ArrayList<List<Note>> getAllNotes() {
+        return allNotes;
+    }
+
+    public void movingCursor(List<Note> note) {
+        noteHandler.eventHandler.startNotes(note);
     }
 
     /**

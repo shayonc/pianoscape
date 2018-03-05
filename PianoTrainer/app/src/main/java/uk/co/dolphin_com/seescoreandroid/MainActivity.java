@@ -115,6 +115,7 @@ public class MainActivity extends Activity implements ScopeLogger {
     private Lock compLock = new ReentrantLock();
     private int curNote = 0;
     private boolean mShowRaw;
+    private ArrayList<List<Note>> grandNotes = new ArrayList<List<Note>>();
 
     /**
 	 * set true to clear files in internal directory and reload from assets
@@ -258,6 +259,7 @@ public class MainActivity extends Activity implements ScopeLogger {
 
                 if (isPlaying) {
                     player.startAt(barIndex, false/*no countIn*/);
+                    grandNotes = player.getAllNotes();
                 }
                 currentBar = barIndex;
                 updatePlayPauseButtonImage();
@@ -287,34 +289,34 @@ public class MainActivity extends Activity implements ScopeLogger {
         this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_main);
 
-        try {
-            xmlparser = new XMLMusicParser(filename, ROOT_FOLDER, OUTPUT_FOLDER);
-        } catch (IOException e) {
-            // Everything will fail
-        }
-        File file = new File(xmlparser.getXmlFilePath());
-        if (!file.exists()) {
-            xmlparser.parseMXL(); // parse the .mxl file
-        }
-        List<piano.pianotrainer.model.Note> parsedNotes = xmlparser.parseXML(); // parse the .xml file
-        Log.d("MainActivity SIZEEE", Integer.toString(parsedNotes.size()));
-        comparison = new ComparisonSetup();
-        String toPrint = "";
-        try {
-            notesArray = comparison.SyncNotes(parsedNotes);
-        } catch (IndexOutOfBoundsException e) {
-            toPrint = "MusicXML is formatted in a way that has its" +
-                    " notes exceeding the measure divisions.\n" +
-                    "This is likely because the the song is not meant" +
-                    " for Piano or has wrong measure line placements.";
-            Log.d("MainActivity: ", toPrint);
-        }
-
-        Log.d("MainActivity size: ", Integer.toString(notesArray.size()));
-
-        if(notesArray.size() == 0 ){
-            throw new java.lang.RuntimeException("Parsing failed");
-        }
+//        try {
+//            xmlparser = new XMLMusicParser(filename, ROOT_FOLDER, OUTPUT_FOLDER);
+//        } catch (IOException e) {
+//            // Everything will fail
+//        }
+//        File file = new File(xmlparser.getXmlFilePath());
+//        if (!file.exists()) {
+//            xmlparser.parseMXL(); // parse the .mxl file
+//        }
+//        List<piano.pianotrainer.model.Note> parsedNotes = xmlparser.parseXML(); // parse the .xml file
+//        Log.d("MainActivity SIZEEE", Integer.toString(parsedNotes.size()));
+//        comparison = new ComparisonSetup();
+//        String toPrint = "";
+//        try {
+//            notesArray = comparison.SyncNotes(parsedNotes);
+//        } catch (IndexOutOfBoundsException e) {
+//            toPrint = "MusicXML is formatted in a way that has its" +
+//                    " notes exceeding the measure divisions.\n" +
+//                    "This is likely because the the song is not meant" +
+//                    " for Piano or has wrong measure line placements.";
+//            Log.d("MainActivity: ", toPrint);
+//        }
+//
+//        Log.d("MainActivity size: ", Integer.toString(notesArray.size()));
+//
+//        if(notesArray.size() == 0 ){
+//            throw new java.lang.RuntimeException("Parsing failed");
+//        }
 
         mLog = (TextView) findViewById(R.id.log);
         mScroller = (ScrollView) findViewById(R.id.scroll);
@@ -346,7 +348,7 @@ public class MainActivity extends Activity implements ScopeLogger {
         mLogSenderSelector.getSender().connect(mDirectReceiver);
 
         // Tell the virtual device to log its messages here..
-        MidiScope.setScopeLogger(this, notesArray, compLock, curNote);
+//        MidiScope.setScopeLogger(this, notesArray, compLock, curNote);
 
 
 //        TextView versionText = (TextView)findViewById(R.id.versionLabel);
@@ -1237,7 +1239,11 @@ public class MainActivity extends Activity implements ScopeLogger {
         }
         return null;
     }
+    /**
+     // TODO:  find a way to poll NoteReceiver to get updates when a user plays a note, If comparator is correct, we execute the line below
+     player.moveCursor(notes);
 
+     */
     /**
      * called on tapping play-pause button
      * @param button the button
@@ -1254,6 +1260,9 @@ public class MainActivity extends Activity implements ScopeLogger {
                     // scroll to current bar ready for start
                     ssview.setCursorAtBar(currentBar, SeeScoreView.CursorType.line, 0);
                     player.startAt(currentBar, true/*countIn*/);
+                    grandNotes = player.getAllNotes();
+                    // TODO: Figure out how to setScopeLogger
+//                    MidiScope.setScopeLogger(this, grandNotes, compLock, curNote);
                     break;
 
                 case Started:
@@ -1272,6 +1281,7 @@ public class MainActivity extends Activity implements ScopeLogger {
                     currentBar = Math.max(0, loopStart);
                     ssview.setCursorAtBar(currentBar, SeeScoreView.CursorType.line, 0);
                     player.startAt(currentBar, true/*countIn*/);
+                    grandNotes = player.getAllNotes();
                     break;
             }
 
@@ -1280,6 +1290,7 @@ public class MainActivity extends Activity implements ScopeLogger {
             player = setupPlayer();
             ssview.setCursorAtBar(currentBar, SeeScoreView.CursorType.line, 0);
             player.startAt(currentBar, true/*countIn*/);
+            grandNotes = player.getAllNotes();
         }
         updatePlayPauseButtonImage();
     }

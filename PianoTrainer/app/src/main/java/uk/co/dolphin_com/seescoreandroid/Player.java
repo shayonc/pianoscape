@@ -7,14 +7,17 @@ import android.os.Environment;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
 import uk.co.dolphin_com.sscore.SScore;
 import uk.co.dolphin_com.sscore.ex.ScoreException;
 import uk.co.dolphin_com.sscore.playdata.Bar;
+import uk.co.dolphin_com.sscore.playdata.Note;
 import uk.co.dolphin_com.sscore.playdata.PlayData;
 import uk.co.dolphin_com.sscore.playdata.PlayData.PlayControls;
 import uk.co.dolphin_com.sscore.playdata.UserTempo;
@@ -26,6 +29,9 @@ import uk.co.dolphin_com.sscore.playdata.UserTempo;
  * With careful timing this usually succeeds!
  */
 public class Player {
+
+    private ArrayList<List<Note>> totalNotes = new ArrayList<List<Note>>();
+
 
     private static boolean kPrintPlayData = false;
 
@@ -325,6 +331,14 @@ public class Player {
         }
     }
 
+
+    public ArrayList<List<Note>> getAllNotes() {
+        return dispatcher.getAllNotes();
+    }
+
+    public void moveCursor(List<Note> note) {
+        dispatcher.movingCursor(note);
+    }
     /**
      * set the handler to be called on each bar start
      * @param handler the bar start handler - index argument is 0-based bar index. ci is true for a count-in bar
