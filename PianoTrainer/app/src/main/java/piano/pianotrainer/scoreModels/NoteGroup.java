@@ -1,5 +1,8 @@
 package piano.pianotrainer.scoreModels;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -19,5 +22,21 @@ public class NoteGroup {
         this.beamSlope = beamSlope;
         this.beamLoc = beamLoc;
     }
-    
+
+    public void sortCircles() {
+        if (notes == null) return;
+        if (notes.size() == 0) return;
+
+        Collections.sort(notes, new Comparator<Note>() {
+            @Override
+            public int compare(Note n1, Note n2) {
+                if (n1.circleCenter.x != n2.circleCenter.x) {
+                    return Double.compare(n1.circleCenter.x, n2.circleCenter.x);
+                }
+                else {
+                    return Double.compare(n1.circleCenter.y, n2.circleCenter.y);
+                }
+            }
+        });
+    }
 }

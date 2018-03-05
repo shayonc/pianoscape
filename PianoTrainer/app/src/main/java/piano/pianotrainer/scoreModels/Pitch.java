@@ -6,15 +6,10 @@ package piano.pianotrainer.scoreModels;
 
 public enum Pitch {
     A,
-    Bflat,
     B,
     C,
-    Csharp,
     D,
-    Eflat,
     E,
     F,
-    Fsharp,
-    G,
-    Gsharp
+    G
 }

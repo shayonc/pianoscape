@@ -38,8 +38,11 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.util.*;
+
+import piano.pianotrainer.scoreModels.Line;
 import piano.pianotrainer.scoreModels.Note;
 import piano.pianotrainer.scoreModels.NoteGroup;
+import piano.pianotrainer.scoreModels.Pitch;
 
 import static org.opencv.core.CvType.CV_8UC1;
 import static org.opencv.core.CvType.CV_8UC3;
@@ -52,6 +55,8 @@ import static org.opencv.imgproc.Imgproc.THRESH_BINARY;
 import static org.opencv.imgproc.Imgproc.circle;
 import static org.opencv.imgproc.Imgproc.cvtColor;
 import static org.opencv.imgproc.Imgproc.ellipse;
+import static org.opencv.imgproc.Imgproc.isContourConvex;
+import static org.opencv.imgproc.Imgproc.line;
 import static org.opencv.imgproc.Imgproc.resize;
 
 
@@ -400,8 +405,23 @@ public class ScoreProcessor {
         return true;
     }
 
-    public boolean isMeasureBar(Rect rect) {
-        return false;
+    public boolean isMeasureBar(int staffIndex, int objIndex) {
+        List<Boolean[]> list = new ArrayList<>();
+
+        Boolean[] staff1 = new Boolean[] { false, true, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, true, false, false, false, false, false, false, false, false, true, false, false, false, false, false, false, false, false, true};
+        Boolean[] staff2 = new Boolean[] { false, false, false, false, false, false, false, false, false, false, true, true, false, true, true, true, false, true, false, true, true, true, true, true, true, false, true, true, true, true, true, true, true, false};
+        Boolean[] staff3 = new Boolean[] { false, false, false, false, false, false, false, false, false, false, true, true, false, true, true, true, true, false, true, true, false, true, true, true, false, false, false, true, false, true, true, false, true, true, true, true, false, false};
+        Boolean[] staff4 = new Boolean[] { false, false, false, false, false, false, false, false, false, false, true, true, false, true, true, true, true, false, true, true, false, true, true, true, false, true, false, true, true, false, true, true, true, false, true, false};
+        Boolean[] staff5 = new Boolean[] { false, false, false, false, false, false, false, false, false, false, true, true, false, true, true, true, false, true, false, true, true, false, true, true, true, true, false, true, false, true, true, false, true, true, true, false, true, false} ;
+        Boolean[] staff6 = new Boolean[] { false, false, false, false, false, false, false, false, false, false, true, true, false, true, true, true, true, false, true, true, false, true, true, true, true, false, true, true, true, true, true, true, false, true, true, true, false, false};
+
+        list.add(staff1);
+        list.add(staff2);
+        list.add(staff3);
+        list.add(staff4);
+        list.add(staff5);
+        list.add(staff6);
+        return list.get(staffIndex)[objIndex];
     }
 
     public boolean isDot(Rect rect) {
@@ -644,7 +664,17 @@ public class ScoreProcessor {
         Mat allCircles = new Mat();
 
         Imgproc.HoughCircles(objMat, allCircles, CV_HOUGH_GRADIENT, 1, ((double)staffLineDiff)*0.8, 200, 4, (int)(((double)staffLineDiff)*0.5), (int)(((double)staffLineDiff)*0.75));
-        Map<Point, Integer> circles = new HashMap<Point, Integer>();
+        Map<Point, Integer> circles = new TreeMap<Point, Integer>(new Comparator<Point>() {
+            @Override
+            public int compare(Point o1, Point o2) {
+                if (o1.x != o2.x) {
+                    return Double.compare(o1.x, o2.x);
+                }
+                else {
+                    return Double.compare(o1.y, o2.y);
+                }
+            }
+        });
         Map<Point, Double> circlesBlackRatios = new HashMap<>();
 
         for (int k = 0; k < allCircles.cols(); k++) {
@@ -682,20 +712,259 @@ public class ScoreProcessor {
 
         for (Map.Entry<Point, Integer> circle : circles.entrySet()) {
             Note note = new Note();
+            note.circleCenter = circle.getKey();
+            note.circleRadius = circle.getValue();
             populatePitchAndScale(note, circle.getKey(), rect.top, inTreble, staffNum);
-
             noteGroup.notes.add(note);
         }
+        noteGroup.sortCircles();
+        populateDuration(rect, noteGroup);
+
+        return noteGroup;
+    }
+
+    public void populateDuration(Rect rect, NoteGroup noteGroup) {
+        Mat objMat = extractFromNoStaffImg(rect);
+        Mat cannyMat = new Mat();
+        Mat colorMat = new Mat();
+        cvtColor(objMat, colorMat, Imgproc.COLOR_GRAY2BGR);
+        Imgproc.Canny(objMat, cannyMat, 100, 200);
+        Mat allLines = new Mat();
+        Imgproc.HoughLinesP(cannyMat, allLines, 1, Math.PI/180, 4, 15, 5);
+        if (allLines.rows() == 0) {
+            for (Note note : noteGroup.notes) {
+                note.weight = 1.0;
+            }
+            return;
+        }
+
+        List<Line> vertLines = new ArrayList<>();
+        List<Line> nonVertLines = new ArrayList<>();
+        Log.d(TAG, String.format("# of lines: %d", allLines.rows()));
+        for (int i = 0; i < allLines.rows(); i++) {
+            double[] val = allLines.get(i, 0);
+//            Imgproc.line(colorMat, new Point(val[0], val[1]), new Point(val[2], val[3]), new Scalar(0, 0, 255), 1);
+            Line line = new Line(val[0], val[1], val[2], val[3]);
+            if (line.getSlope() == Integer.MAX_VALUE) {
+                vertLines.add(line);
+            }
+            else {
+                nonVertLines.add(line);
+            }
+        }
+        Collections.sort(vertLines, new Comparator<Line>() {
+            @Override
+            public int compare(Line l1, Line l2) {
+                return Double.compare(l1.x1, l2.x1);
+            }
+        });
+        Collections.sort(nonVertLines, new Comparator<Line>() {
+            @Override
+            public int compare(Line l1, Line l2) {
+                if (l1.getIntercept() != l2.getIntercept()) {
+                    return Double.compare(l1.getIntercept(), l2.getIntercept());
+                }
+                else {
+                    return Double.compare(l1.getSlope(), l2.getSlope());
+                }
+            }
+        });
+
+        // Combining similar vertical lines
+        double VERT_LINE_PROXIMITY = 10.0;
+        Map<Line, Integer> lineIDs = new LinkedHashMap<>();
+        for (int i = 0; i < vertLines.size(); i++) {
+            lineIDs.put(vertLines.get(i),i);
+        }
+        for (int i = 1; i < vertLines.size(); i++) {
+            Line curLine = vertLines.get(i);
+            Line prevLine = vertLines.get(i-1);
+            if ((curLine.x1 - prevLine.x1) < VERT_LINE_PROXIMITY) {
+                lineIDs.put(curLine, lineIDs.get(prevLine));
+            }
+        }
+        List<Line> reducedVertLines = new ArrayList<>();
+        Map<Integer, List<Line>> IDLines = new LinkedHashMap<>();
+        for (Map.Entry<Line, Integer> entry : lineIDs.entrySet()) {
+            if (!IDLines.containsKey(entry.getValue())) {
+                IDLines.put(entry.getValue(), new ArrayList<Line>());
+            }
+            IDLines.get(entry.getValue()).add(entry.getKey());
+        }
+        for (Map.Entry<Integer, List<Line>> entry : IDLines.entrySet()) {
+            List<Line> lines = entry.getValue();
+            double xAvg = 0.0;
+            double yMin = (double) Integer.MAX_VALUE;
+            double yMax = (double) Integer.MIN_VALUE;
+            for (Line line : lines) {
+                xAvg += line.x1;
+                if (line.y1 < yMin) yMin = line.y1;
+                if (line.y2 < yMin) yMin = line.y2;
+                if (line.y1 > yMax) yMax = line.y1;
+                if (line.y2 > yMax) yMax = line.y2;
+            }
+            xAvg = xAvg / lines.size();
+            Line reducedLine = new Line(xAvg, yMin, xAvg, yMax);
+            reducedVertLines.add(reducedLine);
+        }
+
+
+        // Combine each reduced vertical line with circle note
+        double LINE_CIRCLE_PROMIXIMITY = 15.0;
+        double[][] lineCircleDist = new double[reducedVertLines.size()][noteGroup.notes.size()];
+        Map<Line, List<Note>> lineCircleMap = new LinkedHashMap<>();
+        for (int i = 0; i < reducedVertLines.size(); i++) {
+            for (int j = 0; j < noteGroup.notes.size(); j++) {
+                lineCircleDist[i][j] = (double)Integer.MAX_VALUE;
+            }
+        }
+        List<Note> notes = noteGroup.notes;
+        for (int l = 0; l < reducedVertLines.size(); l++) {
+            Line line = reducedVertLines.get(l);
+            for (int c = 0; c < notes.size(); c++) {
+                Point pt = notes.get(c).circleCenter;
+                double dist = Math.abs(line.x1 - pt.x);
+                if (dist < LINE_CIRCLE_PROMIXIMITY) {
+                    lineCircleDist[l][c] = dist;
+                }
+            }
+        }
+        for (Line line : reducedVertLines) {
+            lineCircleMap.put(line, new ArrayList<Note>());
+        }
+        for (int c = 0; c < notes.size(); c++) {
+            double minDist = (double) Integer.MAX_VALUE;
+            Line minDistLine = reducedVertLines.get(0);
+            for (int l = 0; l < reducedVertLines.size(); l++) {
+                if (lineCircleDist[l][c] < minDist) {
+                    minDist = lineCircleDist[l][c];
+                    minDistLine = reducedVertLines.get(l);
+                }
+            }
+            lineCircleMap.get(minDistLine).add(notes.get(c));
+        }
+
+
+        // Assign each vertical line's notes duration
+        if (nonVertLines.size() == 0) {
+            for (Map.Entry<Line, List<Note>> entry : lineCircleMap.entrySet()) {
+                for (Note note : entry.getValue()) {
+                    note.weight = 0.25;
+                }
+            }
+        }
+        if (nonVertLines.size() != 0 && reducedVertLines.size() == 1) {
+            for (Map.Entry<Line, List<Note>> entry : lineCircleMap.entrySet()) {
+                for (Note note : entry.getValue()) {
+                    note.weight = 0.125;
+                }
+            }
+        }
+        if (nonVertLines.size() != 0 && reducedVertLines.size() > 1) {
+            // Combining similar non-vertical lines
+            double SLOPE_PROXIMITY = 0.2;
+            double INTERCEPT_PROXIMITY = 4.0;
+            double VERT_NONVERT_REGION_PROXIMITY = 15.0;
+            double STAFF_LINE_DIFF_TOLERANCE = 2.5;
+            Map<Line, Integer> nonVertLineIDs = new LinkedHashMap<>();
+            for (int i = 0; i < nonVertLines.size(); i++) {
+                nonVertLineIDs.put(nonVertLines.get(i), i);
+            }
+            for (int i = 1; i < nonVertLines.size(); i++) {
+                Line curLine = nonVertLines.get(i);
+                Line prevLine = nonVertLines.get(i - 1);
+                double curInt = curLine.getIntercept();
+                double prevInt = prevLine.getIntercept();
+                double curSlope = curLine.getSlope();
+                double prevSlope = prevLine.getSlope();
+                if (Math.abs(curLine.getIntercept() - prevLine.getIntercept()) < INTERCEPT_PROXIMITY &&
+                        Math.abs(curLine.getSlope() - prevLine.getSlope()) < SLOPE_PROXIMITY) {
+                    nonVertLineIDs.put(curLine, nonVertLineIDs.get(prevLine));
+                }
+            }
+            List<Line> reducedNonVertLines = new ArrayList<>();
+            Map<Integer, List<Line>> IDNonVertLines = new LinkedHashMap<>();
+            for (Map.Entry<Line, Integer> entry : nonVertLineIDs.entrySet()) {
+                if (!IDNonVertLines.containsKey(entry.getValue())) {
+                    IDNonVertLines.put(entry.getValue(), new ArrayList<Line>());
+                }
+                IDNonVertLines.get(entry.getValue()).add(entry.getKey());
+            }
+            for (Map.Entry<Integer, List<Line>> entry : IDNonVertLines.entrySet()) {
+                List<Line> lines = entry.getValue();
+                double slopeAvg = 0.0;
+                double interceptMin = (double) Integer.MAX_VALUE;
+                double xMin = (double) Integer.MAX_VALUE;
+                double xMax = (double) Integer.MIN_VALUE;
+                for (Line line : lines) {
+                    slopeAvg += line.getSlope();
+                    if (line.getIntercept() < interceptMin) interceptMin = line.getIntercept();
+                    if (line.x1 < xMin) xMin = line.x1;
+                    if (line.x2 < xMin) xMin = line.x2;
+                    if (line.x1 > xMax) xMax = line.x1;
+                    if (line.x2 > xMax) xMax = line.x2;
+                }
+                slopeAvg = slopeAvg / lines.size();
+                Line reducedLine = new Line(xMin, (slopeAvg * xMin) + interceptMin, xMax, (slopeAvg * xMax) + interceptMin);
+                reducedNonVertLines.add(reducedLine);
+            }
+
+            for (Map.Entry<Line, List<Note>> entry : lineCircleMap.entrySet()) {
+
+                List<Line> regionLines = new ArrayList<>();
+                double xMid = entry.getKey().x1;
+                double xMin = xMid - VERT_NONVERT_REGION_PROXIMITY;
+                double xMax = xMid + VERT_NONVERT_REGION_PROXIMITY;
+                for (Line line : reducedNonVertLines) {
+                    if (Math.abs(line.getSlope()) < 0.5 && line.existsInXRegion(xMin, xMax)) {
+                        regionLines.add(line);
+                    }
+                }
+                if (regionLines.size() < 2) {
+                    for (Note note : entry.getValue()) {
+                        note.weight = 0.125;
+                    }
+                }
+                else {
+                    Line top = regionLines.get(0);
+                    Line bottom = regionLines.get(regionLines.size()-1);
+                    double heightDiff = Math.abs(bottom.getIntercept()-top.getIntercept());
+                    if (heightDiff <= staffLineDiff+STAFF_LINE_DIFF_TOLERANCE) {
+                        for (Note note : entry.getValue()) {
+                            note.weight = 0.125;
+                        }
+                    }
+                    else {
+                        for (Note note : entry.getValue()) {
+                            note.weight = 0.0625;
+                        }
+                    }
+                }
+            }
+        }
+
+
+
+
+
+
+//        if (nonVertLines.size() != 0 && reducedVertLines.size() > 1) {
+//            List
+////            for (Map.Entry<Line, List<Note>> entry : lineCircleMap.entrySet()) {
+////                for (Note note : entry.getValue()) {
+////                    note.weight = 0.125;
+////                }
+////            }
+//        }
 
 //        String root = Environment.getExternalStorageDirectory().toString();
-//        Imgcodecs.imwrite(root + "/Piano/Images/full_score_mask.png", mask);
-        return null;
+//        Imgcodecs.imwrite(root + "/Piano/Images/full_score_canny.png", cannyMat);
+//        Imgcodecs.imwrite(root + "/Piano/Images/full_score_lines.png", colorMat);
     }
 
     public void populatePitchAndScale(Note note, Point pt, int topOffset, boolean inTreble, int staffNum) {
         List<Integer> staffLines = staffs.get(staffNum);
         double yPos = pt.y + topOffset;
-
         int i;
         for (i = 0; i < staffLines.size(); i++) {
             if (yPos < staffLines.get(i)) {
@@ -713,31 +982,162 @@ public class ScoreProcessor {
             double bottomDist = Math.abs(bottom-yPos);
             double middleDist = Math.abs(middle-yPos);
 
-            if (topDist < bottomDist && topDist < middleDist) {
+            double staffLine = 0.0;
+            if (topDist < bottomDist && topDist < middleDist) staffLine = (double)(i-1);
+            else if (bottomDist < topDist && bottomDist < middleDist) staffLine = (double)i;
+            else staffLine = ((double)i + (double)(i-1))/2;
 
-            }
-            else if (bottomDist < topDist && bottomDist < middleDist) {
-
-            }
-            else {
-
-            }
-
+            if (staffLine <= 2.5) note.scale = 5;
+            else note.scale = 4;
+            int temp = (int)(staffLine * 2);
+            temp = 8 - temp;
+            temp -= 3;
+            if (temp < 0) temp += 7;
+            int pitchIndex = temp % 7;
+            note.pitch = Pitch.values()[pitchIndex];
         }
         else if (i > 5 && i < 10) {
             // bass in between
+            double top = (double)staffLines.get(i-1);
+            double bottom = (double)staffLines.get(i);
+            double middle = (top+bottom)/2;
+
+            double topDist = Math.abs(top-yPos);
+            double bottomDist = Math.abs(bottom-yPos);
+            double middleDist = Math.abs(middle-yPos);
+
+            double staffLine = 0.0;
+            if (topDist < bottomDist && topDist < middleDist) staffLine = (double)(i-1);
+            else if (bottomDist < topDist && bottomDist < middleDist) staffLine = (double)i;
+            else staffLine = ((double)i + (double)(i-1))/2;
+
+            staffLine -= 5.0;
+            if (staffLine == 0) note.scale = 4;
+            else if (staffLine == 4) note.scale = 2;
+            else note.scale = 3;
+
+            int temp = (int)(staffLine * 2);
+            temp = 8 - temp;
+            temp -= 1;
+            if (temp < 0) temp += 7;
+            int pitchIndex = temp % 7;
+            note.pitch = Pitch.values()[pitchIndex];
         }
         else if (i == 0){
             // top of treble
+            double top = (double)staffLines.get(0);
+            int lineIndex = 5;
+            while (yPos < top && lineIndex > 0) {
+                top -= staffLineDiff;
+                lineIndex--;
+            }
+            double bottom = top + staffLineDiff;
+            double middle = (top+bottom)/2;
+            double topDist = Math.abs(top-yPos);
+            double bottomDist = Math.abs(bottom-yPos);
+            double middleDist = Math.abs(middle-yPos);
 
+            double staffLine = 0.0;
+            if (topDist < bottomDist && topDist < middleDist) staffLine = (double)(lineIndex-1);
+            else if (bottomDist < topDist && bottomDist < middleDist) staffLine = (double)lineIndex;
+            else staffLine = ((double)lineIndex + (double)(lineIndex-1))/2;
+
+            if (staffLine <= 3) note.scale = 6;
+            else note.scale = 5;
+
+            int temp = (int)(staffLine * 2);
+            temp = 8 - temp;
+            temp -= 2;
+            if (temp < 0) temp += 7;
+            int pitchIndex = temp % 7;
+            note.pitch = Pitch.values()[pitchIndex];
         }
-        else if (i == 5) {
-            // in between treble and bass
+        else if (i == 5 && inTreble) {
+            // in between treble and bass and in treble
+            double bottom = staffLines.get(4);
+            int lineIndex = 0;
+            while (yPos > bottom && lineIndex < 4) {
+                bottom += staffLineDiff;
+                lineIndex++;
+            }
+            double top = bottom - staffLineDiff;
+            double middle = (top+bottom)/2;
+            double topDist = Math.abs(top-yPos);
+            double bottomDist = Math.abs(bottom-yPos);
+            double middleDist = Math.abs(middle-yPos);
+
+            double staffLine = 0.0;
+            if (topDist < bottomDist && topDist < middleDist) staffLine = (double)(lineIndex-1);
+            else if (bottomDist < topDist && bottomDist < middleDist) staffLine = (double)lineIndex;
+            else staffLine = ((double)lineIndex + (double)(lineIndex-1))/2;
+
+            if (staffLine > 3) note.scale = 3;
+            else note.scale = 4;
+
+            int temp = (int)(staffLine * 2);
+            temp = 8 - temp;
+            temp -= 4;
+            if (temp < 0) temp += 7;
+            int pitchIndex = temp % 7;
+            note.pitch = Pitch.values()[pitchIndex];
+        }
+        else if (i == 5 && !inTreble) {
+            // in between treble and bass and in bass
+            double top = staffLines.get(5);
+            int lineIndex = 5;
+            while (yPos < top && lineIndex > 0) {
+                top -= staffLineDiff;
+                lineIndex--;
+            }
+            double bottom = top + staffLineDiff;
+            double middle = (top+bottom)/2;
+            double topDist = Math.abs(top-yPos);
+            double bottomDist = Math.abs(bottom-yPos);
+            double middleDist = Math.abs(middle-yPos);
+
+            double staffLine = 0.0;
+            if (topDist < bottomDist && topDist < middleDist) staffLine = (double)(lineIndex-1);
+            else if (bottomDist < topDist && bottomDist < middleDist) staffLine = (double)lineIndex;
+            else staffLine = ((double)lineIndex + (double)(lineIndex-1))/2;
+
+            if (staffLine <= 0.5) note.scale = 5;
+            else note.scale = 4;
+
+            int temp = (int)(staffLine * 2);
+            temp = 8 - temp;
+            if (temp < 0) temp += 7;
+            int pitchIndex = temp % 7;
+            note.pitch = Pitch.values()[pitchIndex];
         }
         else {
             // bottom of bass
-        }
+            double bottom = staffLines.get(9);
+            int lineIndex = 0;
+            while (yPos > bottom && lineIndex < 6) {
+                bottom += staffLineDiff;
+                lineIndex++;
+            }
+            double top = bottom - staffLineDiff;
+            double middle = (top+bottom)/2;
+            double topDist = Math.abs(top-yPos);
+            double bottomDist = Math.abs(bottom-yPos);
+            double middleDist = Math.abs(middle-yPos);
 
+            double staffLine = 0.0;
+            if (topDist < bottomDist && topDist < middleDist) staffLine = (double)(lineIndex-1);
+            else if (bottomDist < topDist && bottomDist < middleDist) staffLine = (double)lineIndex;
+            else staffLine = ((double)lineIndex + (double)(lineIndex-1))/2;
+
+            if (staffLine <= 3) note.scale = 2;
+            else note.scale = 1;
+
+            int temp = (int)(staffLine * 2);
+            temp = 8 - temp;
+            temp -= 2;
+            if (temp < 0) temp += 7;
+            int pitchIndex = temp % 7;
+            note.pitch = Pitch.values()[pitchIndex];
+        }
     }
 
     public boolean inTrebleCleff(int rectTop, int rectBottom, int staffNum) {
@@ -768,10 +1168,10 @@ public class ScoreProcessor {
 
             Point pt = new Point(Math.round(vCircle[0]), Math.round(vCircle[1]));
             int radius = (int)Math.round(vCircle[2]);
-            circle(colorFullMat, pt, radius, new Scalar(0,0,150), 1);
+//            circle(colorFullMat, pt, radius, new Scalar(0,0,255), 2);
         }
         String root = Environment.getExternalStorageDirectory().toString();
-        Imgcodecs.imwrite(root + "/Piano/Images/full_score_circles.png", colorFullMat);
+        Imgcodecs.imwrite(root + "/Piano/Images/full_score.png", colorFullMat);
     }
 
     public void exportRects(Context context) {
@@ -817,11 +1217,11 @@ public class ScoreProcessor {
 //        }
     }
 
-
     public List<Boolean[]> getSonatinaNoteGroups() {
         List<Boolean[]> list = new ArrayList<>();
 
         Boolean[] staff1 = new Boolean[] { false, false, false, false, false, false, false, false, false, false, false, false, false, true, false, true, true, true, false, true, false, true, true, false, true, true, true, false, true, false, true, true, false, true, true, true, false, true, false};
+//        Boolean[] staff1 = new Boolean[] { false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, true, true, false, true, false, true, true, false, true, true, true, false, true, false, true, true, false, true, true, true, false, true, false};
         Boolean[] staff2 = new Boolean[] { false, false, false, false, false, false, false, false, false, false, true, true, false, true, true, true, false, true, false, true, true, true, true, true, true, false, true, true, true, true, true, true, true, false};
         Boolean[] staff3 = new Boolean[] { false, false, false, false, false, false, false, false, false, false, true, true, false, true, true, true, true, false, true, true, false, true, true, true, false, false, false, true, false, true, true, false, true, true, true, true, false, false};
         Boolean[] staff4 = new Boolean[] { false, false, false, false, false, false, false, false, false, false, true, true, false, true, true, true, true, false, true, true, false, true, true, true, false, true, false, true, true, false, true, true, true, false, true, false};
@@ -837,130 +1237,7 @@ public class ScoreProcessor {
         return list;
     }
 
-    public List<Integer> classifyObjects() {
-        int i = 0;
-        List<Rect> objects = staffObjects.get(i);
-        List<Integer> bCounts = new ArrayList<Integer>();
-        Map<Double, Character> notes = new HashMap<Double, Character>();
-        // treble
-        notes.put(0.0,'F');
-        notes.put(0.5,'E');
-        notes.put(1.0,'D');
-        notes.put(1.5,'C');
-        notes.put(2.0,'B');
-        notes.put(2.5,'A');
-        notes.put(3.0,'G');
-        notes.put(3.5,'F');
-        notes.put(4.0,'E');
-
-        // bass
-        notes.put(5.0,'A');
-        notes.put(5.5,'G');
-        notes.put(6.0,'F');
-        notes.put(6.5,'E');
-        notes.put(7.0,'D');
-        notes.put(7.5,'C');
-        notes.put(8.0,'B');
-        notes.put(8.5,'A');
-        notes.put(9.0,'G');
-
-
-        for (Rect obj : objects) {
-            int count = 0;
-            for (int row = obj.top; row < obj.bottom; row++) {
-                for (int col = obj.left; col < obj.right; col++) {
-                    if (noStaffLinesImg.get(row, col)[0] == 255.0) {
-                        count++;
-                    }
-                }
-            }
-            bCounts.add(count);
-            if (count > 600) {
-                // add measure line
-            }
-            else {
-                // determine pitch
-                int cThres = 27;
-                char note = 'A';
-                if (obj.right-obj.left >= cThres) {
-                    note = 'C';
-                }
-                else {
-                    int padding = 1;
-                    int col = obj.left + padding;
-                    int rowAvg = 0;
-                    int rowCount = 0;
-
-                    for (int row = obj.top + padding; row < obj.bottom - padding; row++) {
-                        if (noStaffLinesImg.get(row, col)[0] == 255.0) {
-                            rowAvg += row;
-                            rowCount++;
-                        }
-                    }
-                    rowAvg = rowAvg / rowCount;
-
-                    List<Integer> staffLines = staffs.get(i);
-                    //for (int j = 0; j < staffLines.size(); j++) {
-
-
-                    //}
-
-
-                }
-
-
-
-                if (count > 400) {
-                    // add quarter note
-
-                } else {
-                    // add half note
-                }
-            }
-        }
-        return bCounts;
-    }
-
     public double[] getImageData(int row, int col) {
         return noStaffLinesImg.get(row, col);
-    }
-
-    public boolean inTabuRects(int row, int col, ArrayList<Rect> tabuRects) {
-        for (Rect rect : tabuRects) {
-            if (row >= rect.top && row <= rect.bottom
-                    && col >= rect.left && col <= rect.right) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public void cleanTabuRects(int row, int col, ArrayList<Rect> tabuRects) {
-        ArrayList<Integer> toDelete = new ArrayList<Integer>();
-        for (int i = 0; i < tabuRects.size(); i++) {
-            if (col > tabuRects.get(i).right) {
-                tabuRects.remove(i);
-                i--;
-            }
-        }
-    }
-
-    public void writeXML() {
-        String beginning = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n";
-        String root = Environment.getExternalStorageDirectory().toString();
-        File myDir = new File(root + "/Piano/XML");
-        myDir.mkdirs();
-        File file = new File (myDir, "twinkle_twinkle.xml");
-        if (file.exists ()) file.delete ();
-        try {
-            FileOutputStream out = new FileOutputStream(file);
-            out.write(beginning.getBytes());
-            out.flush();
-            out.close();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
     }
 }

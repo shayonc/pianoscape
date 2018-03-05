@@ -1,5 +1,7 @@
 package piano.pianotrainer.scoreModels;
 
+import org.opencv.core.Point;
+
 /**
  * Created by Shubho on 2017-12-27.
  */
@@ -16,6 +18,8 @@ public class Note {
     // [none, top-left, top-right, bottom-left, bottom-right] = [0,1,2,3,4]
     public int linePosition;
     public boolean hasStaccato;
+    public Point circleCenter;
+    public double circleRadius;
 
     public Note(double weight, boolean hasDot, Accidental accidental, Pitch pitch, int clef, int linePosition, boolean hasStaccato) {
         this.weight = weight;

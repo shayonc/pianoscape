@@ -43,6 +43,7 @@ import piano.pianotrainer.scoreImport.PDFHelper;
 import piano.pianotrainer.scoreImport.ScoreProcessor;
 import piano.pianotrainer.scoreModels.ElementType;
 import piano.pianotrainer.scoreModels.Measure;
+import piano.pianotrainer.scoreModels.Note;
 import piano.pianotrainer.scoreModels.NoteGroup;
 import piano.pianotrainer.scoreModels.Score;
 import piano.pianotrainer.scoreModels.Staff;
@@ -53,7 +54,7 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
      */
     private static final String STATE_CURRENT_PAGE_INDEX = "current_page_index";
 
-    private static final String FILENAME = "zimmer_pirate.pdf";
+    private static final String FILENAME = "handel_sonatina.pdf";
 
     private static final String TRAINING = "training_set";
 
@@ -364,6 +365,14 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
                     // Generating hard-coded symbols data
                     List<Boolean[]> sonatina_symbols = scoreProc.getSonatinaNoteGroups();
 
+                    Bitmap finalBmp = Bitmap.createBitmap(scoreProc.noStaffLinesImg.width(),scoreProc.noStaffLinesImg.height(),Bitmap.Config.ARGB_8888);
+                    Utils.matToBitmap(scoreProc.noStaffLinesImg, finalBmp);
+                    Canvas cnvs = new Canvas(finalBmp);
+                    Paint paintTxt =new Paint();
+                    paintTxt.setStyle(Paint.Style.FILL);
+                    paintTxt.setColor(Color.RED);
+                    paintTxt.setTextSize(30);
+
                     for (int i = 0; i < staffObjects.size(); i++) {
                         Staff staff = new Staff(true);
                         score.addStaff(staff);
@@ -380,7 +389,7 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
                         for (int j = 0; j < objects.size(); j++) {
                             Rect obj = objects.get(j);
                             // TODO: add symbol detection here
-                            if (scoreProc.isMeasureBar(obj)) {
+                            if (scoreProc.isMeasureBar(i,j)) {
                                 elementTypeMap.put(j, ElementType.MeasureBar);
                                 if (!firstVertBar) {
                                     firstVertBar = true;
@@ -392,117 +401,130 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
                             }
                             else if (isNoteGroup[j]){
                                 NoteGroup notegroup = scoreProc.classifyNoteGroup(objects.get(j), i);
-                                break;
+                                curMeasure.addNoteGroup(obj, notegroup);
+                                String s = "[";
+                                for (Note note : notegroup.notes) {
+                                    s += (note.pitch.toString() + Integer.toString(note.scale) + ",");
+                                }
+                                s += "]";
+                                cnvs.drawText(s, staffObjects.get(i).get(j).left, staffObjects.get(i).get(j).top, paintTxt);
+                                s = "[";
+                                for (Note note : notegroup.notes) {
+                                    s += (Double.toString(note.weight) + ",");
+                                }
+                                s += "]";
+                                cnvs.drawText(s, staffObjects.get(i).get(j).left, staffObjects.get(i).get(j).bottom, paintTxt);
                             }
                             else {
                                 // Ekteshaf: place your knn testing for each object here
                             }
                         }
+                        int hello = 0;
                         break;
                     }
 
 
-                    //TRAINING SETS FOR SYMBOLS
-                    //load the training images and train symbol detection
-                    addTrainingImages("training_set/g_clef", KnnLabels.G_CLEF);
-                    addTrainingImages("training_set/f_clef", KnnLabels.F_CLEF);
-                    addTrainingImages("training_set/brace", KnnLabels.BRACE);
-
-                    addTrainingImages("training_set/time_four_four", KnnLabels.TIME_44);
-                    addTrainingImages("training_set/time_three_four", KnnLabels.TIME_34);
-                    addTrainingImages("training_set/time_six_eight", KnnLabels.TIME_68);
-                    addTrainingImages("training_set/time_two_two", KnnLabels.TIME_22);
-                    addTrainingImages("training_set/time_two_four", KnnLabels.TIME_24);
-                    addTrainingImages("training_set/common_time", KnnLabels.TIME_C);
-                    //Rests
-                    //TODO: Distinguish whole/half or ignore (85%)
-                    addTrainingImages("training_set/whole_half_rest", KnnLabels.WHOLE_HALF_REST);
-                    addTrainingImages("training_set/quarter_rest", KnnLabels.QUARTER_REST);
-                    addTrainingImages("training_set/eight_rest", KnnLabels.EIGHTH_REST);
-                    addTrainingImages("training_set/one_16th_rest", KnnLabels.ONE_SIXTEENTH_REST);
-                    addTrainingImages("training_set/whole_note", KnnLabels.WHOLE_NOTE);
-                    addTrainingImages("training_set/whole_note_2", KnnLabels.WHOLE_NOTE_2);
-                    //accidentals
-                    addTrainingImages("training_set/sharp", KnnLabels.SHARP_ACC);
-                    addTrainingImages("training_set/natural", KnnLabels.NATURAL_ACC);
-                    addTrainingImages("training_set/flat", KnnLabels.FLAT_ACC);
-                    //others
-                    addTrainingImages("training_set/slur", KnnLabels.TIE);
-                    addTrainingImages("training_set/dynamics_f", KnnLabels.DYNAMICS_F);
-                    addTrainingImages("training_set/dot_set", KnnLabels.DOT);
-
-                    //Train
-                    scoreProc.trainKnn();
-                    //test all
-                    scoreProc.testMusicObjects();
-//                    try {
-////                        int numCircles = scoreProc.classifyNoteGroup();
-////                        mDebugView.setText(String.format("Number of circles: %d", numCircles));
-//                        Mat circles = scoreProc.classifyNoteGroup();
-//                        mDebugView.setText(String.format("%d", circles.cols()));
-////                        mImageView.setImageBitmap(ngBmp);
-//                    }
-//                    catch (Exception e) {
-//                        mDebugView.setText(e.toString());
-//                    }
-
-                    List<List<Integer>> knnResults = scoreProc.getKnnResults();
-                    scoreProc.dotFilter();
-                    Bitmap testBmp = Bitmap.createBitmap(scoreProc.noStaffLinesImg.width(),scoreProc.noStaffLinesImg.height(),Bitmap.Config.ARGB_8888);
-                    Utils.matToBitmap(scoreProc.noStaffLinesImg, testBmp);
-
-                    Canvas cnvs = new Canvas(testBmp);
-                    //...setting paint objects with brute force >_>
-                    Paint paintR=new Paint();
-                    paintR.setStyle(Paint.Style.STROKE);
-                    paintR.setColor(Color.RED);
-
-                    Paint paintB=new Paint();
-                    paintB.setStyle(Paint.Style.STROKE);
-                    paintB.setColor(Color.BLUE);
-
-                    Paint paintG =new Paint();
-                    paintG.setStyle(Paint.Style.STROKE);
-                    paintG.setColor(Color.GREEN);
-
-                    Paint paintM =new Paint();
-                    paintM.setStyle(Paint.Style.STROKE);
-                    paintM.setColor(Color.MAGENTA);
-
-                    Paint paintC =new Paint();
-                    paintC.setStyle(Paint.Style.STROKE);
-                    paintC.setColor(Color.CYAN);
-
-                    Paint paintY =new Paint();
-                    paintY.setStyle(Paint.Style.STROKE);
-                    paintY.setColor(Color.YELLOW);
-
-                    Paint paintTxt =new Paint();
-                    paintTxt.setStyle(Paint.Style.FILL);
-                    paintTxt.setColor(Color.RED);
-                    paintTxt.setTextSize(30);
-
-                    List<Boolean[]> sonatinaNoteGroups = scoreProc.getSonatinaNoteGroups();
-
-                    for(int i = 0; i < staffObjects.size(); i++){
-                        for(int j = 0; j < staffObjects.get(i).size(); j++){
-                            if(knnResults.get(i).get(j)/10 == 0){
-                                cnvs.drawRect(staffObjects.get(i).get(j), paintR);
-                            }
-                            if(knnResults.get(i).get(j)/10 == 1){
-                                cnvs.drawRect(staffObjects.get(i).get(j), paintB);
-                            }
-                            if(knnResults.get(i).get(j)/10 == 2){
-                                cnvs.drawRect(staffObjects.get(i).get(j), paintG);
-                            }
-                            if(knnResults.get(i).get(j)/10 == 3){
-                                cnvs.drawRect(staffObjects.get(i).get(j), paintM);
-                            }
-                            if(knnResults.get(i).get(j)/10 == 4){
-                                cnvs.drawRect(staffObjects.get(i).get(j), paintC);
-                            }
-                            cnvs.drawText(knnResults.get(i).get(j).toString(),
-                                    staffObjects.get(i).get(j).left, staffObjects.get(i).get(j).top, paintTxt);
+//                    //TRAINING SETS FOR SYMBOLS
+//                    //load the training images and train symbol detection
+//                    addTrainingImages("training_set/g_clef", KnnLabels.G_CLEF);
+//                    addTrainingImages("training_set/f_clef", KnnLabels.F_CLEF);
+//                    addTrainingImages("training_set/brace", KnnLabels.BRACE);
+//
+//                    addTrainingImages("training_set/time_four_four", KnnLabels.TIME_44);
+//                    addTrainingImages("training_set/time_three_four", KnnLabels.TIME_34);
+//                    addTrainingImages("training_set/time_six_eight", KnnLabels.TIME_68);
+//                    addTrainingImages("training_set/time_two_two", KnnLabels.TIME_22);
+//                    addTrainingImages("training_set/time_two_four", KnnLabels.TIME_24);
+//                    addTrainingImages("training_set/common_time", KnnLabels.TIME_C);
+//                    //Rests
+//                    //TODO: Distinguish whole/half or ignore (85%)
+//                    addTrainingImages("training_set/whole_half_rest", KnnLabels.WHOLE_HALF_REST);
+//                    addTrainingImages("training_set/quarter_rest", KnnLabels.QUARTER_REST);
+//                    addTrainingImages("training_set/eight_rest", KnnLabels.EIGHTH_REST);
+//                    addTrainingImages("training_set/one_16th_rest", KnnLabels.ONE_SIXTEENTH_REST);
+//                    addTrainingImages("training_set/whole_note", KnnLabels.WHOLE_NOTE);
+//                    addTrainingImages("training_set/whole_note_2", KnnLabels.WHOLE_NOTE_2);
+//                    //accidentals
+//                    addTrainingImages("training_set/sharp", KnnLabels.SHARP_ACC);
+//                    addTrainingImages("training_set/natural", KnnLabels.NATURAL_ACC);
+//                    addTrainingImages("training_set/flat", KnnLabels.FLAT_ACC);
+//                    //others
+//                    addTrainingImages("training_set/slur", KnnLabels.TIE);
+//                    addTrainingImages("training_set/dynamics_f", KnnLabels.DYNAMICS_F);
+//                    addTrainingImages("training_set/dot_set", KnnLabels.DOT);
+//
+//                    //Train
+//                    scoreProc.trainKnn();
+//                    //test all
+//                    scoreProc.testMusicObjects();
+////                    try {
+//////                        int numCircles = scoreProc.classifyNoteGroup();
+//////                        mDebugView.setText(String.format("Number of circles: %d", numCircles));
+////                        Mat circles = scoreProc.classifyNoteGroup();
+////                        mDebugView.setText(String.format("%d", circles.cols()));
+//////                        mImageView.setImageBitmap(ngBmp);
+////                    }
+////                    catch (Exception e) {
+////                        mDebugView.setText(e.toString());
+////                    }
+//
+//                    List<List<Integer>> knnResults = scoreProc.getKnnResults();
+//                    scoreProc.dotFilter();
+//                    Bitmap testBmp = Bitmap.createBitmap(scoreProc.noStaffLinesImg.width(),scoreProc.noStaffLinesImg.height(),Bitmap.Config.ARGB_8888);
+//                    Utils.matToBitmap(scoreProc.noStaffLinesImg, testBmp);
+//
+//                    Canvas cnvs = new Canvas(testBmp);
+//                    //...setting paint objects with brute force >_>
+//                    Paint paintR=new Paint();
+//                    paintR.setStyle(Paint.Style.STROKE);
+//                    paintR.setColor(Color.RED);
+//
+//                    Paint paintB=new Paint();
+//                    paintB.setStyle(Paint.Style.STROKE);
+//                    paintB.setColor(Color.BLUE);
+//
+//                    Paint paintG =new Paint();
+//                    paintG.setStyle(Paint.Style.STROKE);
+//                    paintG.setColor(Color.GREEN);
+//
+//                    Paint paintM =new Paint();
+//                    paintM.setStyle(Paint.Style.STROKE);
+//                    paintM.setColor(Color.MAGENTA);
+//
+//                    Paint paintC =new Paint();
+//                    paintC.setStyle(Paint.Style.STROKE);
+//                    paintC.setColor(Color.CYAN);
+//
+//                    Paint paintY =new Paint();
+//                    paintY.setStyle(Paint.Style.STROKE);
+//                    paintY.setColor(Color.YELLOW);
+//
+//                    Paint paintTxt =new Paint();
+//                    paintTxt.setStyle(Paint.Style.FILL);
+//                    paintTxt.setColor(Color.RED);
+//                    paintTxt.setTextSize(30);
+//
+//                    List<Boolean[]> sonatinaNoteGroups = scoreProc.getSonatinaNoteGroups();
+//
+//                    for(int i = 0; i < staffObjects.size(); i++){
+//                        for(int j = 0; j < staffObjects.get(i).size(); j++){
+//                            if(knnResults.get(i).get(j)/10 == 0){
+//                                cnvs.drawRect(staffObjects.get(i).get(j), paintR);
+//                            }
+//                            if(knnResults.get(i).get(j)/10 == 1){
+//                                cnvs.drawRect(staffObjects.get(i).get(j), paintB);
+//                            }
+//                            if(knnResults.get(i).get(j)/10 == 2){
+//                                cnvs.drawRect(staffObjects.get(i).get(j), paintG);
+//                            }
+//                            if(knnResults.get(i).get(j)/10 == 3){
+//                                cnvs.drawRect(staffObjects.get(i).get(j), paintM);
+//                            }
+//                            if(knnResults.get(i).get(j)/10 == 4){
+//                                cnvs.drawRect(staffObjects.get(i).get(j), paintC);
+//                            }
+//                            cnvs.drawText(knnResults.get(i).get(j).toString(),
+//                                    staffObjects.get(i).get(j).left, staffObjects.get(i).get(j).top, paintTxt);
 //                            if(!sonatinaNoteGroups.get(i)[j]){
 //                                if(knnResults.get(i).get(j)/10 == 0){
 //                                    cnvs.drawRect(staffObjects.get(i).get(j), paintR);
@@ -522,9 +544,9 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
 //                                cnvs.drawText(knnResults.get(i).get(j).toString(),
 //                                        staffObjects.get(i).get(j).left, staffObjects.get(i).get(j).top, paintTxt);
 //                            }
-                        }
-                    }
-                    mImageView.setImageBitmap(testBmp);
+//                        }
+//                    }
+//                    mImageView.setImageBitmap(testBmp);
 
 //                    Canvas cnvs = new Canvas(bitmap);
 //                    Paint paint=new Paint();
@@ -537,11 +559,9 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
 //                    }
 //                    Bitmap testBmp = Bitmap.createBitmap(scoreProc.noStaffLinesImg.width(),scoreProc.noStaffLinesImg.height(),Bitmap.Config.ARGB_8888);
 //                    Utils.matToBitmap(scoreProc.noStaffLinesImg, testBmp);
-                    mImageView.setImageBitmap(testBmp);
-                    ImageUtils.saveImageToExternal(testBmp, "testSonatina.bmp");
-                    mDebugView.setText("Rects exporting...");
+                    mImageView.setImageBitmap(finalBmp);
+                    ImageUtils.saveImageToExternal(finalBmp, "noteGroupsSonatina.bmp");
                     scoreProc.exportRects(getActivity());
-                    mDebugView.setText("Rects exported!");
                 }
                 else {
                     mDebugView.setText("pfd or pdfRenderer not instantiated.");
