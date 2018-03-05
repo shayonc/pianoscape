@@ -1,5 +1,7 @@
 package uk.co.dolphin_com.seescoreandroid;
 
+import android.util.Log;
+
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -18,6 +20,7 @@ import uk.co.dolphin_com.sscore.playdata.PlayData;
  * dispatch events driven by SeeScore PlayData (bar start, beat, note, play end)
  */
 public class Dispatcher {
+    private ArrayList<List<Note>> allNotes = new ArrayList<List<Note>>();
 
     /**
      * the state of the dispatcher
@@ -210,14 +213,16 @@ public class Dispatcher {
             if (noteHandler.delay_ms != 0)
                 cal.add(Calendar.MILLISECOND, noteHandler.delay_ms);
             cal.add(Calendar.MILLISECOND, noteStart_ms);
-
-            dispatch(new Runnable() {
                 final List<Note> localNotes = new ArrayList<Note>(notes);// copy the list
 
-                public void run() {
-                    noteHandler.eventHandler.startNotes(localNotes);
-                }
-            }, cal.getTime());
+            allNotes.add(localNotes);
+//            dispatch(new Runnable() {
+//                final List<Note> localNotes = new ArrayList<Note>(notes);// copy the list
+//
+//                public void run() {
+//                    noteHandler.eventHandler.startNotes(localNotes);
+//                }
+//            }, cal.getTime());
         }
     }
     private void scheduleNotesForBar(final Bar bar, final Date barStartTime) {
@@ -305,6 +310,14 @@ public class Dispatcher {
                 scheduleBarEvents(bar, cal.getTime());
                 cal.add(Calendar.MILLISECOND, bar.duration);
             }
+        }
+        Log.d("Dispatcher", Integer.toString( allNotes.size()));
+        int counter = 0;
+        for (List<Note> notes : allNotes) {
+            if (counter < 10) {
+                noteHandler.eventHandler.startNotes(notes);
+            }
+            counter++;
         }
         // schedule the play end event
         scheduleEndEvent(cal.getTime());
