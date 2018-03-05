@@ -97,14 +97,14 @@ public class NoteReceiver extends MidiReceiver {
 
         compLock.lock();
 
-        for(List<uk.co.dolphin_com.sscore.playdata.Note> noteList: notes){
+        /*for(List<uk.co.dolphin_com.sscore.playdata.Note> noteList: notes){
             try{
                 Thread.sleep(1000);
             }catch(Exception e){
 
             }
             player.moveCursor(noteList);
-        }
+        }*/
 
         Log.d("NoteReciever", "We made it here");
         //skip rests here, also skip on tie stop
@@ -119,11 +119,15 @@ public class NoteReceiver extends MidiReceiver {
             restCount++;
         }*/
         boolean skipping = true;
-        while(skipping) {
-            if (notes.size() == 1) {
-                if(notes.get(curNote).get(0).rest){
+        while(skipping && !lastNote) {
+            if (notes.get(curNote).size() <= 2) {
+                if(notes.get(curNote).size() == 2 && notes.get(curNote).get(0).rest && notes.get(curNote).get(1).rest){
                     curNoteAdd(1);
-                }else{
+                }
+                else if(notes.get(curNote).get(0).rest){
+                    curNoteAdd(1);
+                }
+                else{
                     skipping = false;
                 }
             }
@@ -192,16 +196,30 @@ public class NoteReceiver extends MidiReceiver {
     }
     private void curNoteAdd(int n){
         curNote += n;
-        player.moveCursor(notes.get(curNote));
+
         if(curNote == notes.size() - 1){
             Log.d("NoteReceiverEnd", "Last note of song");
             lastNote = true;
         }
-        else if(curNote == notes.size()){
+        else if(curNote == 100 || curNote == notes.size()/* notes.size()*/){
             //end song
             songOver = true;
             Log.d("NoteReceiverEnd", "Should launch summary activity");
             ((MainActivity)mLogger).openSummaryPage(incorrectCount, notes.size() - restCount);
+        }
+        if(!songOver){
+            List<uk.co.dolphin_com.sscore.playdata.Note> curArray = notes.get(curNote);
+
+            if(curArray.size() == 2 && curArray.get(0).rest && curArray.get(1).rest)
+            {
+                player.moveCursor(notes.get(curNote + 1));
+            }
+            else if(curArray.size() == 1 && curArray.get(0).rest){
+                player.moveCursor(notes.get(curNote + 1));
+            }
+            else{
+                player.moveCursor(notes.get(curNote));
+            }
         }
     }
     private boolean isTieSkip(Note note){

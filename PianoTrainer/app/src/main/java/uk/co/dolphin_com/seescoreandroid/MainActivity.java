@@ -113,7 +113,7 @@ public class MainActivity extends Activity implements ScopeLogger {
     private TextView mLog;
     private ScrollView mScroller;
     private Lock compLock = new ReentrantLock();
-    private int curNote = 0;
+    private int curNote = 40;
     private boolean mShowRaw;
     private ArrayList<List<Note>> grandNotes = new ArrayList<List<Note>>();
 
@@ -1525,7 +1525,7 @@ public class MainActivity extends Activity implements ScopeLogger {
         sharedPreferences.putInt(filename + "totalNotes", notesCount);
         sharedPreferences.apply();
         MainActivity.this.startActivity(intentMain);
-        finish();
+        //finish();
     }
 
     @Override

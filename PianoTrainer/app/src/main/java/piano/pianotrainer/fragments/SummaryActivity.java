@@ -49,5 +49,6 @@ public class SummaryActivity extends AppCompatActivity {
         Intent intentHome = new Intent(this , HomeActivity.class);
         SummaryActivity.this.startActivity(intentHome);
         finish();
+        android.os.Process.killProcess(android.os.Process.myPid());
     }
 }
