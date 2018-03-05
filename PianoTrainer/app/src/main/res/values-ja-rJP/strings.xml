@@ -1,0 +1,22 @@
+<resources>
+    <string name="app_name">ピアノスケープ</string>
+    <string name="title_activity_home">ホームページ</string>
+    <string name="title_home">Home</string>
+    <string name="title_camera">写真機</string>
+    <string name="summary">概要</string>
+    <string name="music_dialog">選択肢を選択</string>
+    <string-array name="musicDialogOptions">
+        <item>再生を開始！</item>
+        <item>ファイルの編集</item>
+        <item>概要</item>
+    </string-array>
+    <string-array name="senders">
+        <item>"なし"</item>
+    </string-array>
+    <string name="title_activity_summary">概要</string>
+    <string name="music_file">音楽ファイル： </string>
+    <string name="correct_notes_played">正しく再生されたノート： </string>
+    <string name="accuracy_text">正確さ： </string>
+    <string name="folder_info">.xmlファイルを/ Piano / XMLFilesフォルダにインポートしてください。</string>
+    <string name="zoom_text">ズーム：</string>
+</resources>
