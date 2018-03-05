@@ -314,7 +314,7 @@ public class Dispatcher {
         Log.d("Dispatcher", Integer.toString( allNotes.size()));
 
         // schedule the play end event
-        scheduleEndEvent(cal.getTime());
+//        scheduleEndEvent(cal.getTime());
 
         state = State.Started;
     }
