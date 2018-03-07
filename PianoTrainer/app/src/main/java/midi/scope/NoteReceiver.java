@@ -185,7 +185,7 @@ public class NoteReceiver extends MidiReceiver {
                     int key = expNote.midiPitch;
                     sb.append("Expected octave " + key / 12 + " and step " + key % 12 + "\n");
                     sb.append("Given octave " + note.getOctave() + " and step " + note.getStep() + "\n");
-                    ((MainActivity)mLogger).showCorrectNotes(setStep(key));
+                    ((MainActivity)mLogger).showCorrectNotes(setStep(key % 12));
                 }
             }
             else {
