@@ -21,6 +21,7 @@ import uk.co.dolphin_com.sscore.playdata.PlayData;
  */
 public class Dispatcher {
     private ArrayList<List<Note>> allNotes = new ArrayList<List<Note>>();
+    private boolean notYetAdded = true;
 
     /**
      * the state of the dispatcher
@@ -214,8 +215,9 @@ public class Dispatcher {
                 cal.add(Calendar.MILLISECOND, noteHandler.delay_ms);
             cal.add(Calendar.MILLISECOND, noteStart_ms);
                 final List<Note> localNotes = new ArrayList<Note>(notes);// copy the list
-
-            allNotes.add(localNotes);
+            if (notYetAdded) {
+                allNotes.add(localNotes);
+            }
 //            dispatch(new Runnable() {
 //                final List<Note> localNotes = new ArrayList<Note>(notes);// copy the list
 //
@@ -320,6 +322,7 @@ public class Dispatcher {
     }
 
     public ArrayList<List<Note>> getAllNotes() {
+        notYetAdded = false;
         return allNotes;
     }
 
