@@ -292,35 +292,6 @@ public class MainActivity extends Activity implements ScopeLogger {
         this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_main);
 
-//        try {
-//            xmlparser = new XMLMusicParser(filename, ROOT_FOLDER, OUTPUT_FOLDER);
-//        } catch (IOException e) {
-//            // Everything will fail
-//        }
-//        File file = new File(xmlparser.getXmlFilePath());
-//        if (!file.exists()) {
-//            xmlparser.parseMXL(); // parse the .mxl file
-//        }
-//        List<piano.pianotrainer.model.Note> parsedNotes = xmlparser.parseXML(); // parse the .xml file
-//        Log.d("MainActivity SIZEEE", Integer.toString(parsedNotes.size()));
-//        comparison = new ComparisonSetup();
-//        String toPrint = "";
-//        try {
-//            notesArray = comparison.SyncNotes(parsedNotes);
-//        } catch (IndexOutOfBoundsException e) {
-//            toPrint = "MusicXML is formatted in a way that has its" +
-//                    " notes exceeding the measure divisions.\n" +
-//                    "This is likely because the the song is not meant" +
-//                    " for Piano or has wrong measure line placements.";
-//            Log.d("MainActivity: ", toPrint);
-//        }
-//
-//        Log.d("MainActivity size: ", Integer.toString(notesArray.size()));
-//
-//        if(notesArray.size() == 0 ){
-//            throw new java.lang.RuntimeException("Parsing failed");
-//        }
-
         mLog = (TextView) findViewById(R.id.log);
         mScroller = (ScrollView) findViewById(R.id.scroll);
 
@@ -342,11 +313,6 @@ public class MainActivity extends Activity implements ScopeLogger {
         };
 
         // Tell the virtual device to log its messages here..
-
-
-
-//        TextView versionText = (TextView)findViewById(R.id.versionLabel);
-//        versionText.setText("SeeScoreLib Version:" + SScore.getVersion().toString());
         hideBeat();
         final ScrollView sv = (ScrollView) findViewById(R.id.scrollView1);
         sv.addView(ssview);
@@ -1528,7 +1494,6 @@ public class MainActivity extends Activity implements ScopeLogger {
         sharedPreferences.putInt(filename + "totalNotes", notesCount);
         sharedPreferences.apply();
         MainActivity.this.startActivity(intentMain);
-        //finish();
     }
 
     @Override

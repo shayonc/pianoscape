@@ -17,20 +17,13 @@
 package midi.scope;
 
 import android.media.midi.MidiReceiver;
-import android.os.Bundle;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.DialogFragment;
 import android.util.Log;
-import android.widget.Toast;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.locks.Lock;
 
-import piano.pianotrainer.fragments.MusicDialogFragment;
 import piano.pianotrainer.model.ChordComparator;
 import piano.pianotrainer.model.Note;
 import uk.co.dolphin_com.seescoreandroid.MainActivity;
@@ -51,7 +44,6 @@ public class NoteReceiver extends MidiReceiver {
     private ArrayList<Integer> correctList = new ArrayList<>();
     private Lock compLock;
     private int curNote;
-    private int incorrectCount;
     private int restCount = 0;
     private ChordComparator chordComparator;
     private boolean isChord = false;
@@ -189,7 +181,6 @@ public class NoteReceiver extends MidiReceiver {
                     sb.append("\nNote " + curNote + " was incorrect\n");
                     sb.append("Expected octave " + expNote.midiPitch / 12 + " and step " + expNote.midiPitch % 12 + "\n");
                     sb.append("Given octave " + note.getOctave() + " and step " + note.getStep() + "\n");
-                    //incorrectCount++;
                 }
             }
             else {
@@ -224,7 +215,7 @@ public class NoteReceiver extends MidiReceiver {
             Log.d("NoteReceiverEnd", "Last note of song");
             lastNote = true;
         }
-        else if(curNote == 100 || curNote >= notes.size()/* notes.size()*/){
+        else if(curNote == 100 || curNote >= notes.size() ){
             //end song
             songOver = true;
             Log.d("NoteReceiverEnd", "Should launch summary activity");
