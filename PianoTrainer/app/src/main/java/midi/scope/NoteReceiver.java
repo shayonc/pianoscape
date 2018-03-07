@@ -21,6 +21,7 @@ import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.DialogFragment;
 import android.util.Log;
+import android.widget.Toast;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -204,7 +205,7 @@ public class NoteReceiver extends MidiReceiver {
             Log.d("NoteReceiverEnd", "Last note of song");
             lastNote = true;
         }
-        else if(curNote == 100 || curNote == notes.size()/* notes.size()*/){
+        else if(curNote == 100 || curNote >= notes.size()/* notes.size()*/){
             //end song
             songOver = true;
             Log.d("NoteReceiverEnd", "Should launch summary activity");
@@ -233,7 +234,17 @@ public class NoteReceiver extends MidiReceiver {
             //tieOnNotes.add(note);
             return false;
         }
-
         return false;
+    }
+
+    public void setBarIndex(int barIndex) {
+        this.barIndex = barIndex;
+        for (int i = 0; i < notes.size(); i++) {
+            if (notes.get(i).get(0).startBarIndex == this.barIndex) {
+                curNote = i;
+                isChord = false;
+                break;
+            }
+        }
     }
 }

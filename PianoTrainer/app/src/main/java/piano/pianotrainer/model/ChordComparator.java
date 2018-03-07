@@ -43,6 +43,7 @@ public class ChordComparator {
         }
         //if one note played is incorrect then reset
         //cumIncorrectCount++;
+        //This is where incorrect notes are detected
         this.clearCorrect();
         return noteCount - correctCount;
     }

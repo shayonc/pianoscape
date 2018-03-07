@@ -137,8 +137,8 @@
 
     <ImageButton
         android:id="@+id/playButton"
-        android:layout_width="25dp"
-        android:layout_height="25dp"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
         android:layout_alignTop="@+id/stopButton"
         android:layout_toStartOf="@+id/stopButton"
         android:onClick="play_pause"
@@ -146,8 +146,8 @@
 
     <ImageButton
         android:id="@+id/stopButton"
-        android:layout_width="25dp"
-        android:layout_height="25dp"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
         android:layout_alignParentEnd="true"
         android:layout_alignTop="@+id/metronomeSwitch"
         android:onClick="stop_play"

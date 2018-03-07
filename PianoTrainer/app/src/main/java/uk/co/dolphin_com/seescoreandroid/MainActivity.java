@@ -107,13 +107,13 @@ public class MainActivity extends Activity implements ScopeLogger {
 
     private MidiOutputPortSelector mLogSenderSelector;
     private MidiManager mMidiManager;
-    private MidiReceiver mNoteReceiver;
+    private NoteReceiver mNoteReceiver;
     private MidiFramer mConnectFramer;
     private MyDirectReceiver mDirectReceiver;
     private TextView mLog;
     private ScrollView mScroller;
     private Lock compLock = new ReentrantLock();
-    private int curNote = 40;
+    private int curNote = 0;
     private boolean mShowRaw;
     private ArrayList<List<Note>> grandNotes = new ArrayList<List<Note>>();
 
@@ -265,6 +265,9 @@ public class MainActivity extends Activity implements ScopeLogger {
                 updatePlayPauseButtonImage();
                 for (Component comp : components)
                     System.out.println(comp);
+                if (mNoteReceiver != null) {
+                    mNoteReceiver.setBarIndex(barIndex);
+                }
             }
 
             public void longTap(int systemIndex, int partIndex, int barIndex, Component[] components) {
