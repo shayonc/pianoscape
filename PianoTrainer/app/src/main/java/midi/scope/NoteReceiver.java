@@ -150,7 +150,10 @@ public class NoteReceiver extends MidiReceiver {
             //released cord too early, clear Chord Comparator
             chordComparator.clearCorrect();
             sb.append("A key was released before chord completed, chord has been reset\n");
-            chordComparator.displayExpected();
+            String parsedKeys = chordComparator.displayExpected();
+            Log.d("fsadfsdafd", "WHHYYYY");
+            ((MainActivity)mLogger).showCorrectNotes(parsedKeys);
+
         }
 
         if (note.getNoteOn() && !songOver) {
@@ -179,9 +182,11 @@ public class NoteReceiver extends MidiReceiver {
                     * */
                     correctList.set(curNote, -1);
                     sb.append("\nNote " + curNote + " was incorrect\n");
-                    sb.append("Expected octave " + expNote.midiPitch / 12 + " and step " + expNote.midiPitch % 12 + "\n");
+                    int key = expNote.midiPitch;
+                    sb.append("Expected octave " + key / 12 + " and step " + key % 12 + "\n");
                     sb.append("Given octave " + note.getOctave() + " and step " + note.getStep() + "\n");
-                    //incorrectCount++;
+                    String parsedKey = Integer.toString(key);
+                    ((MainActivity)mLogger).showCorrectNotes(parsedKey);
                 }
             }
             else {

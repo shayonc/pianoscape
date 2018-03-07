@@ -48,11 +48,14 @@ public class ChordComparator {
         return noteCount - correctCount;
     }
 
-    public void displayExpected(){
+    public String displayExpected(){
+        String correctNotes = "";
         for(uk.co.dolphin_com.sscore.playdata.Note note: expNotes){
             Log.d("chordComparitor", "Expected octave " + note.midiPitch / 12 + " step " + note.midiPitch % 12);
+            correctNotes = correctNotes + Integer.toString(note.midiPitch) + System.getProperty("line.separator");
         }
         Log.d("chordComparitor", "End of expNotes");
+        return correctNotes;
     }
 
     public void clearCorrect(){

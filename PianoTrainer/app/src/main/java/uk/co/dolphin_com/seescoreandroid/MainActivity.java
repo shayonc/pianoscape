@@ -607,13 +607,13 @@ public class MainActivity extends Activity implements ScopeLogger {
 		titleLabel.setText(titleText(score));
 	}
 
-    private void showBeat(int beat) {
+    public void showBeat(int beat) {
         TextView beatText = (TextView) findViewById(R.id.beatText);
         beatText.setText(""+beat);
         beatText.setVisibility(TextView.VISIBLE);
     }
 
-    private void hideBeat() {
+    public void hideBeat() {
         TextView beatText = (TextView) findViewById(R.id.beatText);
         beatText.setVisibility(TextView.INVISIBLE);
     }
@@ -1453,6 +1453,37 @@ public class MainActivity extends Activity implements ScopeLogger {
 //                logFromUiThread(string);
 //            }
 //        });
+    }
+
+    public void showCorrectNotes(final String notes) {
+
+        player.setBeatHandler(new Dispatcher.EventHandler() {
+            public void event(final int index, final boolean ci) {
+                new Handler(Looper.getMainLooper()).post(new Runnable() {
+                    final boolean countIn = ci;
+
+                    public void run() {
+                        TextView beatText = (TextView) findViewById(R.id.beatText);
+                        if (true) {
+                            beatText.setText(notes);
+                            beatText.setVisibility(TextView.VISIBLE);
+//                            runOnUiThread(new Runnable() {
+//                                @Override
+//                                public void run() {
+//                                    final Handler handler = new Handler();
+//                                    handler.postDelayed(new Runnable() {
+//                                        @Override
+//                                        public void run() {
+//                                            hideBeat();
+//                                        }
+//                                    }, 1500);
+//                                }
+//                            });
+                        }
+                    }
+                });
+            }
+        }, 0);
     }
 
     // Log a message to our TextView.

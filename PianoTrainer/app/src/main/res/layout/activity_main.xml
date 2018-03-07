@@ -60,13 +60,14 @@
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:text="99"
-        android:textSize="150sp"
+        android:textSize="50sp"
         android:textStyle="bold"
         android:visibility="visible"
         android:textColor="#80ff0000"
         android:layout_centerHorizontal="true"
         android:id="@+id/beatText"
-        android:singleLine="true"
+        android:singleLine="false"
+        android:maxLines="10"
         android:background="#00000000" />
 
     <TextView
