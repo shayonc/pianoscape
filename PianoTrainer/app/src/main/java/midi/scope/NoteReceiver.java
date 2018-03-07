@@ -50,7 +50,6 @@ public class NoteReceiver extends MidiReceiver {
     private boolean lastNote = false;
     private boolean songOver = false;
     private Player player;
-    private int correctNotes=0;
     private int totalNotes=0;
     private int barIndex = 0;
     private boolean correctListExists = false;
@@ -144,14 +143,12 @@ public class NoteReceiver extends MidiReceiver {
 
         //Compare notes here
         if(!note.getNoteOn() && isChord){
-            // TODO: chord not completed
+            // TODO: chord not completed, but it is partially
             correctList.set(curNote, -1);
-            correctNotes += chordComparator.getCorrectCount();
             //released cord too early, clear Chord Comparator
             chordComparator.clearCorrect();
             sb.append("A key was released before chord completed, chord has been reset\n");
             String parsedKeys = chordComparator.displayExpected();
-            Log.d("fsadfsdafd", "WHHYYYY");
             ((MainActivity)mLogger).showCorrectNotes(parsedKeys);
 
         }
@@ -160,9 +157,14 @@ public class NoteReceiver extends MidiReceiver {
             totalNotes++;
             //chord detection
             if(!isChord && notes.get(curNote).size() > 1){
+                // TODO: chord completely off and missed
                 chordComparator = new ChordComparator(notes.get(curNote));
                 isChord = true;
                 sb.append("chord detected!!!!\n");
+                correctList.set(curNote, -1);
+                chordComparator.clearCorrect();
+                String parsedKeys = chordComparator.displayExpected();
+                ((MainActivity)mLogger).showCorrectNotes(parsedKeys);
             }
 
             if(!isChord) {
@@ -214,7 +216,6 @@ public class NoteReceiver extends MidiReceiver {
     }
     private void curNoteAdd(int n){
         curNote++;
-        correctNotes+= n;
 
         if(curNote == notes.size() - 1){
             Log.d("NoteReceiverEnd", "Last note of song");
