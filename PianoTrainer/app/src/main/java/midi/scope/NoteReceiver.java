@@ -185,8 +185,7 @@ public class NoteReceiver extends MidiReceiver {
                     int key = expNote.midiPitch;
                     sb.append("Expected octave " + key / 12 + " and step " + key % 12 + "\n");
                     sb.append("Given octave " + note.getOctave() + " and step " + note.getStep() + "\n");
-                    String parsedKey = Integer.toString(key);
-                    ((MainActivity)mLogger).showCorrectNotes(parsedKey);
+                    ((MainActivity)mLogger).showCorrectNotes(setStep(key));
                 }
             }
             else {
@@ -268,5 +267,37 @@ public class NoteReceiver extends MidiReceiver {
                 break;
             }
         }
+    }
+    public String setStep(int note) {
+        String convStep;
+        switch(note){
+            case 0: convStep = "C";
+                break;
+            case 1: convStep = "C#/Db";
+                break;
+            case 2: convStep = "D";
+                break;
+            case 3: convStep = "D#/Eb";
+                break;
+            case 4: convStep = "E";
+                break;
+            case 5: convStep = "F";
+                break;
+            case 6: convStep = "F#/Gb";
+                break;
+            case 7: convStep = "G";
+                break;
+            case 8: convStep = "G#/Ab";
+                break;
+            case 9: convStep = "A";
+                break;
+            case 10: convStep = "A#/Bb";
+                break;
+            case 11: convStep = "B";
+                break;
+            default: convStep = "";
+                break;
+        }
+        return convStep;
     }
 }

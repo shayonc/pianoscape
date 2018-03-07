@@ -52,7 +52,7 @@ public class ChordComparator {
         String correctNotes = "";
         for(uk.co.dolphin_com.sscore.playdata.Note note: expNotes){
             Log.d("chordComparitor", "Expected octave " + note.midiPitch / 12 + " step " + note.midiPitch % 12);
-            correctNotes = correctNotes + Integer.toString(note.midiPitch) + System.getProperty("line.separator");
+            correctNotes = correctNotes + setStep(note.midiPitch % 12) + System.getProperty("line.separator");
         }
         Log.d("chordComparitor", "End of expNotes");
         return correctNotes;
@@ -74,5 +74,38 @@ public class ChordComparator {
         boolean ret = isFirstAttempt;
         isFirstAttempt = false;
         return ret;
+    }
+
+    public String setStep(int note) {
+        String convStep;
+        switch(note){
+            case 0: convStep = "C";
+                break;
+            case 1: convStep = "C#/Db";
+                break;
+            case 2: convStep = "D";
+                break;
+            case 3: convStep = "D#/Eb";
+                break;
+            case 4: convStep = "E";
+                break;
+            case 5: convStep = "F";
+                break;
+            case 6: convStep = "F#/Gb";
+                break;
+            case 7: convStep = "G";
+                break;
+            case 8: convStep = "G#/Ab";
+                break;
+            case 9: convStep = "A";
+                break;
+            case 10: convStep = "A#/Bb";
+                break;
+            case 11: convStep = "B";
+                break;
+            default: convStep = "";
+                break;
+        }
+        return convStep;
     }
 }
