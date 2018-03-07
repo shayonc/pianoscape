@@ -16,7 +16,7 @@
 
 package midi.scope;
 
-//import android.media.midi.MidiReceiver;
+import android.media.midi.MidiReceiver;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.DialogFragment;
