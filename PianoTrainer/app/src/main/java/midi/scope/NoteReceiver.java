@@ -56,6 +56,9 @@ public class NoteReceiver extends MidiReceiver {
     private boolean lastNote = false;
     private boolean songOver = false;
     private Player player;
+    private int correctNotes=0;
+    private int totalNotes=0;
+    private int barIndex = 0;
     //private Set<Note> tieOnNotes = new HashSet<>();
 
     public NoteReceiver(ScopeLogger logger, ArrayList<List<uk.co.dolphin_com.sscore.playdata.Note>> notes, Lock compLock, int curNote, Player player) {
@@ -136,10 +139,9 @@ public class NoteReceiver extends MidiReceiver {
             }
         }
 
-
         //Compare notes here
         if(!note.getNoteOn() && isChord){
-            incorrectCount += chordComparator.getNoteCount() - chordComparator.getCorrectCount();
+            correctNotes += chordComparator.getCorrectCount();
             //released cord too early, clear Chord Comparator
             chordComparator.clearCorrect();
             sb.append("A key was released before chord completed, chord has been reset\n");
@@ -147,7 +149,7 @@ public class NoteReceiver extends MidiReceiver {
         }
 
         if (note.getNoteOn() && !songOver) {
-
+            totalNotes++;
             //chord detection
             if(!isChord && notes.get(curNote).size() > 1){
                 chordComparator = new ChordComparator(notes.get(curNote));
@@ -171,13 +173,13 @@ public class NoteReceiver extends MidiReceiver {
                     sb.append("\nNote " + curNote + " was incorrect\n");
                     sb.append("Expected octave " + expNote.midiPitch / 12 + " and step " + expNote.midiPitch % 12 + "\n");
                     sb.append("Given octave " + note.getOctave() + " and step " + note.getStep() + "\n");
-                    incorrectCount++;
+                    //incorrectCount++;
                 }
             }
             else {
                 if(chordComparator.compareNotes(note) == 0){
                     isChord = false;
-                    curNoteAdd(1);
+                    curNoteAdd(chordComparator.getNoteCount());
                     sb.append("chord completed successfully\n");
                 }
             }
@@ -195,7 +197,8 @@ public class NoteReceiver extends MidiReceiver {
         Log.i(TAG, text);
     }
     private void curNoteAdd(int n){
-        curNote += n;
+        curNote++;
+        correctNotes+= n;
 
         if(curNote == notes.size() - 1){
             Log.d("NoteReceiverEnd", "Last note of song");
