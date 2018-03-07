@@ -142,6 +142,7 @@ public class NoteReceiver extends MidiReceiver {
 
         //Compare notes here
         if(!note.getNoteOn() && isChord){
+            // TODO: chord not completed
             correctNotes += chordComparator.getCorrectCount();
             //released cord too early, clear Chord Comparator
             chordComparator.clearCorrect();
@@ -157,7 +158,6 @@ public class NoteReceiver extends MidiReceiver {
                 isChord = true;
                 sb.append("chord detected!!!!\n");
             }
-            //ToDo step compare will not work for flats, midi is only converted to sharp
 
             if(!isChord) {
                 uk.co.dolphin_com.sscore.playdata.Note expNote = notes.get(curNote).get(0);
@@ -171,6 +171,9 @@ public class NoteReceiver extends MidiReceiver {
                     }*/
 
                 } else {
+                    /*
+                    * TODO: Wrong single note
+                    * */
                     sb.append("\nNote " + curNote + " was incorrect\n");
                     sb.append("Expected octave " + expNote.midiPitch / 12 + " and step " + expNote.midiPitch % 12 + "\n");
                     sb.append("Given octave " + note.getOctave() + " and step " + note.getStep() + "\n");
@@ -178,10 +181,14 @@ public class NoteReceiver extends MidiReceiver {
                 }
             }
             else {
-                if(chordComparator.compareNotes(note) == 0){
+                int notesRemaining = chordComparator.compareNotes(note);
+                if(notesRemaining == 0){
                     isChord = false;
                     curNoteAdd(chordComparator.getNoteCount());
                     sb.append("chord completed successfully\n");
+                }
+                else if(notesRemaining == chordComparator.getNoteCount()){
+                    isChord = false;
                 }
             }
         }
