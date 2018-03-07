@@ -13,8 +13,8 @@ public class SummaryActivity extends AppCompatActivity {
     private static final String SUMMARY_PREFS = "SummaryPrefs";
     SharedPreferences sharedpreferences;
     private int incorrectNotes = 0;
-    private int correctNotes = 0;
     private int totalNotes = 0;
+    private int correctNotes = 0;
     private double accuracyRate = 0;
 
     @Override
@@ -27,9 +27,8 @@ public class SummaryActivity extends AppCompatActivity {
 
         // get shared preferences
         sharedpreferences = getSharedPreferences(SUMMARY_PREFS, MODE_PRIVATE);
-        incorrectNotes = sharedpreferences.getInt(filename + "incorrectNotes", 0);
-        correctNotes = sharedpreferences.getInt(filename + "totalNotes", 0);
-        totalNotes = correctNotes + incorrectNotes;
+        correctNotes = sharedpreferences.getInt(filename + "correctNotes", 0);
+        totalNotes = sharedpreferences.getInt(filename + "totalNotes", 0);
 
         TextView summaryTextView = (TextView) findViewById(R.id.summaryText);
         String summaryMessage = "";

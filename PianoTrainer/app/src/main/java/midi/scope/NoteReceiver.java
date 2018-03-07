@@ -48,6 +48,7 @@ public class NoteReceiver extends MidiReceiver {
     private ScopeLogger mLogger;
     private long mLastTimeStamp = 0;
     private ArrayList<List<uk.co.dolphin_com.sscore.playdata.Note>> notes;
+    private ArrayList<Integer> correctList = new ArrayList<>();
     private Lock compLock;
     private int curNote;
     private int incorrectCount;
@@ -60,6 +61,7 @@ public class NoteReceiver extends MidiReceiver {
     private int correctNotes=0;
     private int totalNotes=0;
     private int barIndex = 0;
+    private boolean correctListExists = false;
     //private Set<Note> tieOnNotes = new HashSet<>();
 
     public NoteReceiver(ScopeLogger logger, ArrayList<List<uk.co.dolphin_com.sscore.playdata.Note>> notes, Lock compLock, int curNote, Player player) {
@@ -69,6 +71,14 @@ public class NoteReceiver extends MidiReceiver {
         this.compLock = compLock;
         this.curNote = curNote;
         this.player = player;
+        if (notes != null) {
+            if (notes.size() > 0) {
+                correctListExists = true;
+                for (int i = 0; i < notes.size(); i++) {
+                    correctList.add(0);
+                }
+            }
+        }
     }
 
     /*
@@ -143,6 +153,7 @@ public class NoteReceiver extends MidiReceiver {
         //Compare notes here
         if(!note.getNoteOn() && isChord){
             // TODO: chord not completed
+            correctList.set(curNote, -1);
             correctNotes += chordComparator.getCorrectCount();
             //released cord too early, clear Chord Comparator
             chordComparator.clearCorrect();
@@ -174,6 +185,7 @@ public class NoteReceiver extends MidiReceiver {
                     /*
                     * TODO: Wrong single note
                     * */
+                    correctList.set(curNote, -1);
                     sb.append("\nNote " + curNote + " was incorrect\n");
                     sb.append("Expected octave " + expNote.midiPitch / 12 + " and step " + expNote.midiPitch % 12 + "\n");
                     sb.append("Given octave " + note.getOctave() + " and step " + note.getStep() + "\n");
@@ -216,11 +228,16 @@ public class NoteReceiver extends MidiReceiver {
             //end song
             songOver = true;
             Log.d("NoteReceiverEnd", "Should launch summary activity");
-            ((MainActivity)mLogger).openSummaryPage(incorrectCount, notes.size() - restCount);
+            int correctCounter = 0;
+            for (int k = 0; k < correctList.size(); k++) {
+                if (correctList.get(k) == 1) {
+                    correctCounter++;
+                }
+            }
+            ((MainActivity)mLogger).openSummaryPage(correctCounter, notes.size() - restCount);
         }
         if(!songOver){
             List<uk.co.dolphin_com.sscore.playdata.Note> curArray = notes.get(curNote);
-
             if(curArray.size() == 2 && curArray.get(0).rest && curArray.get(1).rest)
             {
                 player.moveCursor(notes.get(curNote + 1));
@@ -230,6 +247,7 @@ public class NoteReceiver extends MidiReceiver {
             }
             else{
                 player.moveCursor(notes.get(curNote));
+                if (correctListExists && correctList.get(curNote) != -1) { correctList.set(curNote, 1); }
             }
         }
     }

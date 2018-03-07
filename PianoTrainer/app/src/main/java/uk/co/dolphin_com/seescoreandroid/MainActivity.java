@@ -1518,13 +1518,13 @@ public class MainActivity extends Activity implements ScopeLogger {
         log(builder.toString());
     }
 
-    public void openSummaryPage(int incorrectNotes, int notesCount) {
-        Log.d("openSummaryPage", "incorrect notes: " + incorrectNotes + " totalNotes: " + notesCount);
+    public void openSummaryPage(int correctNotes, int notesCount) {
+        Log.d("openSummaryPage", "incorrect notes: " + correctNotes + " totalNotes: " + notesCount);
         Intent intentMain = new Intent(this , SummaryActivity.class);
         intentMain.putExtra("filename", filename);
         SharedPreferences.Editor sharedPreferences = getSharedPreferences(SUMMARY_PREFS, MODE_PRIVATE).edit();
 
-        sharedPreferences.putInt(filename + "incorrectNotes", incorrectNotes);
+        sharedPreferences.putInt(filename + "correctNotes", correctNotes);
         sharedPreferences.putInt(filename + "totalNotes", notesCount);
         sharedPreferences.apply();
         MainActivity.this.startActivity(intentMain);
