@@ -1456,34 +1456,19 @@ public class MainActivity extends Activity implements ScopeLogger {
     }
 
     public void showCorrectNotes(final String notes) {
-
-        player.setBeatHandler(new Dispatcher.EventHandler() {
-            public void event(final int index, final boolean ci) {
-                new Handler(Looper.getMainLooper()).post(new Runnable() {
-                    final boolean countIn = ci;
-
-                    public void run() {
-                        TextView beatText = (TextView) findViewById(R.id.beatText);
-                        if (true) {
-                            beatText.setText(notes);
-                            beatText.setVisibility(TextView.VISIBLE);
-//                            runOnUiThread(new Runnable() {
-//                                @Override
-//                                public void run() {
-//                                    final Handler handler = new Handler();
-//                                    handler.postDelayed(new Runnable() {
-//                                        @Override
-//                                        public void run() {
-//                                            hideBeat();
-//                                        }
-//                                    }, 1500);
-//                                }
-//                            });
-                        }
-                    }
-                });
+        Handler handler =new Handler(Looper.getMainLooper());
+        handler.post(new Runnable() {
+            public void run() {
+                TextView beatText = (TextView) findViewById(R.id.beatText);
+                    beatText.setText(notes);
+                    beatText.setVisibility(TextView.VISIBLE);
             }
-        }, 0);
+        });
+        handler.postDelayed(new Runnable() {
+            public void run() {
+                hideBeat();
+            }
+        }, 1200);
     }
 
     // Log a message to our TextView.
