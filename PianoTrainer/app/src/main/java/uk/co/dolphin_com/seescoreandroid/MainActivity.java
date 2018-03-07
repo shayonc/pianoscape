@@ -116,6 +116,7 @@ public class MainActivity extends Activity implements ScopeLogger {
     private int curNote = 0;
     private boolean mShowRaw;
     private ArrayList<List<Note>> grandNotes = new ArrayList<List<Note>>();
+    Handler handler =new Handler(Looper.getMainLooper());
 
     /**
 	 * set true to clear files in internal directory and reload from assets
@@ -1456,7 +1457,7 @@ public class MainActivity extends Activity implements ScopeLogger {
     }
 
     public void showCorrectNotes(final String notes) {
-        Handler handler =new Handler(Looper.getMainLooper());
+        handler.removeCallbacksAndMessages(null);
         handler.post(new Runnable() {
             public void run() {
                 TextView beatText = (TextView) findViewById(R.id.beatText);
@@ -1468,7 +1469,7 @@ public class MainActivity extends Activity implements ScopeLogger {
             public void run() {
                 hideBeat();
             }
-        }, 1200);
+        }, 1500);
     }
 
     // Log a message to our TextView.
