@@ -12,7 +12,6 @@ import piano.pianotrainer.R;
 public class SummaryActivity extends AppCompatActivity {
     private static final String SUMMARY_PREFS = "SummaryPrefs";
     SharedPreferences sharedpreferences;
-    private int incorrectNotes = 0;
     private int totalNotes = 0;
     private int correctNotes = 0;
     private double accuracyRate = 0;
@@ -32,9 +31,8 @@ public class SummaryActivity extends AppCompatActivity {
 
         TextView summaryTextView = (TextView) findViewById(R.id.summaryText);
         String summaryMessage = "";
-
-            accuracyRate = ((double) correctNotes / (double) totalNotes) *100;
-            summaryMessage = getString(R.string.music_file) + filename +
+        accuracyRate = ((double) correctNotes / (double) totalNotes) *100;
+        summaryMessage = getString(R.string.music_file) + filename +
                     System.getProperty("line.separator") +
                     getString(R.string.correct_notes_played) + correctNotes + "/" + totalNotes +
                     System.getProperty("line.separator") +
