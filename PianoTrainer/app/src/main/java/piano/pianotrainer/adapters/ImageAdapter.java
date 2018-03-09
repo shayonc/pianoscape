@@ -2,7 +2,6 @@ package piano.pianotrainer.adapters;
 
 import android.content.Context;
 import android.graphics.Color;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,10 +9,8 @@ import android.widget.BaseAdapter;
 import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.TextView;
-
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-
 import piano.pianotrainer.R;
 import piano.pianotrainer.model.MusicFile;
 
@@ -63,7 +60,6 @@ public class ImageAdapter extends BaseAdapter {
                 textView.setText(imageCaption);
                 textView.setTextColor(Color.BLACK);
                 imageView.setImageResource(musicFileList.get(position).getThumbnail());
-
                 imageView.setScaleType(ImageView.ScaleType.FIT_XY);
                 imageView.setPadding(8, 8, 8, 8);
                 android.view.ViewGroup.LayoutParams layoutParams = imageView.getLayoutParams();
@@ -75,6 +71,5 @@ public class ImageAdapter extends BaseAdapter {
             }
             return grid;
         }
-
 }
 

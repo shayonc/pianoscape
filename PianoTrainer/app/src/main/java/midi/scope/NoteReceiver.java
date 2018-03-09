@@ -18,12 +18,10 @@ package midi.scope;
 
 import android.media.midi.MidiReceiver;
 import android.util.Log;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
-
 import piano.pianotrainer.model.ChordComparator;
 import piano.pianotrainer.model.Note;
 import uk.co.dolphin_com.seescoreandroid.MainActivity;

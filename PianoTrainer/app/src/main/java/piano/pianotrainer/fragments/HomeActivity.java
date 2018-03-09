@@ -42,8 +42,6 @@ public class HomeActivity extends AppCompatActivity {
 
     // Variables for helping with evaluation
     private String directoryPath;
-    private String mxlFilePath;
-    private String outputFolder;
     private String xmlFilePath;
 
     // Storage Permissions
@@ -65,8 +63,6 @@ public class HomeActivity extends AppCompatActivity {
 
         // initialize paths
         this.directoryPath = getSdCardPath() + ROOT_FOLDER;
-//        this.mxlFilePath = getSdCardPath() + ROOT_FOLDER + File.separator + filename + ".mxl";
-//        this.outputFolder = getSdCardPath() + ROOT_FOLDER + File.separator + OUTPUT_FOLDER;
         this.xmlFilePath = getSdCardPath() + ROOT_FOLDER + File.separator + OUTPUT_FOLDER + File.separator;
 
         loadMusicFileList(); // load music file list
@@ -78,7 +74,6 @@ public class HomeActivity extends AppCompatActivity {
         gridview.setOnItemClickListener(new OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View v,
                                     int position, long id) {
-                // TODO: temp fix
                 MusicFile selectedItem = musicFileList.get(position);
                 openMusicOptions(selectedItem.getFilename(), xmlFilePath); // pop up dialog
             }
@@ -118,7 +113,6 @@ public class HomeActivity extends AppCompatActivity {
             try {
                 Intent LaunchIntent = getPackageManager().getLaunchIntentForPackage("com.asus.filemanager");
                 startActivity(LaunchIntent);
-
                 Toast toast;
                 toast = Toast.makeText(getApplicationContext(), R.string.folder_info ,Toast.LENGTH_LONG);
                 toast.show();
@@ -156,7 +150,6 @@ public class HomeActivity extends AppCompatActivity {
                     musicFileList.add(musicFile);
                 }
             }
-
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -223,7 +216,6 @@ public class HomeActivity extends AppCompatActivity {
     public static void verifyStoragePermissions(Activity activity) {
         // Check if we have write permission
         int permission = ActivityCompat.checkSelfPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE);
-
         if (permission != PackageManager.PERMISSION_GRANTED) {
             // We don't have permission so prompt the user
             ActivityCompat.requestPermissions(
