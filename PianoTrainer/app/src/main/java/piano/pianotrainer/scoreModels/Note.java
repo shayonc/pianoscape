@@ -1,5 +1,7 @@
 package piano.pianotrainer.scoreModels;
 
+import android.graphics.Rect;
+
 import org.opencv.core.Point;
 
 /**
@@ -29,6 +31,25 @@ public class Note {
         this.clef = clef;
         this.linePosition = linePosition;
         this.hasStaccato = hasStaccato;
+    }
+
+    public boolean appendDot(Rect dot){
+        double maxDeviationStaccato = 10;
+        double maxDeviationDot = 20; //anything larger indicates an unhandled edge case
+        double xDistance = Math.abs(dot.centerX() - circleCenter.x);
+        if(xDistance <= maxDeviationStaccato){
+            this.hasDot = true;
+            this.hasStaccato = true;
+        }
+        else if(xDistance > maxDeviationStaccato && xDistance < maxDeviationDot){
+            //diagonal to note-head - not a staccato
+            this.hasDot = true;
+            this.hasStaccato = false;
+        }
+        else{
+            return false;
+        }
+        return true;
     }
 
     public Note() { }

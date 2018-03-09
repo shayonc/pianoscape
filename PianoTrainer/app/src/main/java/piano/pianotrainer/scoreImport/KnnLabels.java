@@ -14,13 +14,9 @@ public final class KnnLabels {
     public static final int QUARTER_REST = 11;
     public static final int EIGHTH_REST  = 12;
     public static final int ONE_SIXTEENTH_REST  = 13;
-    public static final int WHOLE_NOTE  = 14;
-
-    //two whole notes positioned vertically
-    public static final int WHOLE_NOTE_2  = 15;
     //after heuristic classifier
-    public static final int WHOLE_REST  = 16;
-    public static final int HALF_REST  = 17;
+    public static final int WHOLE_REST  = 14;
+    public static final int HALF_REST  = 15;
 
     //accidentals
     public static final int FLAT_ACC = 20;
@@ -42,6 +38,9 @@ public final class KnnLabels {
     public static final int DOT = 42;
     public static final int BRACE = 43;
     public static final int BAR = 44;
+    public static final int WHOLE_NOTE  = 45;
+    //two whole notes positioned vertically
+    public static final int WHOLE_NOTE_2  = 46;
 
 
 

@@ -14,5 +14,7 @@ public enum ElementType {
     NoteGroup,
     Rest,
     Dot,
-    Accidental
+    Flat,
+    Sharp,
+    Natural;
 }

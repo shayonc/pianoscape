@@ -1,6 +1,8 @@
 package piano.pianotrainer.scoreModels;
 
-import java.util.Collection;
+import android.graphics.Rect;
+
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -16,11 +18,41 @@ public class NoteGroup {
     // location of beam. []
     // [none, top, bottom] : [0, 1, 2]
     public int beamLoc;
+    public boolean hasBeam;
 
     public NoteGroup(List<Note> notes, int beamSlope, int beamLoc) {
         this.notes = notes;
         this.beamSlope = beamSlope;
         this.beamLoc = beamLoc;
+        this.hasBeam = true;
+    }
+
+    public NoteGroup(List<Note> notes){
+        this.notes = notes;
+        this.hasBeam = false;
+    }
+
+    public List<Integer> rightMostNotePositions(){
+        int xDeviationThreshold = 10; //in pixels
+        int lastIndex = notes.size() - 1;
+        double curX = notes.get(lastIndex).circleCenter.x;
+        int curIndex = lastIndex;
+        List<Integer> rightNotesIndicies = new ArrayList<>();
+        while(Math.abs(curX - notes.get(curIndex).circleCenter.x) <= xDeviationThreshold && curIndex >= 0){
+            rightNotesIndicies.add(curIndex);
+            curIndex -= 1;
+        }
+        //guaranteed to have size of at least 1
+        return rightNotesIndicies;
+    }
+
+    public boolean addDot(Rect dotRect){
+        List<Integer> rightMostNotesIndicies = rightMostNotePositions();
+        boolean hasAddedDots = true;
+        for(int index : rightMostNotesIndicies){
+            hasAddedDots &= notes.get(index).appendDot(dotRect);
+        }
+        return hasAddedDots;
     }
 
     public void sortCircles() {

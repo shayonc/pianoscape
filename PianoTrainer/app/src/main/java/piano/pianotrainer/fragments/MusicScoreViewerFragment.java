@@ -27,8 +27,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import org.opencv.android.Utils;
-import org.opencv.core.Mat;
-import org.opencv.core.RotatedRect;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -41,12 +39,15 @@ import piano.pianotrainer.scoreImport.ImageUtils;
 import piano.pianotrainer.scoreImport.KnnLabels;
 import piano.pianotrainer.scoreImport.PDFHelper;
 import piano.pianotrainer.scoreImport.ScoreProcessor;
+import piano.pianotrainer.scoreImport.SymbolMapper;
 import piano.pianotrainer.scoreModels.ElementType;
 import piano.pianotrainer.scoreModels.Measure;
 import piano.pianotrainer.scoreModels.Note;
 import piano.pianotrainer.scoreModels.NoteGroup;
 import piano.pianotrainer.scoreModels.Score;
 import piano.pianotrainer.scoreModels.Staff;
+
+import static android.content.ContentValues.TAG;
 
 public class MusicScoreViewerFragment extends Fragment implements View.OnClickListener{
     /**
@@ -373,6 +374,93 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
                     paintTxt.setColor(Color.RED);
                     paintTxt.setTextSize(30);
 
+                    //TRAINING SETS FOR SYMBOLS
+                    //load the training images and train symbol detection
+                    addTrainingImages("training_set/g_clef", KnnLabels.G_CLEF);
+                    addTrainingImages("training_set/f_clef", KnnLabels.F_CLEF);
+                    addTrainingImages("training_set/brace", KnnLabels.BRACE);
+
+                    addTrainingImages("training_set/time_four_four", KnnLabels.TIME_44);
+                    addTrainingImages("training_set/time_three_four", KnnLabels.TIME_34);
+                    addTrainingImages("training_set/time_six_eight", KnnLabels.TIME_68);
+                    addTrainingImages("training_set/time_two_two", KnnLabels.TIME_22);
+                    addTrainingImages("training_set/time_two_four", KnnLabels.TIME_24);
+                    addTrainingImages("training_set/common_time", KnnLabels.TIME_C);
+                    //Rests
+                    //TODO: Distinguish whole/half or ignore (85%)
+                    addTrainingImages("training_set/whole_half_rest", KnnLabels.WHOLE_HALF_REST);
+                    addTrainingImages("training_set/quarter_rest", KnnLabels.QUARTER_REST);
+                    addTrainingImages("training_set/eight_rest", KnnLabels.EIGHTH_REST);
+                    addTrainingImages("training_set/one_16th_rest", KnnLabels.ONE_SIXTEENTH_REST);
+                    addTrainingImages("training_set/whole_note", KnnLabels.WHOLE_NOTE);
+                    addTrainingImages("training_set/whole_note_2", KnnLabels.WHOLE_NOTE_2);
+                    //accidentals
+                    addTrainingImages("training_set/sharp", KnnLabels.SHARP_ACC);
+                    addTrainingImages("training_set/natural", KnnLabels.NATURAL_ACC);
+                    addTrainingImages("training_set/flat", KnnLabels.FLAT_ACC);
+                    //others
+                    addTrainingImages("training_set/slur", KnnLabels.TIE);
+                    addTrainingImages("training_set/dynamics_f", KnnLabels.DYNAMICS_F);
+                    addTrainingImages("training_set/dot_set", KnnLabels.DOT);
+
+                    //Train
+                    scoreProc.trainKnn();
+                    //test all
+                    scoreProc.testMusicObjects();
+
+
+                    List<List<Integer>> knnResults = scoreProc.getKnnResults();
+                    scoreProc.dotFilter();
+
+                    Paint paintR=new Paint();
+                    paintR.setStyle(Paint.Style.STROKE);
+                    paintR.setColor(Color.RED);
+
+                    Paint paintB=new Paint();
+                    paintB.setStyle(Paint.Style.STROKE);
+                    paintB.setColor(Color.BLUE);
+
+                    Paint paintG =new Paint();
+                    paintG.setStyle(Paint.Style.STROKE);
+                    paintG.setColor(Color.GREEN);
+
+                    Paint paintM =new Paint();
+                    paintM.setStyle(Paint.Style.STROKE);
+                    paintM.setColor(Color.MAGENTA);
+
+                    Paint paintC =new Paint();
+                    paintC.setStyle(Paint.Style.STROKE);
+                    paintC.setColor(Color.CYAN);
+
+                    Paint paintY =new Paint();
+                    paintY.setStyle(Paint.Style.STROKE);
+                    paintY.setColor(Color.YELLOW);
+
+                    for(int i = 0; i < staffObjects.size(); i++){
+                        for(int j = 0; j < staffObjects.get(i).size(); j++){
+                            if(knnResults.get(i).get(j)/10 == 0){
+                                cnvs.drawRect(staffObjects.get(i).get(j), paintR);
+                            }
+                            if(knnResults.get(i).get(j)/10 == 1){
+                                cnvs.drawRect(staffObjects.get(i).get(j), paintB);
+                            }
+                            if(knnResults.get(i).get(j)/10 == 2){
+                                cnvs.drawRect(staffObjects.get(i).get(j), paintG);
+                            }
+                            if(knnResults.get(i).get(j)/10 == 3){
+                                cnvs.drawRect(staffObjects.get(i).get(j), paintM);
+                            }
+                            if(knnResults.get(i).get(j)/10 == 4){
+                                cnvs.drawRect(staffObjects.get(i).get(j), paintC);
+                            }
+                            cnvs.drawText(knnResults.get(i).get(j).toString(),
+                                    staffObjects.get(i).get(j).left, staffObjects.get(i).get(j).top, paintTxt);
+                        }
+                    }
+
+
+                    int curLabel;
+                    Boolean isTreble;
                     for (int i = 0; i < staffObjects.size(); i++) {
                         Staff staff = new Staff(true);
                         score.addStaff(staff);
@@ -383,169 +471,109 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
 
                         boolean firstVertBar = false;
                         int numElemsInMeasure = 0;
-                        Map<Integer, ElementType> elementTypeMap = new HashMap<>(objects.size());
-                        Boolean[] isNoteGroup = sonatina_symbols.get(i);
+
+//                        Boolean[] isNoteGroup = sonatina_symbols.get(i);
+                        Map<Integer, Rect> dotsInStaff = new LinkedHashMap<>();
 
                         for (int j = 0; j < objects.size(); j++) {
                             Rect obj = objects.get(j);
+                            isTreble = scoreProc.inTrebleCleff(obj.top, obj.bottom, i);
+                            curLabel = knnResults.get(i).get(j);
                             // TODO: add symbol detection here
-                            if (scoreProc.isMeasureBar(i,j)) {
-                                elementTypeMap.put(j, ElementType.MeasureBar);
+                            if (curLabel == KnnLabels.BAR) {
                                 if (!firstVertBar) {
                                     firstVertBar = true;
+                                    curMeasure = new Measure();
                                 }
                                 else {
-                                    curMeasure = new Measure();
+                                    Log.d(TAG, "hit new bar");
+                                    //dot integration and handling accidental/ties
+                                    Log.d(TAG, curMeasure.info());
+                                    curMeasure.checkNeighbours();
                                     staff.addMeasure(curMeasure);
+                                    curMeasure = new Measure();
                                 }
                             }
-                            else if (isNoteGroup[j]){
+                            else if (scoreProc.isNoteGroup(obj)){
                                 NoteGroup notegroup = scoreProc.classifyNoteGroup(objects.get(j), i);
-                                curMeasure.addNoteGroup(obj, notegroup);
-                                String s = "[";
-                                for (Note note : notegroup.notes) {
-                                    s += (note.pitch.toString() + Integer.toString(note.scale) + ",");
+                                //TODO: figure out null notegroups
+                                if(notegroup == null){
+                                    Log.d(TAG, String.format("null notegroup on rect at %d,%d", i, j));
+                                    //cnvs.drawRect(obj, paintB);
                                 }
-                                s += "]";
-                                cnvs.drawText(s, staffObjects.get(i).get(j).left, staffObjects.get(i).get(j).top, paintTxt);
-                                s = "[";
-                                for (Note note : notegroup.notes) {
-                                    s += (Double.toString(note.weight) + ",");
+                                else{
+                                    curMeasure.addNoteGroup(obj, notegroup, isTreble);
+                                    String s = "[";
+
+                                    for (Note note : notegroup.notes) {
+                                        s += (note.pitch.toString() + Integer.toString(note.scale) + ",");
+                                    }
+                                    s += "]";
+                                    cnvs.drawText(s, staffObjects.get(i).get(j).left, staffObjects.get(i).get(j).top, paintTxt);
+                                    s = "[";
+                                    for (Note note : notegroup.notes) {
+                                        s += (Double.toString(note.weight) + ",");
+                                    }
+
+                                    s += "]";
+                                    cnvs.drawText(s, staffObjects.get(i).get(j).left, staffObjects.get(i).get(j).bottom, paintTxt);
                                 }
-                                s += "]";
-                                cnvs.drawText(s, staffObjects.get(i).get(j).left, staffObjects.get(i).get(j).bottom, paintTxt);
+
                             }
                             else {
                                 // Ekteshaf: place your knn testing for each object here
+                                //general symbols
+                                if(curLabel == KnnLabels.G_CLEF){
+                                    curMeasure.addClef(ElementType.TrebleClef, obj);
+                                }
+
+                                else if(curLabel == KnnLabels.F_CLEF){
+                                    curMeasure.addClef(ElementType.BassClef, obj);
+                                }
+
+                                else if(SymbolMapper.isRest(curLabel)){
+                                    curMeasure.addRest(obj, SymbolMapper.classifyRest(knnResults.get(i).get(j), isTreble));
+                                }
+                                //accidentals
+                                else if(curLabel == KnnLabels.FLAT_ACC){ curMeasure.addToClefLists(isTreble, obj, ElementType.Flat);}
+                                else if(curLabel == KnnLabels.SHARP_ACC){ curMeasure.addToClefLists(isTreble, obj, ElementType.Sharp);}
+                                else if(curLabel == KnnLabels.NATURAL_ACC){ curMeasure.addToClefLists(isTreble, obj, ElementType.Natural);}
+                                //time sig
+                                else if(SymbolMapper.isTimeSig(curLabel)){
+                                    curMeasure.setTimeSig(SymbolMapper.getUpperTimeSig(curLabel), SymbolMapper.getLowerTimeSig(curLabel),
+                                                            isTreble, obj);
+                                }
+                                //other symbols
+                                else if(curLabel == KnnLabels.DOT){
+                                    curMeasure.addToClefLists(isTreble, obj, ElementType.Dot);
+                                    //save dot index for dot integration at the end
+                                    dotsInStaff.put(j, obj);
+                                    Log.d(TAG, String.format("Dot added at pos %d,%d",i,j));
+                                }
+                                else if(curLabel == KnnLabels.WHOLE_NOTE){
+                                    Note whole = new Note();
+                                    whole.weight = 1.0;
+                                    whole.clef = isTreble ? 0 : 1;
+                                    List<Note> wholeNoteList = new ArrayList<Note>();
+                                    //add
+                                    NoteGroup wNg = new NoteGroup(wholeNoteList);
+                                    curMeasure.addNoteGroup(obj, wNg, isTreble);
+                                    Log.d(TAG, String.format("Whole note added at pos %d,%d",i,j));
+                                }
+                                //TODO: wholenote2
                             }
                         }
-                        int hello = 0;
-                        break;
+
                     }
 
 
-//                    //TRAINING SETS FOR SYMBOLS
-//                    //load the training images and train symbol detection
-//                    addTrainingImages("training_set/g_clef", KnnLabels.G_CLEF);
-//                    addTrainingImages("training_set/f_clef", KnnLabels.F_CLEF);
-//                    addTrainingImages("training_set/brace", KnnLabels.BRACE);
-//
-//                    addTrainingImages("training_set/time_four_four", KnnLabels.TIME_44);
-//                    addTrainingImages("training_set/time_three_four", KnnLabels.TIME_34);
-//                    addTrainingImages("training_set/time_six_eight", KnnLabels.TIME_68);
-//                    addTrainingImages("training_set/time_two_two", KnnLabels.TIME_22);
-//                    addTrainingImages("training_set/time_two_four", KnnLabels.TIME_24);
-//                    addTrainingImages("training_set/common_time", KnnLabels.TIME_C);
-//                    //Rests
-//                    //TODO: Distinguish whole/half or ignore (85%)
-//                    addTrainingImages("training_set/whole_half_rest", KnnLabels.WHOLE_HALF_REST);
-//                    addTrainingImages("training_set/quarter_rest", KnnLabels.QUARTER_REST);
-//                    addTrainingImages("training_set/eight_rest", KnnLabels.EIGHTH_REST);
-//                    addTrainingImages("training_set/one_16th_rest", KnnLabels.ONE_SIXTEENTH_REST);
-//                    addTrainingImages("training_set/whole_note", KnnLabels.WHOLE_NOTE);
-//                    addTrainingImages("training_set/whole_note_2", KnnLabels.WHOLE_NOTE_2);
-//                    //accidentals
-//                    addTrainingImages("training_set/sharp", KnnLabels.SHARP_ACC);
-//                    addTrainingImages("training_set/natural", KnnLabels.NATURAL_ACC);
-//                    addTrainingImages("training_set/flat", KnnLabels.FLAT_ACC);
-//                    //others
-//                    addTrainingImages("training_set/slur", KnnLabels.TIE);
-//                    addTrainingImages("training_set/dynamics_f", KnnLabels.DYNAMICS_F);
-//                    addTrainingImages("training_set/dot_set", KnnLabels.DOT);
-//
-//                    //Train
-//                    scoreProc.trainKnn();
-//                    //test all
-//                    scoreProc.testMusicObjects();
-////                    try {
-//////                        int numCircles = scoreProc.classifyNoteGroup();
-//////                        mDebugView.setText(String.format("Number of circles: %d", numCircles));
-////                        Mat circles = scoreProc.classifyNoteGroup();
-////                        mDebugView.setText(String.format("%d", circles.cols()));
-//////                        mImageView.setImageBitmap(ngBmp);
-////                    }
-////                    catch (Exception e) {
-////                        mDebugView.setText(e.toString());
-////                    }
-//
-//                    List<List<Integer>> knnResults = scoreProc.getKnnResults();
-//                    scoreProc.dotFilter();
+
 //                    Bitmap testBmp = Bitmap.createBitmap(scoreProc.noStaffLinesImg.width(),scoreProc.noStaffLinesImg.height(),Bitmap.Config.ARGB_8888);
 //                    Utils.matToBitmap(scoreProc.noStaffLinesImg, testBmp);
 //
 //                    Canvas cnvs = new Canvas(testBmp);
 //                    //...setting paint objects with brute force >_>
-//                    Paint paintR=new Paint();
-//                    paintR.setStyle(Paint.Style.STROKE);
-//                    paintR.setColor(Color.RED);
-//
-//                    Paint paintB=new Paint();
-//                    paintB.setStyle(Paint.Style.STROKE);
-//                    paintB.setColor(Color.BLUE);
-//
-//                    Paint paintG =new Paint();
-//                    paintG.setStyle(Paint.Style.STROKE);
-//                    paintG.setColor(Color.GREEN);
-//
-//                    Paint paintM =new Paint();
-//                    paintM.setStyle(Paint.Style.STROKE);
-//                    paintM.setColor(Color.MAGENTA);
-//
-//                    Paint paintC =new Paint();
-//                    paintC.setStyle(Paint.Style.STROKE);
-//                    paintC.setColor(Color.CYAN);
-//
-//                    Paint paintY =new Paint();
-//                    paintY.setStyle(Paint.Style.STROKE);
-//                    paintY.setColor(Color.YELLOW);
-//
-//                    Paint paintTxt =new Paint();
-//                    paintTxt.setStyle(Paint.Style.FILL);
-//                    paintTxt.setColor(Color.RED);
-//                    paintTxt.setTextSize(30);
-//
-//                    List<Boolean[]> sonatinaNoteGroups = scoreProc.getSonatinaNoteGroups();
-//
-//                    for(int i = 0; i < staffObjects.size(); i++){
-//                        for(int j = 0; j < staffObjects.get(i).size(); j++){
-//                            if(knnResults.get(i).get(j)/10 == 0){
-//                                cnvs.drawRect(staffObjects.get(i).get(j), paintR);
-//                            }
-//                            if(knnResults.get(i).get(j)/10 == 1){
-//                                cnvs.drawRect(staffObjects.get(i).get(j), paintB);
-//                            }
-//                            if(knnResults.get(i).get(j)/10 == 2){
-//                                cnvs.drawRect(staffObjects.get(i).get(j), paintG);
-//                            }
-//                            if(knnResults.get(i).get(j)/10 == 3){
-//                                cnvs.drawRect(staffObjects.get(i).get(j), paintM);
-//                            }
-//                            if(knnResults.get(i).get(j)/10 == 4){
-//                                cnvs.drawRect(staffObjects.get(i).get(j), paintC);
-//                            }
-//                            cnvs.drawText(knnResults.get(i).get(j).toString(),
-//                                    staffObjects.get(i).get(j).left, staffObjects.get(i).get(j).top, paintTxt);
-//                            if(!sonatinaNoteGroups.get(i)[j]){
-//                                if(knnResults.get(i).get(j)/10 == 0){
-//                                    cnvs.drawRect(staffObjects.get(i).get(j), paintR);
-//                                }
-//                                if(knnResults.get(i).get(j)/10 == 1){
-//                                    cnvs.drawRect(staffObjects.get(i).get(j), paintB);
-//                                }
-//                                if(knnResults.get(i).get(j)/10 == 2){
-//                                    cnvs.drawRect(staffObjects.get(i).get(j), paintG);
-//                                }
-//                                if(knnResults.get(i).get(j)/10 == 3){
-//                                    cnvs.drawRect(staffObjects.get(i).get(j), paintM);
-//                                }
-//                                if(knnResults.get(i).get(j)/10 == 4){
-//                                    cnvs.drawRect(staffObjects.get(i).get(j), paintC);
-//                                }
-//                                cnvs.drawText(knnResults.get(i).get(j).toString(),
-//                                        staffObjects.get(i).get(j).left, staffObjects.get(i).get(j).top, paintTxt);
-//                            }
-//                        }
-//                    }
+
 //                    mImageView.setImageBitmap(testBmp);
 
 //                    Canvas cnvs = new Canvas(bitmap);

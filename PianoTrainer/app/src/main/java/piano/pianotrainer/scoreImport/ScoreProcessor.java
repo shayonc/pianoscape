@@ -659,6 +659,91 @@ public class ScoreProcessor {
         }
     }
 
+    public boolean isNoteGroup(Rect rect) {
+        Mat objMat = extractFromNoStaffImg(rect);
+        Mat cannyMat = new Mat();
+        Mat colorMat = new Mat();
+        cvtColor(objMat, colorMat, Imgproc.COLOR_GRAY2BGR);
+        Imgproc.Canny(objMat, cannyMat, 100, 200);
+        Mat allLines = new Mat();
+        Imgproc.HoughLinesP(cannyMat, allLines, 1, Math.PI/180, 4, 15, 5);
+
+        List<Line> vertLines = new ArrayList<>();
+//        Log.d(TAG, String.format("# of lines: %d", allLines.rows()));
+        for (int i = 0; i < allLines.rows(); i++) {
+            double[] val = allLines.get(i, 0);
+//            Imgproc.line(colorMat, new Point(val[0], val[1]), new Point(val[2], val[3]), new Scalar(0, 0, 255), 1);
+            Line line = new Line(val[0], val[1], val[2], val[3]);
+            if (line.getSlope() == Integer.MAX_VALUE) {
+                vertLines.add(line);
+            }
+        }
+        Collections.sort(vertLines, new Comparator<Line>() {
+            @Override
+            public int compare(Line l1, Line l2) {
+                return Double.compare(l1.x1, l2.x1);
+            }
+        });
+
+
+        // Combining similar vertical lines
+        double VERT_LINE_PROXIMITY = 10.0;
+        Map<Line, Integer> lineIDs = new LinkedHashMap<>();
+        for (int i = 0; i < vertLines.size(); i++) {
+            lineIDs.put(vertLines.get(i),i);
+        }
+        for (int i = 1; i < vertLines.size(); i++) {
+            Line curLine = vertLines.get(i);
+            Line prevLine = vertLines.get(i-1);
+            if ((curLine.x1 - prevLine.x1) < VERT_LINE_PROXIMITY) {
+                lineIDs.put(curLine, lineIDs.get(prevLine));
+            }
+        }
+        List<Line> reducedVertLines = new ArrayList<>();
+        Map<Integer, List<Line>> IDLines = new LinkedHashMap<>();
+        for (Map.Entry<Line, Integer> entry : lineIDs.entrySet()) {
+            if (!IDLines.containsKey(entry.getValue())) {
+                IDLines.put(entry.getValue(), new ArrayList<Line>());
+            }
+            IDLines.get(entry.getValue()).add(entry.getKey());
+        }
+        for (Map.Entry<Integer, List<Line>> entry : IDLines.entrySet()) {
+            List<Line> lines = entry.getValue();
+            double xAvg = 0.0;
+            double yMin = (double) Integer.MAX_VALUE;
+            double yMax = (double) Integer.MIN_VALUE;
+            for (Line line : lines) {
+                xAvg += line.x1;
+                if (line.y1 < yMin) yMin = line.y1;
+                if (line.y2 < yMin) yMin = line.y2;
+                if (line.y1 > yMax) yMax = line.y1;
+                if (line.y2 > yMax) yMax = line.y2;
+            }
+            xAvg = xAvg / lines.size();
+            Line reducedLine = new Line(xAvg, yMin, xAvg, yMax);
+            reducedVertLines.add(reducedLine);
+        }
+
+        if (reducedVertLines.size() == 0) return false;
+        else {
+            double avgHeight = 0;
+            for (Line line : reducedVertLines) {
+//                if (Math.abs(line.y2 - line.y1) > Math.abs(maxLine.y2 - maxLine.y1)) {
+//                    maxLine = line;
+//                }
+                avgHeight += Math.abs(line.y2 - line.y1);
+            }
+            avgHeight /= reducedVertLines.size();
+
+            if (avgHeight >= staffLineDiff*3 && avgHeight <= staffLineDiff*8) {
+                return true;
+            }
+            else {
+                return false;
+            }
+        }
+    }
+
     public NoteGroup classifyNoteGroup(Rect rect, int staffNum)  {
         Mat objMat = extractFromNoStaffImg(rect);
         Mat allCircles = new Mat();
@@ -740,7 +825,7 @@ public class ScoreProcessor {
 
         List<Line> vertLines = new ArrayList<>();
         List<Line> nonVertLines = new ArrayList<>();
-        Log.d(TAG, String.format("# of lines: %d", allLines.rows()));
+//        Log.d(TAG, String.format("# of lines: %d", allLines.rows()));
         for (int i = 0; i < allLines.rows(); i++) {
             double[] val = allLines.get(i, 0);
 //            Imgproc.line(colorMat, new Point(val[0], val[1]), new Point(val[2], val[3]), new Scalar(0, 0, 255), 1);
@@ -1168,7 +1253,7 @@ public class ScoreProcessor {
 
             Point pt = new Point(Math.round(vCircle[0]), Math.round(vCircle[1]));
             int radius = (int)Math.round(vCircle[2]);
-//            circle(colorFullMat, pt, radius, new Scalar(0,0,255), 2);
+//            circle(colorFullMat, pt, radius, new Scalar(0,0,255), 2); draws the circle.. scalar is color, 2 thickness
         }
         String root = Environment.getExternalStorageDirectory().toString();
         Imgcodecs.imwrite(root + "/Piano/Images/full_score.png", colorFullMat);
