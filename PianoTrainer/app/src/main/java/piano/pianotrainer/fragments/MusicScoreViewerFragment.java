@@ -4,6 +4,7 @@ package piano.pianotrainer.fragments;
  * Created by Ekteshaf Chowdhury on 2017-07-10.
  */
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
@@ -27,6 +28,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import org.opencv.android.Utils;
+import org.opencv.core.Mat;
+import org.opencv.core.RotatedRect;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -47,15 +50,16 @@ import piano.pianotrainer.scoreModels.NoteGroup;
 import piano.pianotrainer.scoreModels.Score;
 import piano.pianotrainer.scoreModels.Staff;
 
-import static android.content.ContentValues.TAG;
-
 public class MusicScoreViewerFragment extends Fragment implements View.OnClickListener{
     /**
      * Key string for saving the state of current page index.
      */
+
+    static final String TAG = "ScoreViewer";
+
     private static final String STATE_CURRENT_PAGE_INDEX = "current_page_index";
 
-    private static final String FILENAME = "handel_sonatina.pdf";
+    private static final String FILENAME = "mario_starman.pdf";
 
     private static final String TRAINING = "training_set";
 
@@ -108,13 +112,13 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
         // Retain view references.
         mImageView = (ImageView) view.findViewById(R.id.image);
         mDebugView = (TextView) view.findViewById(R.id.debug_view);
-        mButtonPrevious = (Button) view.findViewById(R.id.previous);
+//        mButtonPrevious = (Button) view.findViewById(R.id.previous);
         mButtonImport = (Button) view.findViewById(R.id.import_sheet);
-        mButtonNext = (Button) view.findViewById(R.id.next);
+//        mButtonNext = (Button) view.findViewById(R.id.next);
         // Bind events.
-        mButtonPrevious.setOnClickListener(this);
+//        mButtonPrevious.setOnClickListener(this);
         mButtonImport.setOnClickListener(this);
-        mButtonNext.setOnClickListener(this);
+//        mButtonNext.setOnClickListener(this);
         mPageIndexSaved = 0;
         // If there is a savedInstanceState (screen orientations, etc.), we restore the page index.
         if (null != savedInstanceState) {
@@ -210,8 +214,8 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
     private void updateUi() {
         int index = mPdfHelper.getCurPageIndex();
         int pageCount = mPdfHelper.getPageCount();
-        mButtonPrevious.setEnabled(0 != index);
-        mButtonNext.setEnabled(index + 1 < pageCount);
+//        mButtonPrevious.setEnabled(0 != index);
+//        mButtonNext.setEnabled(index + 1 < pageCount);
             getActivity().setTitle(getString(R.string.music_score_name_with_index, index + 1, pageCount));
     }
 
@@ -298,24 +302,26 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
     @Override
     public void onClick(View view) {
         switch (view.getId()) {
-            case R.id.previous: {
-                // Move to the previous page
-//                showPage(mPdfHelper.getCurPage().getIndex() - 1);
-                if (objectIndex > 0) {
-                    objectIndex--;
-                }
-                showObject(objectIndex);
-                break;
-            }
-            case R.id.next: {
-                // Move to the next page
-//                showPage(mPdfHelper.getCurPage().getIndex() + 1); EC: testing objects
-                objectIndex++;
-                showObject(objectIndex);
-                break;
-            }
+//            case R.id.previous: {
+//                // Move to the previous page
+////                showPage(mPdfHelper.getCurPage().getIndex() - 1);
+//                if (objectIndex > 0) {
+//                    objectIndex--;
+//                }
+//                showObject(objectIndex);
+//                break;
+//            }
+//            case R.id.next: {
+//                // Move to the next page
+////                showPage(mPdfHelper.getCurPage().getIndex() + 1); EC: testing objects
+//                objectIndex++;
+//                showObject(objectIndex);
+//                break;
+//            }
             case R.id.import_sheet: {
                 // import sheet workflow
+
+                ProgressDialog pr;
 
                 File file = new File(getActivity().getCacheDir(), FILENAME);
                 ParcelFileDescriptor pfd = null;
@@ -436,27 +442,27 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
                     paintY.setStyle(Paint.Style.STROKE);
                     paintY.setColor(Color.YELLOW);
 
-                    for(int i = 0; i < staffObjects.size(); i++){
-                        for(int j = 0; j < staffObjects.get(i).size(); j++){
-                            if(knnResults.get(i).get(j)/10 == 0){
-                                cnvs.drawRect(staffObjects.get(i).get(j), paintR);
-                            }
-                            if(knnResults.get(i).get(j)/10 == 1){
-                                cnvs.drawRect(staffObjects.get(i).get(j), paintB);
-                            }
-                            if(knnResults.get(i).get(j)/10 == 2){
-                                cnvs.drawRect(staffObjects.get(i).get(j), paintG);
-                            }
-                            if(knnResults.get(i).get(j)/10 == 3){
-                                cnvs.drawRect(staffObjects.get(i).get(j), paintM);
-                            }
-                            if(knnResults.get(i).get(j)/10 == 4){
-                                cnvs.drawRect(staffObjects.get(i).get(j), paintC);
-                            }
-                            cnvs.drawText(knnResults.get(i).get(j).toString(),
-                                    staffObjects.get(i).get(j).left, staffObjects.get(i).get(j).top, paintTxt);
-                        }
-                    }
+//                    for(int i = 0; i < staffObjects.size(); i++){
+//                        for(int j = 0; j < staffObjects.get(i).size(); j++){
+//                            if(knnResults.get(i).get(j)/10 == 0){
+//                                cnvs.drawRect(staffObjects.get(i).get(j), paintR);
+//                            }
+//                            if(knnResults.get(i).get(j)/10 == 1){
+//                                cnvs.drawRect(staffObjects.get(i).get(j), paintB);
+//                            }
+//                            if(knnResults.get(i).get(j)/10 == 2){
+//                                cnvs.drawRect(staffObjects.get(i).get(j), paintG);
+//                            }
+//                            if(knnResults.get(i).get(j)/10 == 3){
+//                                cnvs.drawRect(staffObjects.get(i).get(j), paintM);
+//                            }
+//                            if(knnResults.get(i).get(j)/10 == 4){
+//                                cnvs.drawRect(staffObjects.get(i).get(j), paintC);
+//                            }
+//                            cnvs.drawText(knnResults.get(i).get(j).toString(),
+//                                    staffObjects.get(i).get(j).left, staffObjects.get(i).get(j).top, paintTxt);
+//                        }
+//                    }
 
 
                     int curLabel;
@@ -472,7 +478,7 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
                         boolean firstVertBar = false;
                         int numElemsInMeasure = 0;
 
-//                        Boolean[] isNoteGroup = sonatina_symbols.get(i);
+                        Boolean[] isNoteGroup2 = sonatina_symbols.get(i);
                         Map<Integer, Rect> dotsInStaff = new LinkedHashMap<>();
 
                         for (int j = 0; j < objects.size(); j++) {
@@ -495,11 +501,15 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
                                 }
                             }
                             else if (scoreProc.isNoteGroup(obj)){
+//                                if ((i == 1 && j == 15) || (i == 3 && j == 32) || (i == 4 && j == 13)) {
+//                                    int hello = 0;
+//                                    int hello2 = hello*2;
+//                                }
                                 NoteGroup notegroup = scoreProc.classifyNoteGroup(objects.get(j), i);
                                 //TODO: figure out null notegroups
                                 if(notegroup == null){
                                     Log.d(TAG, String.format("null notegroup on rect at %d,%d", i, j));
-                                    //cnvs.drawRect(obj, paintB);
+                                    cnvs.drawRect(obj, paintB);
                                 }
                                 else{
                                     curMeasure.addNoteGroup(obj, notegroup, isTreble);
@@ -523,6 +533,11 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
                             else {
                                 // Ekteshaf: place your knn testing for each object here
                                 //general symbols
+//                                if (!scoreProc.isNoteGroup(obj) && isNoteGroup2[j]) {
+////                                    boolean res = scoreProc.isNoteGroup(obj);
+////                                    boolean hello = !res;
+//                                    Log.d(TAG, String.format("NOT notegroup on rect at %d,%d", i, j));
+//                                }
                                 if(curLabel == KnnLabels.G_CLEF){
                                     curMeasure.addClef(ElementType.TrebleClef, obj);
                                 }
@@ -588,7 +603,7 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
 //                    Bitmap testBmp = Bitmap.createBitmap(scoreProc.noStaffLinesImg.width(),scoreProc.noStaffLinesImg.height(),Bitmap.Config.ARGB_8888);
 //                    Utils.matToBitmap(scoreProc.noStaffLinesImg, testBmp);
                     mImageView.setImageBitmap(finalBmp);
-                    ImageUtils.saveImageToExternal(finalBmp, "noteGroupsSonatina.bmp");
+                    ImageUtils.saveImageToExternal(finalBmp, "final_mario.bmp");
                     scoreProc.exportRects(getActivity());
                 }
                 else {

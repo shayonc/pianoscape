@@ -42,6 +42,7 @@ public class MusicScoreImportActivity extends AppCompatActivity {
                     .add(R.id.container, new MusicScoreViewerFragment(),
                             FRAGMENT_MUSIC_SCORE_VIEWER_BASIC)
                     .commit();
+            setTitle("Score Preview");
         }
     }
 

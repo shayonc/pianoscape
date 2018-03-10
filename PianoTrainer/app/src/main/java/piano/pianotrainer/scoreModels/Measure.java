@@ -119,7 +119,7 @@ public class Measure {
 
     //measure corrections
     public void checkNeighbours(){
-        for(int i = 0; i < trebleElementTypes.size(); i++){
+        for(int i = 1; i < trebleElementTypes.size(); i++){
             if(trebleElementTypes.get(i) == ElementType.Dot){
                 if(trebleElementTypes.get(i - 1) == ElementType.NoteGroup){
                     Log.d(TAG, "integrating dot...");
@@ -141,7 +141,7 @@ public class Measure {
 //                }
 //            }
         }
-        for(int j = 0; j < bassElementTypes.size(); j++){
+        for (int j = 1; j < bassElementTypes.size(); j++){
             if(bassElementTypes.get(j) == ElementType.Dot){
                 if(bassElementTypes.get(j - 1) == ElementType.NoteGroup){
                     integrateDot(j, bassRects);

@@ -735,7 +735,9 @@ public class ScoreProcessor {
             }
             avgHeight /= reducedVertLines.size();
 
-            if (avgHeight >= staffLineDiff*3 && avgHeight <= staffLineDiff*8) {
+            double lowestArea = 704.0;
+            double curArea = ((rect.bottom - rect.top) * (rect.right - rect.left));
+            if (curArea > lowestArea && avgHeight >= staffLineDiff*2 && avgHeight <= staffLineDiff*8) {
                 return true;
             }
             else {

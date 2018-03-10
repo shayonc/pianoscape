@@ -41,6 +41,7 @@ public class NoteGroup {
         while(Math.abs(curX - notes.get(curIndex).circleCenter.x) <= xDeviationThreshold && curIndex >= 0){
             rightNotesIndicies.add(curIndex);
             curIndex -= 1;
+            if (curIndex < 0) break;
         }
         //guaranteed to have size of at least 1
         return rightNotesIndicies;
