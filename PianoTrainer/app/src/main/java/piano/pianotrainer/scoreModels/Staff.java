@@ -11,7 +11,7 @@ import java.util.*;
 
 public class Staff {
     // all measures in that staff
-    List<Measure> measures;
+    public List<Measure> measures;
     // indicator to see if the staff contains both clefs or not (currently only grand staffs are supported).
     boolean grandStaff;
     // maps volume dynamics with its position pair (start x, end x). Positions are a % relative to the staff.

@@ -19,6 +19,7 @@ public class NoteGroup {
     // [none, top, bottom] : [0, 1, 2]
     public int beamLoc;
     public boolean hasBeam;
+    public int clef;
 
     public NoteGroup(List<Note> notes, int beamSlope, int beamLoc) {
         this.notes = notes;

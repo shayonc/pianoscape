@@ -17,10 +17,10 @@ import static android.content.ContentValues.TAG;
 
 public class Measure {
     String TAG = "Measure";
-    Map<Rect, NoteGroup> noteGroups;  // maps position % with a notegroup
-    Map<Rect, Rest> rests;            // maps position % with a rest
-    int upperTimeSig;                      // number of basic pulses that make up the measure's total weight
-    double lowerTimeSig;                  // the weight of a basic pulse in the measure
+    public Map<Rect, NoteGroup> noteGroups;  // maps position % with a notegroup
+    public Map<Rect, Rest> rests;            // maps position % with a rest
+    public int upperTimeSig;                      // number of basic pulses that make up the measure's total weight
+    public int lowerTimeSig;                  // the weight of a basic pulse in the measure
     Map<Pitch, Integer> keySigs;        // maps the pitch with its staff line/space
     List<List<NoteGroup>> ties;         // list of ties. Each tie is represented by a list of notegroups
     Map<Rect, Double> accCenterPos;    //Map of center position of accidentals which is calculated with CV

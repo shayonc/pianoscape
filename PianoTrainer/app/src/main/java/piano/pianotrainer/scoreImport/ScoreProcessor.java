@@ -783,7 +783,7 @@ public class ScoreProcessor {
         }
     }
 
-    public NoteGroup classifyNoteGroup(Rect rect, int staffNum)  {
+    public NoteGroup classifyNoteGroup(Rect rect, int staffNum, boolean isTreble)  {
         Mat objMat = extractFromNoStaffImg(rect);
         Mat allCircles = new Mat();
 
@@ -843,6 +843,8 @@ public class ScoreProcessor {
         }
         noteGroup.sortCircles();
         populateDuration(rect, noteGroup);
+
+        noteGroup.clef = isTreble? 0 : 1;
 
         return noteGroup;
     }

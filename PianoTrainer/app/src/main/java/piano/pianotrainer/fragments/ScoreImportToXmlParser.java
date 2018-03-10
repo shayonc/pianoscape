@@ -6,10 +6,12 @@ package piano.pianotrainer.fragments;
 
 import java.io.File;
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.FileOutputStream;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -32,16 +34,26 @@ public class ScoreImportToXmlParser {
     StringBuilder xmlBuffer;
     static String XML_HEADER_PATH = "xml_parser_templates/musicxml_header.xml";
     static int divsPerBeat = 4;
+    int upperTimeSig;
+    int lowerTimeSig;
 
     //store appContext which is helpful for accessing internal file storage if we go that route
     private Context appContext;
+
+    public ScoreImportToXmlParser() {
+        score = null;
+        appContext = null;
+        xmlBuffer = new StringBuilder("Empty\n");
+        upperTimeSig = 4;
+        lowerTimeSig = 4;
+    }
 
     public void loadScore(Score score, Context context){
         this.score = score;
         appContext = context;
     }
 
-    public void Parse() {
+    public void parse() {
         // Start writing to XML buffer, first append header template
         xmlBuffer = new StringBuilder();
         try {
@@ -74,16 +86,18 @@ public class ScoreImportToXmlParser {
 
     private void parseMeasure(Measure measure, int measureNum) {
         // If first measure, include some timing and grand staff information
-        xmlBuffer.append("    <measure number=\"" + measureNum + ">\n");
+        xmlBuffer.append("    <measure number=\"" + measureNum + "\">\n");
         if (measureNum == 1) {
+            upperTimeSig = measure.upperTimeSig;
+            lowerTimeSig = measure.lowerTimeSig;
             xmlBuffer.append("      <attributes>\n" +
                     "        <divisions>" + divsPerBeat + "</divisions>\n" +
                     "        <key>\n" +
                     "          <fifths>0</fifths>\n" +
                     "        </key>\n" +
                     "        <time>\n" +
-                    "          <beats>" + measure.upperSig + "</beats>\n" +
-                    "          <beat-type>" + measure.lowerSig + "</beat-type>\n" +
+                    "          <beats>" + measure.upperTimeSig + "</beats>\n" +
+                    "          <beat-type>" + measure.lowerTimeSig + "</beat-type>\n" +
                     "        </time>\n" +
                     "        <staves>2</staves>\n" +
                     "        <clef number=\"1\">\n" +
@@ -121,7 +135,7 @@ public class ScoreImportToXmlParser {
         }
 
         for (Map.Entry<Rect, Rest> entry : measure.rests.entrySet()) {
-            if(entry.getValue().clef == 1) {
+            if(entry.getValue().clef == 0) {
                 trebleRests.add(entry.getValue());
                 trebleRestsRects.add(entry.getKey());
             } else {
@@ -131,11 +145,11 @@ public class ScoreImportToXmlParser {
         }
 
         //populate voices based on clefs and positions. First do treble, back up, then bass
-        parseStaff(trebleNotes, trebleRests, trebleNotesRects, trebleRestsRects, 1, 1);
+        parseStaff(trebleNotes, trebleRests, trebleNotesRects, trebleRestsRects, 1, 2);
         xmlBuffer.append("      <backup>\n" +
-                "        <duration>" + divsPerBeat*measure.lowerSig + "</duration>\n" +
+                "        <duration>" + divsPerBeat*upperTimeSig + "</duration>\n" +
                 "      </backup>\n");
-        parseStaff(bassNotes, bassRests, bassNotesRects, bassRestsRects, 6, 2);
+        parseStaff(bassNotes, bassRests, bassNotesRects, bassRestsRects, 6, 1);
 
         // END OF MEASURE
         xmlBuffer.append("    </measure>\n");
@@ -152,11 +166,12 @@ public class ScoreImportToXmlParser {
         while(restPos < rests.size() || notePos < noteGroups.size()) {
             // Check relative position of next rest and notegroup on lists, populate whichever one is more left.
             // Working with rest...
-            if (notePos >= noteGroups.size() || restRects.get(restPos).left < groupRects.get(notePos).left) {
+            if (restPos < rests.size() && (notePos >= noteGroups.size() ||
+                    restRects.get(restPos).left < groupRects.get(notePos).left)) {
                 // Assuming always uses voice0 (will require change here if increasing complexity)
                 xmlBuffer.append("      <note>\n" +
                         "        <rest/>\n" +
-                        "        <duration>" + (int)(rests.get(restPos).weight*divsPerBeat) + "</duration>\n" +
+                        "        <duration>" + (int)(rests.get(restPos).weight*divsPerBeat*lowerTimeSig) + "</duration>\n" +
                         "        <voice>" + voice0 + "</voice>\n" +
                         "        <type>" + getNoteType(rests.get(restPos).weight) + "</type>\n" +
                         "        <staff>" + staff + "</staff>\n" +
@@ -174,7 +189,11 @@ public class ScoreImportToXmlParser {
                     if (note.circleCenter.x < previousX + maxOffset) {
                         xmlBuffer.append("        <chord/>\n");
                     }
-                    xmlBuffer.append("        <duration>" + note.weight*divsPerBeat + "</duration>\n" +
+                    xmlBuffer.append("        <pitch>\n" +
+                            "          <step>" + note.pitch + "</step>\n" +
+                            "          <octave>" + note.scale + "</octave>\n" +
+                            "        </pitch>\n");
+                    xmlBuffer.append("        <duration>" + (int)(note.weight*divsPerBeat*lowerTimeSig) + "</duration>\n" +
                             "        <voice>" + voice0 + "</voice>\n" +
                             "        <type>" + getNoteType(note.weight) + "</type>\n" +
                             "        <staff>" + staff + "</staff>\n" +
@@ -186,35 +205,41 @@ public class ScoreImportToXmlParser {
     }
 
     private String getNoteType(double weight) {
-        if (weight ==   4   ) {return "whole";}
-        if (weight ==   2   ) {return "half";}
-        if (weight ==   1   ) {return "quarter";}
-        if (weight ==   0.5 ) {return "eighth";}
-        if (weight ==   0.25) {return "16th";}
-        if (weight ==   0.125) {return "32nd";}
+        if (weight ==   1   ) {return "whole";}
+        if (weight ==   0.5   ) {return "half";}
+        if (weight ==   0.25   ) {return "quarter";}
+        if (weight ==   0.125 ) {return "eighth";}
+        if (weight ==   0.0625) {return "16th";}
+        if (weight ==   0.03125) {return "32nd";}
         //else
         return "quarter";
     }
 
     // Write XML to new file
     public void writeXml() {
-        String filename = "Converted_Xml_Output.xml";
+        String state = Environment.getExternalStorageState();
+        if (!Environment.MEDIA_MOUNTED.equals(state)) {
+            Log.e("ScoreImportToXmlParser", "No write permission for xml file!");
+        }
         String fileContents = xmlBuffer.toString();
-        FileOutputStream outputStream;
 
+        File root = android.os.Environment.getExternalStorageDirectory();
+        File dir = new File (root.getAbsolutePath() + "/XML_Output");
+        dir.mkdirs();
+        File file = new File(dir, "Converted_XML.xml");
         try {
-            outputStream = appContext.openFileOutput(filename, Context.MODE_PRIVATE);
-            outputStream.write(fileContents.getBytes());
-            outputStream.close();
+            FileOutputStream f = new FileOutputStream(file);
+            PrintWriter pw = new PrintWriter(f);
+            pw.println(fileContents);
+            pw.flush();
+            pw.close();
+            f.close();
+            Log.i("ScoreImportToXmlParser", fileContents);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            Log.i("ScoreImportToXmlParser", "File not found.");
         } catch (IOException e) {
-            Log.d("ScoreImportToXmlParser", "IO Error when trying to access file to write for output xml.");
             e.printStackTrace();
         }
     }
-}
-
-class NoteOrRest{
-    Note note;
-    Rest rest;
-
 }

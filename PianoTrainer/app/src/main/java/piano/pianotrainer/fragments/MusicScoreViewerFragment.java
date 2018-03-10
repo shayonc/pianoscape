@@ -49,6 +49,7 @@ import piano.pianotrainer.scoreModels.Note;
 import piano.pianotrainer.scoreModels.NoteGroup;
 import piano.pianotrainer.scoreModels.Score;
 import piano.pianotrainer.scoreModels.Staff;
+import piano.pianotrainer.fragments.ScoreImportToXmlParser;
 
 public class MusicScoreViewerFragment extends Fragment implements View.OnClickListener{
     /**
@@ -467,13 +468,14 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
 
                     int curLabel;
                     Boolean isTreble;
+                    Measure curMeasure = new Measure();
                     for (int i = 0; i < staffObjects.size(); i++) {
                         Staff staff = new Staff(true);
                         score.addStaff(staff);
                         List<Rect> objects = staffObjects.get(i);
 
-                        Measure curMeasure = new Measure();
-                        staff.addMeasure(curMeasure);
+                        //Measure curMeasure = new Measure();
+                        //staff.addMeasure(curMeasure);
 
                         boolean firstVertBar = false;
                         int numElemsInMeasure = 0;
@@ -489,7 +491,7 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
                             if (curLabel == KnnLabels.BAR) {
                                 if (!firstVertBar) {
                                     firstVertBar = true;
-                                    curMeasure = new Measure();
+                                    // curMeasure = new Measure();
                                 }
                                 else {
                                     Log.d(TAG, "hit new bar");
@@ -505,7 +507,8 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
 //                                    int hello = 0;
 //                                    int hello2 = hello*2;
 //                                }
-                                NoteGroup notegroup = scoreProc.classifyNoteGroup(objects.get(j), i);
+
+                                NoteGroup notegroup = scoreProc.classifyNoteGroup(objects.get(j), i, isTreble);
                                 //TODO: figure out null notegroups
                                 if(notegroup == null){
                                     Log.d(TAG, String.format("null notegroup on rect at %d,%d", i, j));
@@ -615,11 +618,15 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
                     mImageView.setImageBitmap(finalBmp);
                     ImageUtils.saveImageToExternal(finalBmp, "final_twinkle_twinkle.bmp");
                     scoreProc.exportRects(getActivity());
+
+                    ScoreImportToXmlParser parser = new ScoreImportToXmlParser();
+                    parser.loadScore(score, appContext);
+                    parser.parse();
+                    parser.writeXml();
                 }
                 else {
                     mDebugView.setText("pfd or pdfRenderer not instantiated.");
                 }
-
                 break;
             }
         }

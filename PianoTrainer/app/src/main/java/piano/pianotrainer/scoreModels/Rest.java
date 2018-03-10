@@ -5,8 +5,8 @@ package piano.pianotrainer.scoreModels;
  */
 
 public class Rest {
-    float weight;
-    int clef;
+    public float weight;
+    public int clef;
 
     public Rest(float weight, int clef) {
         this.weight = weight;
