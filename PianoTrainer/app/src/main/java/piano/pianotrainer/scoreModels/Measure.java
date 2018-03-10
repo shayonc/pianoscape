@@ -16,12 +16,15 @@ import static android.content.ContentValues.TAG;
 
 
 public class Measure {
+    String TAG = "Measure";
     Map<Rect, NoteGroup> noteGroups;  // maps position % with a notegroup
     Map<Rect, Rest> rests;            // maps position % with a rest
     int upperTimeSig;                      // number of basic pulses that make up the measure's total weight
     double lowerTimeSig;                  // the weight of a basic pulse in the measure
     Map<Pitch, Integer> keySigs;        // maps the pitch with its staff line/space
     List<List<NoteGroup>> ties;         // list of ties. Each tie is represented by a list of notegroups
+    Map<Rect, Double> accCenterPos;    //Map of center position of accidentals which is calculated with CV
+    List<Double> keySigCentres;         //Store the centers which a seperate function can map to pitch and scale of accidental
     // the dynamics of the measure. The values are represented in the following way:
     // pp : -3
     // p  : -2
@@ -50,6 +53,8 @@ public class Measure {
         trebleRects = new ArrayList<>();
         bassElementTypes = new ArrayList<>();
         bassRects = new ArrayList<>();
+        accCenterPos = new LinkedHashMap<>();
+        keySigCentres = new ArrayList<Double>();
     }
 
     public String info(){
@@ -117,10 +122,18 @@ public class Measure {
         return elementType == ElementType.Flat || elementType == ElementType.Sharp || elementType == ElementType.Natural;
     }
 
+    public void addAccidentalCenter(Rect rect, double centerY){
+        accCenterPos.put(rect, centerY);
+    }
     //measure corrections
     public void checkNeighbours(){
+        ElementType curType;
+        Rect curRect;
+
         for(int i = 1; i < trebleElementTypes.size(); i++){
-            if(trebleElementTypes.get(i) == ElementType.Dot){
+            curRect = trebleRects.get(i);
+            curType = trebleElementTypes.get(i);
+            if(curType == ElementType.Dot){
                 if(trebleElementTypes.get(i - 1) == ElementType.NoteGroup){
                     Log.d(TAG, "integrating dot...");
                     integrateDot(i, trebleRects);
@@ -130,18 +143,22 @@ public class Measure {
                 }
                 // ignore the rest - by exclusion unhandled dots are ignored
             }
-//            else if(isEleTypeAccidental(trebleElementTypes.get(i))){
-//                if(trebleElementTypes.get(i - 1) == ElementType.NoteGroup){
-//                    //add logic here to tie notegroup/note to acc
-//                }
-//                else if(trebleElementTypes.get(i - 1) == ElementType.TrebleClef || trebleElementTypes.get(i - 1) == ElementType.BassClef){
-//                    if(isEleTypeAccidental(trebleElementTypes.get(i + 1))){
-//                        // set key signature since its inbetween a clef and another accidental (ignored edge case of varying accs for now)
-//                    }
-//                }
-//            }
+            else if(isEleTypeAccidental(curType)){
+                if(trebleElementTypes.get(i - 1) == ElementType.NoteGroup){
+                    //add logic here to tie notegroup/note to acc
+                    Log.d(TAG, "Acc neighbour is a notegroup");
+                }
+                else if(trebleElementTypes.get(i - 1) == ElementType.TrebleClef){
+                    if(isEleTypeAccidental(trebleElementTypes.get(i + 1))){
+                        Log.d(TAG, String.format("KEY SIG at treble index %d", i));
+                        //adds the center value to the list which will be processed to map to pitch/scale
+                        keySigCentres.add(accCenterPos.get(curRect));
+                        keySigCentres.add(accCenterPos.get(trebleRects.get(i+1)));
+                    }
+                }
+            }
         }
-        for (int j = 1; j < bassElementTypes.size(); j++){
+        for(int j = 1; j < bassElementTypes.size(); j++){
             if(bassElementTypes.get(j) == ElementType.Dot){
                 if(bassElementTypes.get(j - 1) == ElementType.NoteGroup){
                     integrateDot(j, bassRects);

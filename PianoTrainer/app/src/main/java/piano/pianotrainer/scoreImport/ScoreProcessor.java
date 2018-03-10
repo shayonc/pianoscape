@@ -39,6 +39,7 @@ import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.util.*;
 
+import piano.pianotrainer.scoreModels.ElementType;
 import piano.pianotrainer.scoreModels.Line;
 import piano.pianotrainer.scoreModels.Note;
 import piano.pianotrainer.scoreModels.NoteGroup;
@@ -657,6 +658,42 @@ public class ScoreProcessor {
                 mat.put(r, c, pixel);
             }
         }
+    }
+
+    //TODO: Pitch and scale population from center Y positions of key sigs
+    public Pitch getPitchFromAccCenter(double yPosCenter){
+        return Pitch.A;
+    }
+
+    public int getScaleFromAccCenter(double yPosCenter){
+        return 1;
+    }
+
+    public Map<Pitch, Integer> getPitchScaleFromKeySig(double yPosCenter){
+        Map<Pitch, Integer> keySigs = new LinkedHashMap<>();
+        return keySigs;
+    }
+
+
+
+    public double getCenterYOfFlat(Rect rect, ElementType elementType, int staffIndex){
+        double centerPosY;
+//        int intCenterPosY;
+        //get the center pos based on acc type
+        if(elementType == ElementType.Flat){
+            //midpoint of the midpoint of the Y of the rect
+            centerPosY = (((double)rect.top+(double)rect.bottom)/2 + (double)rect.bottom)/2;
+        }
+        else if(elementType == ElementType.Sharp || elementType == ElementType.Natural){
+            //return midpoint since symmetry
+            centerPosY = ((double)rect.top + (double)rect.bottom)/2;
+        }
+        else{
+            //not an accidental
+            Log.e(TAG, "Non acc passed into getCenterYOfFlat()");
+            return -1.0;
+        }
+        return centerPosY;
     }
 
     public boolean isNoteGroup(Rect rect) {

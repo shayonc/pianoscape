@@ -59,7 +59,7 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
 
     private static final String STATE_CURRENT_PAGE_INDEX = "current_page_index";
 
-    private static final String FILENAME = "mario_starman.pdf";
+    private static final String FILENAME = "twinkle_twinkle_little_star.pdf";
 
     private static final String TRAINING = "training_set";
 
@@ -550,9 +550,19 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
                                     curMeasure.addRest(obj, SymbolMapper.classifyRest(knnResults.get(i).get(j), isTreble));
                                 }
                                 //accidentals
-                                else if(curLabel == KnnLabels.FLAT_ACC){ curMeasure.addToClefLists(isTreble, obj, ElementType.Flat);}
-                                else if(curLabel == KnnLabels.SHARP_ACC){ curMeasure.addToClefLists(isTreble, obj, ElementType.Sharp);}
-                                else if(curLabel == KnnLabels.NATURAL_ACC){ curMeasure.addToClefLists(isTreble, obj, ElementType.Natural);}
+                                else if(curLabel == KnnLabels.FLAT_ACC){
+                                    curMeasure.addToClefLists(isTreble, obj, ElementType.Flat);
+                                    Log.d(TAG, String.format("Flat: added rounded yPos %.2f", scoreProc.getCenterYOfFlat(obj, ElementType.Flat, i)));
+                                    curMeasure.addAccidentalCenter(obj, scoreProc.getCenterYOfFlat(obj, ElementType.Flat, i));
+                                }
+                                else if(curLabel == KnnLabels.SHARP_ACC){
+                                    curMeasure.addToClefLists(isTreble, obj, ElementType.Sharp);
+                                    curMeasure.addAccidentalCenter(obj, scoreProc.getCenterYOfFlat(obj, ElementType.Sharp, i));
+                                }
+                                else if(curLabel == KnnLabels.NATURAL_ACC){
+                                    curMeasure.addToClefLists(isTreble, obj, ElementType.Natural);
+                                    curMeasure.addAccidentalCenter(obj, scoreProc.getCenterYOfFlat(obj, ElementType.Natural, i));
+                                }
                                 //time sig
                                 else if(SymbolMapper.isTimeSig(curLabel)){
                                     curMeasure.setTimeSig(SymbolMapper.getUpperTimeSig(curLabel), SymbolMapper.getLowerTimeSig(curLabel),
@@ -603,7 +613,7 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
 //                    Bitmap testBmp = Bitmap.createBitmap(scoreProc.noStaffLinesImg.width(),scoreProc.noStaffLinesImg.height(),Bitmap.Config.ARGB_8888);
 //                    Utils.matToBitmap(scoreProc.noStaffLinesImg, testBmp);
                     mImageView.setImageBitmap(finalBmp);
-                    ImageUtils.saveImageToExternal(finalBmp, "final_mario.bmp");
+                    ImageUtils.saveImageToExternal(finalBmp, "final_twinkle_twinkle.bmp");
                     scoreProc.exportRects(getActivity());
                 }
                 else {
