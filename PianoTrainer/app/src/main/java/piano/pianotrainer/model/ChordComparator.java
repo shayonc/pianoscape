@@ -52,7 +52,7 @@ public class ChordComparator {
         String correctNotes = "";
         for(uk.co.dolphin_com.sscore.playdata.Note note: expNotes){
             Log.d("chordComparitor", "Expected octave " + note.midiPitch / 12 + " step " + note.midiPitch % 12);
-            correctNotes = correctNotes + setStep(note.midiPitch % 12) + System.getProperty("line.separator");
+            correctNotes += Integer.toString(note.midiPitch / 12) +  setStep(note.midiPitch % 12) + System.getProperty("line.separator");
         }
         Log.d("chordComparitor", "End of expNotes");
         return correctNotes;
