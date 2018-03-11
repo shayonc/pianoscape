@@ -25,6 +25,11 @@ public class Staff {
         volumeDynamics = new HashMap<Pair<Float, Float>, Boolean>();
     }
 
+    //for better logging
+    public int getNumMeasures(){
+        return measures.size();
+    }
+
     public void addMeasure(Measure measure) {
         measures.add(measure);
     }

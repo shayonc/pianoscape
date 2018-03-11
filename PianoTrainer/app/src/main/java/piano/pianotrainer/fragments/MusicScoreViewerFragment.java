@@ -60,7 +60,11 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
 
     private static final String STATE_CURRENT_PAGE_INDEX = "current_page_index";
 
-    private static final String FILENAME = "twinkle_twinkle_little_star.pdf";
+    private static final String SCORE_NAME = "twinkle_twinkle_little_star";
+
+    private static final String FILENAME = SCORE_NAME + ".pdf";
+
+    private static final String IMGNAME = "final_" + SCORE_NAME + ".bmp";
 
     private static final String TRAINING = "training_set";
 
@@ -443,27 +447,27 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
                     paintY.setStyle(Paint.Style.STROKE);
                     paintY.setColor(Color.YELLOW);
 
-//                    for(int i = 0; i < staffObjects.size(); i++){
-//                        for(int j = 0; j < staffObjects.get(i).size(); j++){
-//                            if(knnResults.get(i).get(j)/10 == 0){
-//                                cnvs.drawRect(staffObjects.get(i).get(j), paintR);
-//                            }
-//                            if(knnResults.get(i).get(j)/10 == 1){
-//                                cnvs.drawRect(staffObjects.get(i).get(j), paintB);
-//                            }
-//                            if(knnResults.get(i).get(j)/10 == 2){
-//                                cnvs.drawRect(staffObjects.get(i).get(j), paintG);
-//                            }
-//                            if(knnResults.get(i).get(j)/10 == 3){
-//                                cnvs.drawRect(staffObjects.get(i).get(j), paintM);
-//                            }
-//                            if(knnResults.get(i).get(j)/10 == 4){
-//                                cnvs.drawRect(staffObjects.get(i).get(j), paintC);
-//                            }
-//                            cnvs.drawText(knnResults.get(i).get(j).toString(),
-//                                    staffObjects.get(i).get(j).left, staffObjects.get(i).get(j).top, paintTxt);
-//                        }
-//                    }
+                    for(int i = 0; i < staffObjects.size(); i++){
+                        for(int j = 0; j < staffObjects.get(i).size(); j++){
+                            if(knnResults.get(i).get(j)/10 == 0){
+                                cnvs.drawRect(staffObjects.get(i).get(j), paintR);
+                            }
+                            if(knnResults.get(i).get(j)/10 == 1){
+                                cnvs.drawRect(staffObjects.get(i).get(j), paintB);
+                            }
+                            if(knnResults.get(i).get(j)/10 == 2){
+                                cnvs.drawRect(staffObjects.get(i).get(j), paintG);
+                            }
+                            if(knnResults.get(i).get(j)/10 == 3){
+                                cnvs.drawRect(staffObjects.get(i).get(j), paintM);
+                            }
+                            if(knnResults.get(i).get(j)/10 == 4){
+                                cnvs.drawRect(staffObjects.get(i).get(j), paintC);
+                            }
+                            cnvs.drawText(knnResults.get(i).get(j).toString(),
+                                    staffObjects.get(i).get(j).left, staffObjects.get(i).get(j).top, paintTxt);
+                        }
+                    }
 
 
                     int curLabel;
@@ -496,7 +500,8 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
                                 else {
                                     Log.d(TAG, "hit new bar");
                                     //dot integration and handling accidental/ties
-                                    Log.d(TAG, curMeasure.info());
+                                    Log.d(TAG, String.format("Adding measure %d with info %s",
+                                            staff.getNumMeasures(), curMeasure.info()));
                                     curMeasure.checkNeighbours();
                                     staff.addMeasure(curMeasure);
                                     curMeasure = new Measure();
@@ -616,7 +621,7 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
 //                    Bitmap testBmp = Bitmap.createBitmap(scoreProc.noStaffLinesImg.width(),scoreProc.noStaffLinesImg.height(),Bitmap.Config.ARGB_8888);
 //                    Utils.matToBitmap(scoreProc.noStaffLinesImg, testBmp);
                     mImageView.setImageBitmap(finalBmp);
-                    ImageUtils.saveImageToExternal(finalBmp, "final_twinkle_twinkle.bmp");
+                    ImageUtils.saveImageToExternal(finalBmp, IMGNAME);
                     scoreProc.exportRects(getActivity());
 
                     ScoreImportToXmlParser parser = new ScoreImportToXmlParser();

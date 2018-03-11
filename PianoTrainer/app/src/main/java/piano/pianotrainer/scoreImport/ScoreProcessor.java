@@ -509,7 +509,14 @@ public class ScoreProcessor {
             knnResults.add(new ArrayList<Integer>());
             for(int j = 0; j < staffObjects.get(i).size(); j++){
                 curRect = staffObjects.get(i).get(j);
-                knnResults.get(i).add(testKnnMat(extractFromNoStaffImg(curRect)));
+                //for very thin bars susceptible to noise..
+                if(isBarLine(curRect)){
+                    Log.d(TAG, String.format("Bar: %d, %d", i, j));
+                    knnResults.get(i).add(KnnLabels.BAR);
+                }
+                else{
+                    knnResults.get(i).add(testKnnMat(extractFromNoStaffImg(curRect)));
+                }
             }
         }
         return true;
@@ -549,6 +556,11 @@ public class ScoreProcessor {
         return 10;
     }
 
+    //too thin so its too affected by noise
+    public boolean isBarLine(Rect r){
+        return r.height() > staffLineDiff*10 && r.width() <= staffLineDiff;
+    }
+
     public void dotFilter(){
         List<Integer> curStaffResults;
         Rect curRect;
@@ -557,6 +569,7 @@ public class ScoreProcessor {
                 if(knnResults.get(i).get(j) == KnnLabels.DOT){
                     curRect = staffObjects.get(i).get(j);
                     //length bigger than width by a big factor say its barline
+                    //we still need this additional check for thick lines - which are not susceptible to noise
                     if(isRectLong(curRect) && isLongerThanStafflineDiff(curRect)){
                         curStaffResults = knnResults.get(i);
                         curStaffResults.set(j, KnnLabels.BAR);
