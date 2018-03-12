@@ -682,12 +682,193 @@ public class ScoreProcessor {
         return 1;
     }
 
-    public Map<Pitch, Integer> getPitchScaleFromKeySig(double yPosCenter){
+    public Map<Pitch, Integer> getPitchScaleFromKeySig(List<Double> keySigCentres, List<Boolean> inTreble, int staffNum){
         Map<Pitch, Integer> keySigs = new LinkedHashMap<>();
+
+        List<Integer> staffLines = staffs.get(staffNum);
+        for (int keySig = 0; keySig < keySigCentres.size(); keySig++) {
+            double yPos = keySigCentres.get(keySig);
+            int i;
+            for (i = 0; i < staffLines.size(); i++) {
+                if (yPos < staffLines.get(i)) {
+                    break;
+                }
+            }
+            Pitch pitch = Pitch.C;
+            int scale = 4;
+
+            if (i > 0 && i < 5) {
+                // treble in between
+                double top = (double)staffLines.get(i-1);
+                double bottom = (double)staffLines.get(i);
+                double middle = (top+bottom)/2;
+
+                double topDist = Math.abs(top-yPos);
+                double bottomDist = Math.abs(bottom-yPos);
+                double middleDist = Math.abs(middle-yPos);
+
+                double staffLine = 0.0;
+                if (topDist < bottomDist && topDist < middleDist) staffLine = (double)(i-1);
+                else if (bottomDist < topDist && bottomDist < middleDist) staffLine = (double)i;
+                else staffLine = ((double)i + (double)(i-1))/2;
+
+                if (staffLine <= 2.5) scale = 5;
+                else scale = 4;
+                int temp = (int)(staffLine * 2);
+                temp = 8 - temp;
+                temp -= 3;
+                if (temp < 0) temp += 7;
+                int pitchIndex = temp % 7;
+                pitch = Pitch.values()[pitchIndex];
+            }
+            else if (i > 5 && i < 10) {
+                // bass in between
+                double top = (double)staffLines.get(i-1);
+                double bottom = (double)staffLines.get(i);
+                double middle = (top+bottom)/2;
+
+                double topDist = Math.abs(top-yPos);
+                double bottomDist = Math.abs(bottom-yPos);
+                double middleDist = Math.abs(middle-yPos);
+
+                double staffLine = 0.0;
+                if (topDist < bottomDist && topDist < middleDist) staffLine = (double)(i-1);
+                else if (bottomDist < topDist && bottomDist < middleDist) staffLine = (double)i;
+                else staffLine = ((double)i + (double)(i-1))/2;
+
+                staffLine -= 5.0;
+                if (staffLine == 0) scale = 4;
+                else if (staffLine == 4) scale = 2;
+                else scale = 3;
+
+                int temp = (int)(staffLine * 2);
+                temp = 8 - temp;
+                temp -= 1;
+                if (temp < 0) temp += 7;
+                int pitchIndex = temp % 7;
+                pitch = Pitch.values()[pitchIndex];
+            }
+            else if (i == 0){
+                // top of treble
+                double top = (double)staffLines.get(0);
+                int lineIndex = 5;
+                while (yPos < top && lineIndex > 0) {
+                    top -= staffLineDiff;
+                    lineIndex--;
+                }
+                double bottom = top + staffLineDiff;
+                double middle = (top+bottom)/2;
+                double topDist = Math.abs(top-yPos);
+                double bottomDist = Math.abs(bottom-yPos);
+                double middleDist = Math.abs(middle-yPos);
+
+                double staffLine = 0.0;
+                if (topDist < bottomDist && topDist < middleDist) staffLine = (double)(lineIndex-1);
+                else if (bottomDist < topDist && bottomDist < middleDist) staffLine = (double)lineIndex;
+                else staffLine = ((double)lineIndex + (double)(lineIndex-1))/2;
+
+                if (staffLine <= 3) scale = 6;
+                else scale = 5;
+
+                int temp = (int)(staffLine * 2);
+                temp = 8 - temp;
+                temp -= 2;
+                if (temp < 0) temp += 7;
+                int pitchIndex = temp % 7;
+                pitch = Pitch.values()[pitchIndex];
+            }
+            else if (i == 5 && inTreble.get(keySig)) {
+                // in between treble and bass and in treble
+                double bottom = staffLines.get(4);
+                int lineIndex = 0;
+                while (yPos > bottom && lineIndex < 4) {
+                    bottom += staffLineDiff;
+                    lineIndex++;
+                }
+                double top = bottom - staffLineDiff;
+                double middle = (top+bottom)/2;
+                double topDist = Math.abs(top-yPos);
+                double bottomDist = Math.abs(bottom-yPos);
+                double middleDist = Math.abs(middle-yPos);
+
+                double staffLine = 0.0;
+                if (topDist < bottomDist && topDist < middleDist) staffLine = (double)(lineIndex-1);
+                else if (bottomDist < topDist && bottomDist < middleDist) staffLine = (double)lineIndex;
+                else staffLine = ((double)lineIndex + (double)(lineIndex-1))/2;
+
+                if (staffLine > 3) scale = 3;
+                else scale = 4;
+
+                int temp = (int)(staffLine * 2);
+                temp = 8 - temp;
+                temp -= 4;
+                if (temp < 0) temp += 7;
+                int pitchIndex = temp % 7;
+                pitch = Pitch.values()[pitchIndex];
+            }
+            else if (i == 5 && !inTreble.get(keySig)) {
+                // in between treble and bass and in bass
+                double top = staffLines.get(5);
+                int lineIndex = 5;
+                while (yPos < top && lineIndex > 0) {
+                    top -= staffLineDiff;
+                    lineIndex--;
+                }
+                double bottom = top + staffLineDiff;
+                double middle = (top+bottom)/2;
+                double topDist = Math.abs(top-yPos);
+                double bottomDist = Math.abs(bottom-yPos);
+                double middleDist = Math.abs(middle-yPos);
+
+                double staffLine = 0.0;
+                if (topDist < bottomDist && topDist < middleDist) staffLine = (double)(lineIndex-1);
+                else if (bottomDist < topDist && bottomDist < middleDist) staffLine = (double)lineIndex;
+                else staffLine = ((double)lineIndex + (double)(lineIndex-1))/2;
+
+                if (staffLine <= 0.5) scale = 5;
+                else scale = 4;
+
+                int temp = (int)(staffLine * 2);
+                temp = 8 - temp;
+                if (temp < 0) temp += 7;
+                int pitchIndex = temp % 7;
+                pitch = Pitch.values()[pitchIndex];
+            }
+            else {
+                // bottom of bass
+                double bottom = staffLines.get(9);
+                int lineIndex = 0;
+                while (yPos > bottom && lineIndex < 6) {
+                    bottom += staffLineDiff;
+                    lineIndex++;
+                }
+                double top = bottom - staffLineDiff;
+                double middle = (top+bottom)/2;
+                double topDist = Math.abs(top-yPos);
+                double bottomDist = Math.abs(bottom-yPos);
+                double middleDist = Math.abs(middle-yPos);
+
+                double staffLine = 0.0;
+                if (topDist < bottomDist && topDist < middleDist) staffLine = (double)(lineIndex-1);
+                else if (bottomDist < topDist && bottomDist < middleDist) staffLine = (double)lineIndex;
+                else staffLine = ((double)lineIndex + (double)(lineIndex-1))/2;
+
+                if (staffLine <= 3) scale = 2;
+                else scale = 1;
+
+                int temp = (int)(staffLine * 2);
+                temp = 8 - temp;
+                temp -= 2;
+                if (temp < 0) temp += 7;
+                int pitchIndex = temp % 7;
+                pitch = Pitch.values()[pitchIndex];
+            }
+
+            keySigs.put(pitch, scale);
+        }
+
         return keySigs;
     }
-
-
 
     public double getCenterYOfFlat(Rect rect, ElementType elementType, int staffIndex){
         double centerPosY;
