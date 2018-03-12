@@ -60,7 +60,7 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
 
     private static final String STATE_CURRENT_PAGE_INDEX = "current_page_index";
 
-    private static final String SCORE_NAME = "twinkle_twinkle_little_star";
+    private static final String SCORE_NAME = "handel_sonatina";
 
     private static final String FILENAME = SCORE_NAME + ".pdf";
 
@@ -500,7 +500,7 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
                                 else {
                                     Log.d(TAG, "hit new bar");
                                     //dot integration and handling accidental/ties
-                                    Log.d(TAG, String.format("Adding measure %d with info %s",
+                                    Log.d(TAG, String.format("Staff %d Measure %d with info %s",i,
                                             staff.getNumMeasures(), curMeasure.info()));
                                     curMeasure.checkNeighbours();
                                     staff.addMeasure(curMeasure);

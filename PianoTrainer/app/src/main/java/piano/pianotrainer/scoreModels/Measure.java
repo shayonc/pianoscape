@@ -23,6 +23,7 @@ public class Measure {
     public int lowerTimeSig;                  // the weight of a basic pulse in the measure
     Map<Pitch, Integer> keySigs;        // maps the pitch with its staff line/space
     List<List<NoteGroup>> ties;         // list of ties. Each tie is represented by a list of notegroups
+    //accCenterPos - stores when we process an accidental and is used as a getter for keySigCenters
     Map<Rect, Double> accCenterPos;    //Map of center position of accidentals which is calculated with CV
     List<Double> keySigCentres;         //Store the centers which a seperate function can map to pitch and scale of accidental
     // the dynamics of the measure. The values are represented in the following way:
@@ -72,6 +73,9 @@ public class Measure {
             }
         }
         s += String.format("Total dots t,b: %d,%d", counterTreble, counterBass);
+        s += String.format("Time sig: %d / %d", upperTimeSig, lowerTimeSig);
+        s += String.format("# Notegroups: %d, Rests: %d, Accs: %d, KeySigs: %d", noteGroups.size(),
+                            rests.size(), accCenterPos.size(), keySigCentres.size());
         return s;
     }
 

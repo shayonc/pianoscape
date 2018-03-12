@@ -20,10 +20,10 @@ public final class SymbolMapper {
     public static Rest classifyRest(int label, boolean isTrebleClef){
         int clef;
         if(isTrebleClef){
-            clef = 0;
+            clef = 1;
         }
         else{
-            clef = 1;
+            clef = 0;
         }
         Rest r = new Rest(getRestWeight(label), clef);
         return r;

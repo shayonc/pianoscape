@@ -124,24 +124,32 @@ public class ScoreImportToXmlParser {
         List<Rest> bassRests = new ArrayList<Rest>();
         List<Rect> bassRestsRects = new ArrayList<Rect>();
 
+        int trebleCounter = 0;
         for (Map.Entry<Rect, NoteGroup> entry : measure.noteGroups.entrySet()) {
             if(entry.getValue().clef == 1) {
                 trebleNotes.add(entry.getValue());
                 trebleNotesRects.add(entry.getKey());
+                Log.d("XMLParser", String.format("trebleNotes num %d, xPos: %d", trebleCounter, entry.getKey().left));
             } else {
                 bassNotes.add(entry.getValue());
                 bassNotesRects.add(entry.getKey());
+                Log.d("XMLParser", String.format("bassNotes num %d, xPos: %d", trebleCounter, entry.getKey().left));
             }
+            trebleCounter++;
         }
 
+        int restCounter = 0;
         for (Map.Entry<Rect, Rest> entry : measure.rests.entrySet()) {
             if(entry.getValue().clef == 0) {
                 trebleRests.add(entry.getValue());
                 trebleRestsRects.add(entry.getKey());
+                Log.d("XMLParser", String.format("trebleRests num %d, xPos: %d", restCounter, entry.getKey().left));
             } else {
                 bassRests.add(entry.getValue());
                 bassRestsRects.add(entry.getKey());
+                Log.d("XMLParser", String.format("basseRests num %d, xPos: %d", restCounter, entry.getKey().left));
             }
+            restCounter++;
         }
 
         //populate voices based on clefs and positions. First do treble, back up, then bass
@@ -224,7 +232,7 @@ public class ScoreImportToXmlParser {
         String fileContents = xmlBuffer.toString();
 
         File root = android.os.Environment.getExternalStorageDirectory();
-        File dir = new File (root.getAbsolutePath() + "/XML_Output");
+        File dir = new File (root.getAbsolutePath() + File.separator + "Piano" +  File.separator + "XML_Output");
         dir.mkdirs();
         File file = new File(dir, "Converted_XML.xml");
         try {
