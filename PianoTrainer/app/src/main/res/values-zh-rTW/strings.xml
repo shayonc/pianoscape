@@ -1,0 +1,22 @@
+<resources>
+    <string name="app_name">鋼琴師</string>
+    <string name="title_activity_home">首頁</string>
+    <string name="title_home">首頁</string>
+    <string name="title_camera">相機</string>
+    <string name="summary">評估</string>
+    <string name="music_dialog">選擇模式</string>
+    <string-array name="musicDialogOptions">
+        <item>開始彈奏！</item>
+        <item>編輯檔案</item>
+        <item>評估</item>
+    </string-array>
+    <string-array name="senders">
+        <item>""</item>
+    </string-array>
+    <string name="title_activity_summary">評估</string>
+    <string name="music_file">檔案名稱： </string>
+    <string name="correct_notes_played">正確彈奏： </string>
+    <string name="accuracy_text">準確率： </string>
+    <string name="folder_info">請將.xml文件輸入至 /Piano/XMLFiles/ 資料夾</string>
+    <string name="zoom_text">字體大小：</string>
+</resources>

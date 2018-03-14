@@ -1,0 +1,22 @@
+<resources>
+    <string name="app_name">PianoScape</string>
+    <string name="title_activity_home">AccueilActivité</string>
+    <string name="title_home">Accueil</string>
+    <string name="title_camera">Caméra</string>
+    <string name="summary">Résumé</string>
+    <string name="music_dialog">Sélectionnez l'option</string>
+    <string-array name="musicDialogOptions">
+        <item>Commencer à jouer!</item>
+        <item>Modifier le fichier XML</item>
+        <item>Résumé</item>
+    </string-array>
+    <string-array name="senders">
+        <item>"aucun"</item>
+    </string-array>
+    <string name="title_activity_summary">Résumé</string>
+    <string name="music_file">Fichier musical: </string>
+    <string name="correct_notes_played">Notes correctement jouées: </string>
+    <string name="accuracy_text">Précision: </string>
+    <string name="folder_info">Veuillez importer un fichier .xml dans le dossier / Piano / XMLFiles.</string>
+    <string name="zoom_text">Zoom:</string>
+</resources>
