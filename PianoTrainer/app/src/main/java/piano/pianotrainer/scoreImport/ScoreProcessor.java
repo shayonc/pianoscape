@@ -78,6 +78,7 @@ public class ScoreProcessor {
     Mat binarizedImg;
     Mat isoStaffLinesImg;
     public Mat noStaffLinesImg;
+    public Mat colorFinalImg;
 
     public Mat tmpImg;
 
@@ -346,9 +347,10 @@ public class ScoreProcessor {
 
 
 
-
     public List<List<Rect>> detectObjects() {
-        //TODO: iterate through all staffs
+        colorFinalImg = new Mat();
+        cvtColor(noStaffLinesImg, colorFinalImg, Imgproc.COLOR_GRAY2BGR);
+
         staffObjects = new ArrayList<List<Rect>>();
         boolean[][] staffsVisited = new boolean[noStaffLinesImg.height()][noStaffLinesImg.width()];
 
@@ -897,7 +899,7 @@ public class ScoreProcessor {
         cvtColor(objMat, colorMat, Imgproc.COLOR_GRAY2BGR);
         Imgproc.Canny(objMat, cannyMat, 100, 200);
         Mat allLines = new Mat();
-        Imgproc.HoughLinesP(cannyMat, allLines, 1, Math.PI/180, 4, 15, 5);
+        Imgproc.HoughLinesP(cannyMat, allLines, 1, Math.PI/180, 4, staffLineDiff, staffLineDiff/2);
 
         List<Line> vertLines = new ArrayList<>();
 //        Log.d(TAG, String.format("# of lines: %d", allLines.rows()));
@@ -918,7 +920,7 @@ public class ScoreProcessor {
 
 
         // Combining similar vertical lines
-        double VERT_LINE_PROXIMITY = 10.0;
+        double VERT_LINE_PROXIMITY = ((double)staffLineDiff) / 3.0;
         Map<Line, Integer> lineIDs = new LinkedHashMap<>();
         for (int i = 0; i < vertLines.size(); i++) {
             lineIDs.put(vertLines.get(i),i);
@@ -966,7 +968,7 @@ public class ScoreProcessor {
             }
             avgHeight /= reducedVertLines.size();
 
-            double lowestArea = 704.0;
+            double lowestArea = (((double)staffLineDiff)*3)*((double)staffLineDiff);
             double curArea = ((rect.bottom - rect.top) * (rect.right - rect.left));
             if (curArea > lowestArea && avgHeight >= staffLineDiff*2 && avgHeight <= staffLineDiff*8) {
                 return true;
@@ -1030,6 +1032,7 @@ public class ScoreProcessor {
 
         for (Map.Entry<Point, Integer> circle : circles.entrySet()) {
             Note note = new Note();
+            circle(colorFinalImg, new Point(circle.getKey().x + rect.left, circle.getKey().y + rect.top), circle.getValue(), new Scalar(0,255,0), 2);
             note.circleCenter = circle.getKey();
             note.circleRadius = circle.getValue();
             populatePitchAndScale(note, circle.getKey(), rect.top, inTreble, staffNum);
@@ -1050,7 +1053,7 @@ public class ScoreProcessor {
         cvtColor(objMat, colorMat, Imgproc.COLOR_GRAY2BGR);
         Imgproc.Canny(objMat, cannyMat, 100, 200);
         Mat allLines = new Mat();
-        Imgproc.HoughLinesP(cannyMat, allLines, 1, Math.PI/180, 4, 15, 5);
+        Imgproc.HoughLinesP(cannyMat, allLines, 1, Math.PI/180, 4, staffLineDiff, staffLineDiff/2); //15.0, 5.0
         if (allLines.rows() == 0) {
             for (Note note : noteGroup.notes) {
                 note.weight = 1.0;
@@ -1091,7 +1094,7 @@ public class ScoreProcessor {
         });
 
         // Combining similar vertical lines
-        double VERT_LINE_PROXIMITY = 10.0;
+        double VERT_LINE_PROXIMITY = ((double)staffLineDiff) / 3.0; //10.0
         Map<Line, Integer> lineIDs = new LinkedHashMap<>();
         for (int i = 0; i < vertLines.size(); i++) {
             lineIDs.put(vertLines.get(i),i);
@@ -1130,10 +1133,12 @@ public class ScoreProcessor {
 
 
         // Combine each reduced vertical line with circle note
-        double LINE_CIRCLE_PROMIXIMITY = 15.0;
+        double LINE_CIRCLE_PROMIXIMITY = staffLineDiff; //15.0
         double[][] lineCircleDist = new double[reducedVertLines.size()][noteGroup.notes.size()];
         Map<Line, List<Note>> lineCircleMap = new LinkedHashMap<>();
         for (int i = 0; i < reducedVertLines.size(); i++) {
+            Line line = reducedVertLines.get(i);
+            Imgproc.line(colorFinalImg, new Point(line.x1+rect.left, line.y1+rect.top), new Point(line.x2+rect.left, line.y2+rect.top), new Scalar(0, 0, 255), 2);
             for (int j = 0; j < noteGroup.notes.size(); j++) {
                 lineCircleDist[i][j] = (double)Integer.MAX_VALUE;
             }
@@ -1183,9 +1188,9 @@ public class ScoreProcessor {
         if (nonVertLines.size() != 0 && reducedVertLines.size() > 1) {
             // Combining similar non-vertical lines
             double SLOPE_PROXIMITY = 0.2;
-            double INTERCEPT_PROXIMITY = 4.0;
-            double VERT_NONVERT_REGION_PROXIMITY = 15.0;
-            double STAFF_LINE_DIFF_TOLERANCE = 2.5;
+            double INTERCEPT_PROXIMITY = ((double)staffLineDiff)/3.0;   //4.0
+            double VERT_NONVERT_REGION_PROXIMITY = ((double)staffLineDiff)/3.0; //15.0
+            double STAFF_LINE_DIFF_TOLERANCE = ((double)staffLineDiff)/4.0; //2.5
             Map<Line, Integer> nonVertLineIDs = new LinkedHashMap<>();
             for (int i = 0; i < nonVertLines.size(); i++) {
                 nonVertLineIDs.put(nonVertLines.get(i), i);
@@ -1227,6 +1232,8 @@ public class ScoreProcessor {
                 slopeAvg = slopeAvg / lines.size();
                 Line reducedLine = new Line(xMin, (slopeAvg * xMin) + interceptMin, xMax, (slopeAvg * xMax) + interceptMin);
                 reducedNonVertLines.add(reducedLine);
+
+                Imgproc.line(colorFinalImg, new Point(reducedLine.x1+rect.left, reducedLine.y1+rect.top), new Point(reducedLine.x2+rect.left, reducedLine.y2+rect.top), new Scalar(0, 0, 255), 2);
             }
 
             for (Map.Entry<Line, List<Note>> entry : lineCircleMap.entrySet()) {
@@ -1262,10 +1269,6 @@ public class ScoreProcessor {
                 }
             }
         }
-
-
-
-
 
 
 //        if (nonVertLines.size() != 0 && reducedVertLines.size() > 1) {
@@ -1391,7 +1394,7 @@ public class ScoreProcessor {
             else if (bottomDist < topDist && bottomDist < middleDist) staffLine = (double)lineIndex;
             else staffLine = ((double)lineIndex + (double)(lineIndex-1))/2;
 
-            if (staffLine > 3) note.scale = 3;
+            if (staffLine > 2) note.scale = 3;
             else note.scale = 4;
 
             int temp = (int)(staffLine * 2);

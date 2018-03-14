@@ -60,7 +60,7 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
 
     private static final String STATE_CURRENT_PAGE_INDEX = "current_page_index";
 
-    private static final String SCORE_NAME = "handel_sonatina";
+    private static final String SCORE_NAME = "digimon_butterfly";
 
     private static final String FILENAME = SCORE_NAME + ".pdf";
 
@@ -376,14 +376,7 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
 
                     // Generating hard-coded symbols data
                     List<Boolean[]> sonatina_symbols = scoreProc.getSonatinaNoteGroups();
-
-                    Bitmap finalBmp = Bitmap.createBitmap(scoreProc.noStaffLinesImg.width(),scoreProc.noStaffLinesImg.height(),Bitmap.Config.ARGB_8888);
-                    Utils.matToBitmap(scoreProc.noStaffLinesImg, finalBmp);
-                    Canvas cnvs = new Canvas(finalBmp);
-                    Paint paintTxt =new Paint();
-                    paintTxt.setStyle(Paint.Style.FILL);
-                    paintTxt.setColor(Color.RED);
-                    paintTxt.setTextSize(30);
+                    Map<Rect, List<String>> canvasDrawings = new LinkedHashMap<>();
 
                     //TRAINING SETS FOR SYMBOLS
                     //load the training images and train symbol detection
@@ -447,27 +440,27 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
                     paintY.setStyle(Paint.Style.STROKE);
                     paintY.setColor(Color.YELLOW);
 
-                    for(int i = 0; i < staffObjects.size(); i++){
-                        for(int j = 0; j < staffObjects.get(i).size(); j++){
-                            if(knnResults.get(i).get(j)/10 == 0){
-                                cnvs.drawRect(staffObjects.get(i).get(j), paintR);
-                            }
-                            if(knnResults.get(i).get(j)/10 == 1){
-                                cnvs.drawRect(staffObjects.get(i).get(j), paintB);
-                            }
-                            if(knnResults.get(i).get(j)/10 == 2){
-                                cnvs.drawRect(staffObjects.get(i).get(j), paintG);
-                            }
-                            if(knnResults.get(i).get(j)/10 == 3){
-                                cnvs.drawRect(staffObjects.get(i).get(j), paintM);
-                            }
-                            if(knnResults.get(i).get(j)/10 == 4){
-                                cnvs.drawRect(staffObjects.get(i).get(j), paintC);
-                            }
-                            cnvs.drawText(knnResults.get(i).get(j).toString(),
-                                    staffObjects.get(i).get(j).left, staffObjects.get(i).get(j).top, paintTxt);
-                        }
-                    }
+//                    for(int i = 0; i < staffObjects.size(); i++){
+//                        for(int j = 0; j < staffObjects.get(i).size(); j++){
+//                            if(knnResults.get(i).get(j)/10 == 0){
+//                                cnvs.drawRect(staffObjects.get(i).get(j), paintR);
+//                            }
+//                            if(knnResults.get(i).get(j)/10 == 1){
+//                                cnvs.drawRect(staffObjects.get(i).get(j), paintB);
+//                            }
+//                            if(knnResults.get(i).get(j)/10 == 2){
+//                                cnvs.drawRect(staffObjects.get(i).get(j), paintG);
+//                            }
+//                            if(knnResults.get(i).get(j)/10 == 3){
+//                                cnvs.drawRect(staffObjects.get(i).get(j), paintM);
+//                            }
+//                            if(knnResults.get(i).get(j)/10 == 4){
+//                                cnvs.drawRect(staffObjects.get(i).get(j), paintC);
+//                            }
+//                            cnvs.drawText(knnResults.get(i).get(j).toString(),
+//                                    staffObjects.get(i).get(j).left, staffObjects.get(i).get(j).top, paintTxt);
+//                        }
+//                    }
 
 
                     int curLabel;
@@ -517,7 +510,7 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
                                 //TODO: figure out null notegroups
                                 if(notegroup == null){
                                     Log.d(TAG, String.format("null notegroup on rect at %d,%d", i, j));
-                                    cnvs.drawRect(obj, paintB);
+//                                    cnvs.drawRect(obj, paintB);
                                 }
                                 else{
                                     curMeasure.addNoteGroup(obj, notegroup, isTreble);
@@ -527,14 +520,17 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
                                         s += (note.pitch.toString() + Integer.toString(note.scale) + ",");
                                     }
                                     s += "]";
-                                    cnvs.drawText(s, staffObjects.get(i).get(j).left, staffObjects.get(i).get(j).top, paintTxt);
+                                    canvasDrawings.put(staffObjects.get(i).get(j), new ArrayList<String>());
+                                    canvasDrawings.get(staffObjects.get(i).get(j)).add(s);
+//                                    cnvs.drawText(s, staffObjects.get(i).get(j).left, staffObjects.get(i).get(j).top, paintTxt);
                                     s = "[";
                                     for (Note note : notegroup.notes) {
                                         s += (Double.toString(note.weight) + ",");
                                     }
 
                                     s += "]";
-                                    cnvs.drawText(s, staffObjects.get(i).get(j).left, staffObjects.get(i).get(j).bottom, paintTxt);
+                                    canvasDrawings.get(staffObjects.get(i).get(j)).add(s);
+//                                    cnvs.drawText(s, staffObjects.get(i).get(j).left, staffObjects.get(i).get(j).bottom, paintTxt);
                                 }
 
                             }
@@ -620,6 +616,22 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
 //                    }
 //                    Bitmap testBmp = Bitmap.createBitmap(scoreProc.noStaffLinesImg.width(),scoreProc.noStaffLinesImg.height(),Bitmap.Config.ARGB_8888);
 //                    Utils.matToBitmap(scoreProc.noStaffLinesImg, testBmp);
+
+                    Bitmap finalBmp = Bitmap.createBitmap(scoreProc.colorFinalImg.width(),scoreProc.colorFinalImg.height(),Bitmap.Config.ARGB_8888);
+                    Utils.matToBitmap(scoreProc.colorFinalImg, finalBmp);
+                    Canvas cnvs = new Canvas(finalBmp);
+                    Paint paintTxt =new Paint();
+                    paintTxt.setStyle(Paint.Style.FILL);
+                    paintTxt.setColor(Color.RED);
+                    paintTxt.setTextSize(30);
+
+                    for (Map.Entry<Rect, List<String>> entry : canvasDrawings.entrySet()) {
+                        Rect rect = entry.getKey();
+                        List<String> s = entry.getValue();
+                        cnvs.drawText(s.get(0), rect.left, rect.top, paintTxt);
+                        cnvs.drawText(s.get(1), rect.left, rect.bottom, paintTxt);
+                    }
+
                     mImageView.setImageBitmap(finalBmp);
                     ImageUtils.saveImageToExternal(finalBmp, IMGNAME);
                     scoreProc.exportRects(getActivity());
