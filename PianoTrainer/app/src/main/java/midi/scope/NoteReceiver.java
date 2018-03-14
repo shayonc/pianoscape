@@ -161,8 +161,6 @@ public class NoteReceiver extends MidiReceiver {
                 sb.append("chord detected!!!!\n");
                 correctList.set(curNote, -1);
                 chordComparator.clearCorrect();
-                String parsedKeys = chordComparator.displayExpected();
-                ((MainActivity)mLogger).showCorrectNotes(parsedKeys);
             }
 
             if(!isChord) {
@@ -189,14 +187,18 @@ public class NoteReceiver extends MidiReceiver {
                 }
             }
             else {
+                int correctCount = chordComparator.getCorrectCount();
                 int notesRemaining = chordComparator.compareNotes(note);
+
+                if(correctCount == notesRemaining){
+                    String parsedKeys = chordComparator.displayExpected();
+                    ((MainActivity)mLogger).showCorrectNotes(parsedKeys);
+                }
+
                 if(notesRemaining == 0){
                     isChord = false;
                     curNoteAdd(chordComparator.getNoteCount());
                     sb.append("chord completed successfully\n");
-                }
-                else if(notesRemaining == chordComparator.getNoteCount()){
-                    isChord = false;
                 }
             }
         }
