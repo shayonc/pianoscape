@@ -121,14 +121,18 @@ public class NoteReceiver extends MidiReceiver {
             curNoteAdd(1);
             restCount++;
         }*/
+       //rest detection
         boolean skipping = true;
+        ((MainActivity)mLogger).showCorrectNotes(Integer.toString(totalNotes));
         while(skipping && !lastNote) {
             if (notes.get(curNote).size() <= 2) {
                 if(notes.get(curNote).size() == 2 && notes.get(curNote).get(0).rest && notes.get(curNote).get(1).rest){
                     curNoteAdd(1);
+                    restCount++;
                 }
                 else if(notes.get(curNote).get(0).rest){
                     curNoteAdd(1);
+                    restCount++;
                 }
                 else{
                     skipping = false;
@@ -147,19 +151,20 @@ public class NoteReceiver extends MidiReceiver {
             chordComparator.clearCorrect();
             sb.append("A key was released before chord completed, chord has been reset\n");
             String parsedKeys = chordComparator.displayExpected();
-            ((MainActivity)mLogger).showCorrectNotes(parsedKeys);
+            ((MainActivity)mLogger).showCorrectNotes(Integer.toString(notes.size()));
+            // ToDo: change this back
+            //((MainActivity)mLogger).showCorrectNotes(parsedKeys);
 
         }
 
         if (note.getNoteOn() && !songOver) {
-            totalNotes++;
             //chord detection
             if(!isChord && notes.get(curNote).size() > 1){
                 // TODO: chord completely off and missed
                 chordComparator = new ChordComparator(notes.get(curNote));
                 isChord = true;
                 sb.append("chord detected!!!!\n");
-                correctList.set(curNote, -1);
+                //correctList.set(curNote, -1);
                 chordComparator.clearCorrect();
             }
 
@@ -216,6 +221,7 @@ public class NoteReceiver extends MidiReceiver {
     }
     private void curNoteAdd(int n){
         curNote++;
+        totalNotes++;
 
         if(curNote == notes.size() - 1){
             Log.d("NoteReceiverEnd", "Last note of song");
@@ -231,6 +237,7 @@ public class NoteReceiver extends MidiReceiver {
                     correctCounter++;
                 }
             }
+            if (correctListExists && correctList.get(curNote) != -1) { correctList.set(curNote, 1); }
             ((MainActivity)mLogger).openSummaryPage(correctCounter, notes.size() - restCount);
         }
         if(!songOver){
