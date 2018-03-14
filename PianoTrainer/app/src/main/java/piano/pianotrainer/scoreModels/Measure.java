@@ -133,7 +133,6 @@ public class Measure {
     public void checkNeighbours(){
         ElementType curType;
         Rect curRect;
-
         for(int i = 1; i < trebleElementTypes.size(); i++){
             curRect = trebleRects.get(i);
             curType = trebleElementTypes.get(i);

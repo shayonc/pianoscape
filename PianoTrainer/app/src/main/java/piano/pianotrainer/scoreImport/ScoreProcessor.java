@@ -893,6 +893,9 @@ public class ScoreProcessor {
     }
 
     public boolean isNoteGroup(Rect rect) {
+        if(rect.height() < staffLineDiff*3.5){
+            return false;
+        }
         Mat objMat = extractFromNoStaffImg(rect);
         Mat cannyMat = new Mat();
         Mat colorMat = new Mat();

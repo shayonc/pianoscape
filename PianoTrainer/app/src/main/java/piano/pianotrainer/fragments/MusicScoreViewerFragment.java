@@ -60,7 +60,7 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
 
     private static final String STATE_CURRENT_PAGE_INDEX = "current_page_index";
 
-    private static final String SCORE_NAME = "digimon_butterfly";
+    private static final String SCORE_NAME = "handel_sonatina_shifted44";
 
     private static final String FILENAME = SCORE_NAME + ".pdf";
 
@@ -440,27 +440,7 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
                     paintY.setStyle(Paint.Style.STROKE);
                     paintY.setColor(Color.YELLOW);
 
-//                    for(int i = 0; i < staffObjects.size(); i++){
-//                        for(int j = 0; j < staffObjects.get(i).size(); j++){
-//                            if(knnResults.get(i).get(j)/10 == 0){
-//                                cnvs.drawRect(staffObjects.get(i).get(j), paintR);
-//                            }
-//                            if(knnResults.get(i).get(j)/10 == 1){
-//                                cnvs.drawRect(staffObjects.get(i).get(j), paintB);
-//                            }
-//                            if(knnResults.get(i).get(j)/10 == 2){
-//                                cnvs.drawRect(staffObjects.get(i).get(j), paintG);
-//                            }
-//                            if(knnResults.get(i).get(j)/10 == 3){
-//                                cnvs.drawRect(staffObjects.get(i).get(j), paintM);
-//                            }
-//                            if(knnResults.get(i).get(j)/10 == 4){
-//                                cnvs.drawRect(staffObjects.get(i).get(j), paintC);
-//                            }
-//                            cnvs.drawText(knnResults.get(i).get(j).toString(),
-//                                    staffObjects.get(i).get(j).left, staffObjects.get(i).get(j).top, paintTxt);
-//                        }
-//                    }
+
 
 
                     int curLabel;
@@ -499,6 +479,9 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
                                     staff.addMeasure(curMeasure);
                                     curMeasure = new Measure();
                                 }
+                            }
+                            else if(curLabel == KnnLabels.G_CLEF){
+                                curMeasure.addClef(ElementType.TrebleClef, obj);
                             }
                             else if (scoreProc.isNoteGroup(obj)){
 //                                if ((i == 1 && j == 15) || (i == 3 && j == 32) || (i == 4 && j == 13)) {
@@ -624,6 +607,28 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
                     paintTxt.setStyle(Paint.Style.FILL);
                     paintTxt.setColor(Color.RED);
                     paintTxt.setTextSize(30);
+
+                    for(int i = 0; i < staffObjects.size(); i++){
+                        for(int j = 0; j < staffObjects.get(i).size(); j++){
+                            if(knnResults.get(i).get(j)/10 == 0){
+                                cnvs.drawRect(staffObjects.get(i).get(j), paintR);
+                            }
+                            if(knnResults.get(i).get(j)/10 == 1){
+                                cnvs.drawRect(staffObjects.get(i).get(j), paintB);
+                            }
+                            if(knnResults.get(i).get(j)/10 == 2){
+                                cnvs.drawRect(staffObjects.get(i).get(j), paintG);
+                            }
+                            if(knnResults.get(i).get(j)/10 == 3){
+                                cnvs.drawRect(staffObjects.get(i).get(j), paintM);
+                            }
+                            if(knnResults.get(i).get(j)/10 == 4){
+                                cnvs.drawRect(staffObjects.get(i).get(j), paintC);
+                            }
+                            cnvs.drawText(knnResults.get(i).get(j).toString(),
+                                    staffObjects.get(i).get(j).left, staffObjects.get(i).get(j).top, paintTxt);
+                        }
+                    }
 
                     for (Map.Entry<Rect, List<String>> entry : canvasDrawings.entrySet()) {
                         Rect rect = entry.getKey();
