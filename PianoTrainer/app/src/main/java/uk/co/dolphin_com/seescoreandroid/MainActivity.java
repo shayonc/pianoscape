@@ -1113,7 +1113,7 @@ public class MainActivity extends Activity implements ScopeLogger {
                 public void event(final int index, final boolean ci) {
 
                     // use bar cursor if bar time is short
-                    final boolean useNoteCursor = UseNoteCursorIfPossible && !pl.needsFastCursor();
+                    final boolean useNoteCursor = true;
                     if (!useNoteCursor || ColourPlayedNotes) {
                         new Handler(Looper.getMainLooper()).post(new Runnable() {
 
@@ -1153,7 +1153,7 @@ public class MainActivity extends Activity implements ScopeLogger {
                     public void startNotes(final List<Note> notes) {
 
                         // disable note cursor if bar time is short
-                        final boolean useNoteCursor = !pl.needsFastCursor();
+                        final boolean useNoteCursor = true;
                         if (useNoteCursor) {
                             new Handler(Looper.getMainLooper()).post(new Runnable() {
                                 final List<Note> localNotes = notes;

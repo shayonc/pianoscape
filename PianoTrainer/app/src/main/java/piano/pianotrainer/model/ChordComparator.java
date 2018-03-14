@@ -3,6 +3,7 @@ package piano.pianotrainer.model;
 import android.util.Log;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -25,6 +26,7 @@ public class ChordComparator {
                 expNotes.add(note);
             }
         }
+//        Collections.reverse(expNotes);
         noteCount = expNotes.size();
         correctCount = 0;
         //cumIncorrectCount = 0;
@@ -50,9 +52,9 @@ public class ChordComparator {
 
     public String displayExpected(){
         String correctNotes = "";
-        for(uk.co.dolphin_com.sscore.playdata.Note note: expNotes){
-            Log.d("chordComparitor", "Expected octave " + note.midiPitch / 12 + " step " + note.midiPitch % 12);
-            correctNotes += Integer.toString(note.midiPitch / 12) +  setStep(note.midiPitch % 12) + System.getProperty("line.separator");
+        for(int i = 0; i < expNotes.size(); i++){
+            Log.d("chordComparitor", "Expected octave " + expNotes.get(i).midiPitch / 12 + " step " + expNotes.get(i).midiPitch % 12);
+            correctNotes += Integer.toString(expNotes.get(i).midiPitch / 12) +  setStep(expNotes.get(i).midiPitch % 12) + System.getProperty("line.separator");
         }
         Log.d("chordComparitor", "End of expNotes");
         return correctNotes;
