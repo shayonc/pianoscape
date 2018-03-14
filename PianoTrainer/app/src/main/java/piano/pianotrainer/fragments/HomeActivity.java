@@ -111,7 +111,15 @@ public class HomeActivity extends AppCompatActivity {
         importMxlFab.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v) {
             try {
-                Intent LaunchIntent = getPackageManager().getLaunchIntentForPackage("com.asus.filemanager");
+                PackageManager pm = context.getPackageManager();
+                boolean installed = isPackageInstalled("com.asus.filemanager", pm);
+                Intent LaunchIntent;
+                if (installed) {
+                    LaunchIntent = getPackageManager().getLaunchIntentForPackage("com.asus.filemanager");
+
+                } else {
+                    LaunchIntent = getPackageManager().getLaunchIntentForPackage("com.estrongs.android.pop");
+                }
                 startActivity(LaunchIntent);
                 Toast toast;
                 toast = Toast.makeText(getApplicationContext(), R.string.folder_info ,Toast.LENGTH_LONG);
@@ -229,6 +237,15 @@ public class HomeActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         finish();
+    }
+
+    private boolean isPackageInstalled(String packagename, PackageManager packageManager) {
+        try {
+            packageManager.getPackageInfo(packagename, 0);
+            return true;
+        } catch (PackageManager.NameNotFoundException e) {
+            return false;
+        }
     }
 }
 
