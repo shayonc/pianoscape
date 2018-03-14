@@ -123,7 +123,7 @@ public class NoteReceiver extends MidiReceiver {
         }*/
        //rest detection
         boolean skipping = true;
-        ((MainActivity)mLogger).showCorrectNotes(Integer.toString(totalNotes));
+        //((MainActivity)mLogger).showCorrectNotes(Integer.toString(totalNotes));
         while(skipping && !lastNote) {
             if (notes.get(curNote).size() <= 2) {
                 if(notes.get(curNote).size() == 2 && notes.get(curNote).get(0).rest && notes.get(curNote).get(1).rest){
@@ -151,9 +151,9 @@ public class NoteReceiver extends MidiReceiver {
             chordComparator.clearCorrect();
             sb.append("A key was released before chord completed, chord has been reset\n");
             String parsedKeys = chordComparator.displayExpected();
-            ((MainActivity)mLogger).showCorrectNotes(Integer.toString(notes.size()));
+            //((MainActivity)mLogger).showCorrectNotes(Integer.toString(notes.size()));
             // ToDo: change this back
-            //((MainActivity)mLogger).showCorrectNotes(parsedKeys);
+            ((MainActivity)mLogger).showCorrectNotes(parsedKeys);
 
         }
 
@@ -227,7 +227,7 @@ public class NoteReceiver extends MidiReceiver {
             Log.d("NoteReceiverEnd", "Last note of song");
             lastNote = true;
         }
-        else if(curNote == 100 || curNote >= notes.size()/* notes.size()*/){
+        else if(totalNotes == 100 || curNote >= notes.size()/* notes.size()*/){
             //end song
             songOver = true;
             Log.d("NoteReceiverEnd", "Should launch summary activity");
@@ -237,7 +237,7 @@ public class NoteReceiver extends MidiReceiver {
                     correctCounter++;
                 }
             }
-            if (correctListExists && correctList.get(curNote) != -1) { correctList.set(curNote, 1); }
+            if (correctListExists && correctList.get(curNote - 1) != -1) { correctList.set(curNote - 1, 1); }
             ((MainActivity)mLogger).openSummaryPage(correctCounter, notes.size() - restCount);
         }
         if(!songOver){
@@ -251,7 +251,7 @@ public class NoteReceiver extends MidiReceiver {
             }
             else{
                 player.moveCursor(notes.get(curNote));
-                if (correctListExists && correctList.get(curNote) != -1) { correctList.set(curNote, 1); }
+                if (correctListExists && correctList.get(curNote - 1) != -1) { correctList.set(curNote - 1, 1); }
             }
         }
     }
