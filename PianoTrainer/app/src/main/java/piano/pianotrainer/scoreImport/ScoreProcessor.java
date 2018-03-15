@@ -910,7 +910,7 @@ public class ScoreProcessor {
     }
 
     public boolean isNoteGroup(Rect rect) {
-        if(rect.height() < staffLineDiff*3.5){
+        if (rect.height() < staffLineDiff*3){
             return false;
         }
         Mat objMat = extractFromNoStaffImg(rect);
@@ -925,7 +925,7 @@ public class ScoreProcessor {
 //        Log.d(TAG, String.format("# of lines: %d", allLines.rows()));
         for (int i = 0; i < allLines.rows(); i++) {
             double[] val = allLines.get(i, 0);
-//            Imgproc.line(colorMat, new Point(val[0], val[1]), new Point(val[2], val[3]), new Scalar(0, 0, 255), 1);
+//            Imgproc.line(colorMat, new Point(val[0], val[1]), new Point(val[2], val[3]), new Scalar(255, 0, 0), 1);
             Line line = new Line(val[0], val[1], val[2], val[3]);
             if (line.getSlope() == Integer.MAX_VALUE) {
                 vertLines.add(line);
@@ -975,6 +975,7 @@ public class ScoreProcessor {
             xAvg = xAvg / lines.size();
             Line reducedLine = new Line(xAvg, yMin, xAvg, yMax);
             reducedVertLines.add(reducedLine);
+            Imgproc.line(colorFinalImg, new Point(reducedLine.x1+rect.left, reducedLine.y1+rect.top), new Point(reducedLine.x2+rect.left, reducedLine.y2+rect.top), new Scalar(0, 0, 255), 2);
         }
 
         if (reducedVertLines.size() == 0) return false;
@@ -1040,21 +1041,56 @@ public class ScoreProcessor {
 
             // filtering out false positives
             double blackRatio = (double)blackCount / (double)totCount;
-            if (blackRatio > 0.6) {
+            if (blackRatio > 0.5) {
                 circles.put(pt, radius);
                 circlesBlackRatios.put(pt, blackRatio);
             }
         }
 
-        if (circles.size() == 0) return null;
+        // back-up pipeline
+        if (circles.size() == 0) {
+            Mat allCircles2 = new Mat();
+            Imgproc.HoughCircles(objMat, allCircles2, CV_HOUGH_GRADIENT, 1, ((double)staffLineDiff)*0.8, 200, 4, (int)(((double)staffLineDiff)*0.3), (int)(((double)staffLineDiff)*0.75));
+            int numNewCircles = allCircles2.cols();
+
+            for (int k = 0; k < allCircles2.cols(); k++) {
+                double[] vCircle = allCircles2.get(0, k);
+                Point pt = new Point(Math.round(vCircle[0]), Math.round(vCircle[1]));
+                int radius = (int)Math.round(vCircle[2]);
+
+                Mat mask = Mat.zeros(objMat.size(), CV_8UC1);
+                circle(mask, pt, radius, new Scalar(255), -1);
+
+                int blackCount = 0;
+                int totCount = 0;
+                for (int r = 0; r < objMat.rows(); r++) {
+                    for (int c = 0; c < objMat.cols(); c++) {
+                        if (mask.get(r,c)[0] > 0.0) {
+                            totCount++;
+                            if (objMat.get(r,c)[0] < 255.0) {
+                                blackCount++;
+                            }
+                        }
+                    }
+                }
+
+                // filtering out false positives
+                double blackRatio = (double)blackCount / (double)totCount;
+                if (blackRatio > 0.6) {
+                    circles.put(pt, radius);
+                    circlesBlackRatios.put(pt, blackRatio);
+                }
+            }
+            return null;
+        }
         boolean inTreble = inTrebleCleff(rect.top, rect.bottom, staffNum);
         NoteGroup noteGroup = new NoteGroup(new ArrayList<Note>(), 0, 0);
 
         for (Map.Entry<Point, Integer> circle : circles.entrySet()) {
             Note note = new Note();
-            circle(colorFinalImg, new Point(circle.getKey().x + rect.left, circle.getKey().y + rect.top), circle.getValue(), new Scalar(0,255,0), 2);
             note.circleCenter = circle.getKey();
             note.circleRadius = circle.getValue();
+            note.blackRatio = circlesBlackRatios.get(circle.getKey());
             populatePitchAndScale(note, circle.getKey(), rect.top, inTreble, staffNum);
             noteGroup.notes.add(note);
         }
@@ -1151,6 +1187,36 @@ public class ScoreProcessor {
             reducedVertLines.add(reducedLine);
         }
 
+        // eliminate noisy nonVertical lines: any nonVertical lines that insercept with the circles
+        Set<Line> toRemoveLines = new HashSet<>();
+        Set<Note> toRemoveNotes = new HashSet<>();
+        for (Line line: nonVertLines) {
+            for (Note note: noteGroup.notes) {
+                boolean intersects = circleLineIntersects(note.circleCenter, note.circleRadius + ((double)staffLineDiff/3.0), line);
+                double lineLength = line.getEuclidianDist();
+                if (intersects && lineLength < staffLineDiff*2) {
+                    toRemoveLines.add(line);
+                }
+                else if (intersects && lineLength >= staffLineDiff*2) {
+                    if (line.getSlope() == 0 && lineLength >= staffLineDiff*3) {
+                        toRemoveNotes.add(note);
+                    }
+                    else if (line.getSlope() != 0) {
+                        toRemoveNotes.add(note);
+                    }
+                }
+            }
+        }
+        nonVertLines.removeAll(toRemoveLines);
+        for (Line line : nonVertLines) {
+            Imgproc.line(colorFinalImg, new Point(line.x1+rect.left, line.y1+rect.top), new Point(line.x2+rect.left, line.y2+rect.top), new Scalar(0, 0, 255), 2);
+        }
+        noteGroup.notes.removeAll(toRemoveNotes);
+        for (Note note : noteGroup.notes) {
+            circle(colorFinalImg, new Point(note.circleCenter.x + rect.left, note.circleCenter.y + rect.top), (int)note.circleRadius, new Scalar(0,255,0), 2);
+        }
+
+
 
         // Combine each reduced vertical line with circle note
         double LINE_CIRCLE_PROMIXIMITY = staffLineDiff; //15.0
@@ -1191,17 +1257,79 @@ public class ScoreProcessor {
 
 
         // Assign each vertical line's notes duration
-        if (nonVertLines.size() == 0) {
-            for (Map.Entry<Line, List<Note>> entry : lineCircleMap.entrySet()) {
-                for (Note note : entry.getValue()) {
-                    note.weight = 0.25;
+        if (reducedVertLines.size() == 1) {
+            if (nonVertLines.size() == 0) {
+                for (Map.Entry<Line, List<Note>> entry : lineCircleMap.entrySet()) {
+                    for (Note note : entry.getValue()) {
+                        if (objMat.get((int)note.circleCenter.y, (int)note.circleCenter.x)[0] == 0.0) {
+                            if (note.blackRatio < 0.65) {
+                                note.weight = 0.5;
+                            }
+                            else {
+                                note.weight = 0.25;
+                            }
+                        }
+                        else {
+                            note.weight = 0.5;
+                        }
+                    }
                 }
             }
-        }
-        if (nonVertLines.size() != 0 && reducedVertLines.size() == 1) {
+            else {
+                int horizCount = 0;
+                for (Line line : nonVertLines) {
+                    if (line.getSlope() == 0) {
+                        horizCount++;
+                    }
+                }
+                for (Map.Entry<Line, List<Note>> entry : lineCircleMap.entrySet()) {
+                    for (Note note : entry.getValue()) {
+                        if (horizCount == nonVertLines.size()) {
+                            note.weight = 0.25;
+                        }
+                        else {
+                            note.weight = 0.125;
+                        }
+                    }
+                }
+            }
+            // checking for eighth notes where nonVerts weren't detected
             for (Map.Entry<Line, List<Note>> entry : lineCircleMap.entrySet()) {
-                for (Note note : entry.getValue()) {
-                    note.weight = 0.125;
+                if (entry.getValue().size() == 1) {
+//                    if (note.weight != 0.5) {
+                    Note note = entry.getValue().get(0);
+                    Rect roi = null;
+                    if (note.circleCenter.y < rect.height()/2) {
+                        // note head is on top
+                        if (entry.getKey().x1 < note.circleCenter.x) {
+                            // line is on left
+                            roi = new Rect(rect.left+(rect.width()/2), rect.top+(rect.height()/2), rect.right, rect.bottom);
+                        }
+                        else {
+                            // line is on right
+                            roi = new Rect(rect.left, rect.top+(rect.height()/2), rect.right-(rect.width()/2), rect.bottom);
+                        }
+                    }
+                    else {
+                        // note head is on bottom
+                        if (entry.getKey().x1 < note.circleCenter.x) {
+                            // line is on left
+                            roi = new Rect(rect.left+(rect.width()/2), rect.top, rect.right, rect.bottom-(rect.height()/2));
+                        }
+                        else {
+                            // line is on right
+                            roi = new Rect(rect.left, rect.top, rect.right-(rect.width()/2), rect.bottom-(rect.height()/2));
+                        }
+                    }
+                    org.opencv.core.Rect cvRoi = new org.opencv.core.Rect(roi.left, roi.top, roi.width(), roi.height());
+                    Mat roiMat = new Mat(noStaffLinesImg, cvRoi);
+                    int whiteCount = Core.countNonZero(roiMat);
+                    double roiArea = (roi.width()*roi.height());
+                    double whiteRatio = ((double)whiteCount) / roiArea;
+                    if (whiteRatio < 0.8) {
+                        note.weight = 0.125;
+                    }
+//                    }
                 }
             }
         }
@@ -1273,17 +1401,22 @@ public class ScoreProcessor {
                     }
                 }
                 else {
-                    Line top = regionLines.get(0);
-                    Line bottom = regionLines.get(regionLines.size()-1);
-                    double heightDiff = Math.abs(bottom.getIntercept()-top.getIntercept());
-                    if (heightDiff <= staffLineDiff+STAFF_LINE_DIFF_TOLERANCE) {
-                        for (Note note : entry.getValue()) {
+                    for (Note note : entry.getValue()) {
+//                        if (note.circleCenter.y > regionLines.get(0).y1) {
+//                         // bar is on top of circles
+                        Line top = regionLines.get(0);
+                        Line bottom = regionLines.get(regionLines.size()-1);
+
+                        double heightDiff = Math.abs(bottom.getIntercept()-top.getIntercept());
+                        if (heightDiff <= staffLineDiff+STAFF_LINE_DIFF_TOLERANCE) {
                             note.weight = 0.125;
                         }
-                    }
-                    else {
-                        for (Note note : entry.getValue()) {
+                        else if (heightDiff > staffLineDiff+STAFF_LINE_DIFF_TOLERANCE
+                                && heightDiff <= 2*staffLineDiff+STAFF_LINE_DIFF_TOLERANCE){
                             note.weight = 0.0625;
+                        }
+                        else {
+                            note.weight = 0.125;
                         }
                     }
                 }
@@ -1330,7 +1463,7 @@ public class ScoreProcessor {
             else if (bottomDist < topDist && bottomDist < middleDist) staffLine = (double)i;
             else staffLine = ((double)i + (double)(i-1))/2;
 
-            if (staffLine <= 2.5) note.scale = 5;
+            if (staffLine <= 1.5) note.scale = 5;
             else note.scale = 4;
             int temp = (int)(staffLine * 2);
             temp = 8 - temp;
@@ -1355,9 +1488,8 @@ public class ScoreProcessor {
             else staffLine = ((double)i + (double)(i-1))/2;
 
             staffLine -= 5.0;
-            if (staffLine == 0) note.scale = 4;
-            else if (staffLine == 4) note.scale = 2;
-            else note.scale = 3;
+            if (staffLine <= 2.5) note.scale = 3;
+            else note.scale = 2;
 
             int temp = (int)(staffLine * 2);
             temp = 8 - temp;
@@ -1385,7 +1517,7 @@ public class ScoreProcessor {
             else if (bottomDist < topDist && bottomDist < middleDist) staffLine = (double)lineIndex;
             else staffLine = ((double)lineIndex + (double)(lineIndex-1))/2;
 
-            if (staffLine <= 3) note.scale = 6;
+            if (staffLine <= 2) note.scale = 6;
             else note.scale = 5;
 
             int temp = (int)(staffLine * 2);
@@ -1414,7 +1546,7 @@ public class ScoreProcessor {
             else if (bottomDist < topDist && bottomDist < middleDist) staffLine = (double)lineIndex;
             else staffLine = ((double)lineIndex + (double)(lineIndex-1))/2;
 
-            if (staffLine > 2) note.scale = 3;
+            if (staffLine > 1) note.scale = 3;
             else note.scale = 4;
 
             int temp = (int)(staffLine * 2);
@@ -1443,8 +1575,8 @@ public class ScoreProcessor {
             else if (bottomDist < topDist && bottomDist < middleDist) staffLine = (double)lineIndex;
             else staffLine = ((double)lineIndex + (double)(lineIndex-1))/2;
 
-            if (staffLine <= 0.5) note.scale = 5;
-            else note.scale = 4;
+            if (staffLine <= 3) note.scale = 4;
+            else note.scale = 3;
 
             int temp = (int)(staffLine * 2);
             temp = 8 - temp;
@@ -1471,7 +1603,7 @@ public class ScoreProcessor {
             else if (bottomDist < topDist && bottomDist < middleDist) staffLine = (double)lineIndex;
             else staffLine = ((double)lineIndex + (double)(lineIndex-1))/2;
 
-            if (staffLine <= 3) note.scale = 2;
+            if (staffLine <= 2) note.scale = 2;
             else note.scale = 1;
 
             int temp = (int)(staffLine * 2);
@@ -1480,9 +1612,6 @@ public class ScoreProcessor {
             if (temp < 0) temp += 7;
             int pitchIndex = temp % 7;
             note.pitch = Pitch.values()[pitchIndex];
-        }
-        if (note.pitch == Pitch.A || note.pitch == Pitch.B) {
-            note.scale--;
         }
     }
 
@@ -1585,5 +1714,47 @@ public class ScoreProcessor {
 
     public double[] getImageData(int row, int col) {
         return noStaffLinesImg.get(row, col);
+    }
+
+    public boolean circleLineIntersects(Point pt, double radius, Line line) {
+//        double dx = line.x2 - line.x1;
+//        double dy = line.y2 - line.y1;
+//        double dr = Math.sqrt((dx*dx) + (dy*dy));
+//        double D = line.x1*line.y2 - line.x2*line.y1;
+//        double incedence = ((radius*radius)*(dr*dr)) - (D*D);
+//        if (incedence < 0) return false;
+//        else return true;
+
+
+        // compute the euclidean distance between A and B
+        double Ax = line.x1;
+        double Ay = line.y1;
+        double Bx = line.x2;
+        double By = line.y2;
+        double LAB = Math.sqrt( (Bx-Ax)*(Bx-Ax)+(By-Ay)*(By-Ay));
+
+        // compute the direction vector D from A to B
+        double Dx = (Bx-Ax)/LAB;
+        double Dy = (By-Ay)/LAB;
+
+        // Now the line equation is x = Dx*t + Ax, y = Dy*t + Ay with 0 <= t <= 1.
+
+        // compute the value t of the closest point to the circle center (Cx, Cy)
+        double Cx = pt.x;
+        double Cy = pt.y;
+        double t = Dx*(Cx-Ax) + Dy*(Cy-Ay);
+
+        // This is the projection of C on the line from A to B.
+
+        // compute the coordinates of the point E on line and closest to C
+        double Ex = t*Dx+Ax;
+        double Ey = t*Dy+Ay;
+
+        // compute the euclidean distance from E to C
+        double LEC = Math.sqrt( (Ex-Cx)*(Ex-Cx)+(Ey-Cy)*(Ey-Cy));
+
+        if (LEC > radius) return false;
+        else return true;
+
     }
 }

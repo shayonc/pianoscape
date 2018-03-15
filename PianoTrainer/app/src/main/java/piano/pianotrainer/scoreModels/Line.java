@@ -31,6 +31,10 @@ public class Line {
             return (y1-((this.getSlope())*x1));
     }
 
+    public double getEuclidianDist() {
+        return Math.sqrt(((x2-x1)*(x2-x1)) + ((y2-y1)*(y2-y1)));
+    }
+
     public boolean existsInXRegion(double xMin, double xMax) {
         double curXMin = x1;
         double curXMax = x2;

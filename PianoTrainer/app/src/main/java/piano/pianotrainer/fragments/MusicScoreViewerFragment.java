@@ -28,6 +28,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import org.opencv.android.Utils;
+import org.opencv.core.Mat;
+import org.opencv.core.RotatedRect;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -49,6 +51,8 @@ import piano.pianotrainer.scoreModels.NoteGroup;
 import piano.pianotrainer.scoreModels.Pitch;
 import piano.pianotrainer.scoreModels.Score;
 import piano.pianotrainer.scoreModels.Staff;
+import piano.pianotrainer.fragments.ScoreImportToXmlParser;
+
 
 public class MusicScoreViewerFragment extends Fragment implements View.OnClickListener{
     /**
@@ -346,7 +350,7 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
                     PdfRenderer.Page curPage = pdfRenderer.openPage(pdfHelper.getCurPage().getIndex());
 
                     mDebugView.setText(String.format("width: %d, height: %d", curPage.getWidth(), curPage.getHeight()));
-                    Bitmap bitmap = Bitmap.createBitmap(curPage.getWidth()*3, curPage.getHeight()*3,
+                    Bitmap bitmap = Bitmap.createBitmap(curPage.getWidth()*4, curPage.getHeight()*4,
                             Bitmap.Config.ARGB_8888);
                     curPage.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY);
 
@@ -504,23 +508,23 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
                                     }
                                     else{
                                         curMeasure.addNoteGroup(obj, notegroup, isTreble);
-//                                    String s = "[";
-//
-//                                    for (Note note : notegroup.notes) {
-//                                        s += (note.pitch.toString() + Integer.toString(note.scale) + ",");
-//                                    }
-//                                    s += "]";
-//                                    canvasDrawings.put(staffObjects.get(i).get(j), new ArrayList<String>());
-//                                    canvasDrawings.get(staffObjects.get(i).get(j)).add(s);
-////                                    cnvs.drawText(s, staffObjects.get(i).get(j).left, staffObjects.get(i).get(j).top, paintTxt);
-//                                    s = "[";
-//                                    for (Note note : notegroup.notes) {
-//                                        s += (Double.toString(note.weight) + ",");
-//                                    }
-//
-//                                    s += "]";
-//                                    canvasDrawings.get(staffObjects.get(i).get(j)).add(s);
-//                                    cnvs.drawText(s, staffObjects.get(i).get(j).left, staffObjects.get(i).get(j).bottom, paintTxt);
+                                        String s = "[";
+
+                                        for (Note note : notegroup.notes) {
+                                            s += (note.pitch.toString() + Integer.toString(note.scale) + ",");
+                                        }
+                                        s += "]";
+                                        canvasDrawings.put(staffObjects.get(i).get(j), new ArrayList<String>());
+                                        canvasDrawings.get(staffObjects.get(i).get(j)).add(s);
+    //                                    cnvs.drawText(s, staffObjects.get(i).get(j).left, staffObjects.get(i).get(j).top, paintTxt);
+                                        s = "[";
+                                        for (Note note : notegroup.notes) {
+                                            s += (Double.toString(note.weight) + ",");
+                                        }
+
+                                        s += "]";
+                                        canvasDrawings.get(staffObjects.get(i).get(j)).add(s);
+//                                        cnvs.drawText(s, staffObjects.get(i).get(j).left, staffObjects.get(i).get(j).bottom, paintTxt);
                                     }
 
                                 }

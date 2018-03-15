@@ -23,6 +23,7 @@ public class Note {
     public boolean hasStaccato;
     public Point circleCenter;
     public double circleRadius;
+    public double blackRatio;
     public boolean hasTieStart;
     public boolean hasTieEnd;
 
