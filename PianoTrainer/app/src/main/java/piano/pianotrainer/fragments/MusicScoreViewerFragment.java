@@ -63,7 +63,7 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
 
     private static final String STATE_CURRENT_PAGE_INDEX = "current_page_index";
 
-    private static final String SCORE_NAME = "zimmer_pirate";
+    private static final String SCORE_NAME = "handel_sonatina_shifted44";
 
     private static final String FILENAME = SCORE_NAME + ".pdf";
 
@@ -499,6 +499,11 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
                                     Log.d(TAG, "Frag found treble clef");
                                     curMeasure.addClef(ElementType.TrebleClef, obj);
                                 }
+                                //time sig
+                                else if(SymbolMapper.isTimeSig(curLabel) && i == 0 && staff.getNumMeasures() == 0){
+                                    curMeasure.setTimeSig(SymbolMapper.getUpperTimeSig(curLabel), SymbolMapper.getLowerTimeSig(curLabel),
+                                            isTreble, obj);
+                                }
                                 else if (scoreProc.isNoteGroup(obj)){
                                     NoteGroup notegroup = scoreProc.classifyNoteGroup(objects.get(j), i, isTreble);
                                     //TODO: figure out null notegroups
@@ -551,11 +556,6 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
                                     else if(curLabel == KnnLabels.NATURAL_ACC){
                                         curMeasure.addToClefLists(isTreble, obj, ElementType.Natural);
                                         curMeasure.addAccidentalCenter(obj, scoreProc.getCenterYOfFlat(obj, ElementType.Natural, i));
-                                    }
-                                    //time sig
-                                    else if(SymbolMapper.isTimeSig(curLabel)){
-                                        curMeasure.setTimeSig(SymbolMapper.getUpperTimeSig(curLabel), SymbolMapper.getLowerTimeSig(curLabel),
-                                                isTreble, obj);
                                     }
                                     //other symbols
                                     else if(curLabel == KnnLabels.DOT){
