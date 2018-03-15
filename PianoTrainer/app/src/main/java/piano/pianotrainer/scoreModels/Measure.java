@@ -183,11 +183,23 @@ public class Measure {
         Rect curRect;
         NoteGroup tmpNg;
         boolean tieStarted = false;
+        //first elem in measure -> not a keysig
+        if(isEleTypeAccidental(trebleElementTypes.get(0)) && trebleElementTypes.get(1) == ElementType.NoteGroup){
+            tmpNg = noteGroups.get(trebleRects.get(1));
+            tmpNg.setAccidental(trebleElementTypes.get(0));
+            noteGroups.put(trebleRects.get(1), tmpNg);
+        }
+        if(isEleTypeAccidental(bassElementTypes.get(0)) && bassElementTypes.get(1) == ElementType.NoteGroup){
+            tmpNg = noteGroups.get(bassRects.get(1));
+            tmpNg.setAccidental(bassElementTypes.get(0));
+            noteGroups.put(bassRects.get(1), tmpNg);
+        }
+
         for(int i = 1; i < trebleElementTypes.size(); i++){
             curRect = trebleRects.get(i);
             curType = trebleElementTypes.get(i);
             if(curType == ElementType.Dot){
-                if(trebleElementTypes.get(i - 1) == ElementType.NoteGroup){
+                if( trebleElementTypes.get(i - 1) == ElementType.NoteGroup){
                     Log.d("MeasureTreble", String.format("integrating dot with ng index %d",i));
                     integrateDot(i, trebleRects);
                 }
@@ -228,6 +240,7 @@ public class Measure {
                     //add tie boolean in right notegroups left most
                     tmpNg = noteGroups.get(trebleRects.get(i+1));
                     tmpNg.setTieEnd();
+                    Log.d("DERP", "tie end treble set");
                 }
             }
         }
@@ -235,6 +248,7 @@ public class Measure {
         for(int j = 1; j < bassElementTypes.size(); j++){
             curRect = bassRects.get(j);
             curType = bassElementTypes.get(j);
+
             if(curType == ElementType.Dot){
                 if(bassElementTypes.get(j - 1) == ElementType.NoteGroup){
                     Log.d("MeasureBass", String.format("integrating bass dot with ng index %d",j));
@@ -276,6 +290,7 @@ public class Measure {
                     //add tie boolean in right notegroups left most
                     tmpNg = noteGroups.get(bassRects.get(j+1));
                     tmpNg.setTieEnd();
+                    Log.d("DERP", "tie end bass set");
                 }
             }
         }

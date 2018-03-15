@@ -513,7 +513,7 @@ public class ScoreProcessor {
             for(int j = 0; j < staffObjects.get(i).size(); j++){
                 curRect = staffObjects.get(i).get(j);
                 testLabel = testKnnMat(extractFromNoStaffImg(curRect));
-                if(isBarLine(curRect)){
+                if(testLabel != KnnLabels.BRACE && isBarLine(curRect)){
                     knnResults.get(i).add(KnnLabels.BAR);
                 }
                 else{
@@ -576,7 +576,7 @@ public class ScoreProcessor {
 
     //too thin so its too affected by noise
     public boolean isBarLine(Rect r){
-        return r.height() > staffLineDiff*10 && r.width() <= staffLineDiff;
+        return r.height() > staffLineDiff*10;
     }
 
     public void dotFilter(){
