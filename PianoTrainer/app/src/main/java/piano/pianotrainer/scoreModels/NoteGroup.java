@@ -36,6 +36,7 @@ public class NoteGroup {
 
     public List<Integer> rightMostNotePositions(){
         int xDeviationThreshold = 10; //in pixels
+        Log.d("NoteGroup",String.format("Notes size %d", notes.size()));
         int lastIndex = notes.size() - 1;
         double curX = notes.get(lastIndex).circleCenter.x;
         int curIndex = lastIndex;
@@ -50,6 +51,9 @@ public class NoteGroup {
     }
 
     public boolean addDot(Rect notegroupRect, Rect dotRect){
+        if(this.notes.size() == 0){
+            return false;
+        }
         List<Integer> rightMostNotesIndicies = rightMostNotePositions();
         Log.d("NoteGroupDot", String.format("adding a dot with # of notes %d and first center %.2f", rightMostNotesIndicies.size(),
                                                                             notes.get(rightMostNotesIndicies.get(0)).circleCenter.x));
