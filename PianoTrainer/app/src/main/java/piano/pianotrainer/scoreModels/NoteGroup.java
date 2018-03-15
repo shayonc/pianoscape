@@ -1,6 +1,7 @@
 package piano.pianotrainer.scoreModels;
 
 import android.graphics.Rect;
+import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -48,13 +49,48 @@ public class NoteGroup {
         return rightNotesIndicies;
     }
 
-    public boolean addDot(Rect dotRect){
+    public boolean addDot(Rect notegroupRect, Rect dotRect){
         List<Integer> rightMostNotesIndicies = rightMostNotePositions();
+        Log.d("NoteGroupDot", String.format("adding a dot with # of notes %d and first center %.2f", rightMostNotesIndicies.size(),
+                                                                            notes.get(rightMostNotesIndicies.get(0)).circleCenter.x));
         boolean hasAddedDots = true;
         for(int index : rightMostNotesIndicies){
-            hasAddedDots &= notes.get(index).appendDot(dotRect);
+            hasAddedDots &= notes.get(index).appendDot(notegroupRect, dotRect);
         }
         return hasAddedDots;
+    }
+
+    public void setTieStart(){
+        int index = notes.size() - 1;
+        Note rightMost = notes.get(index);
+        rightMost.hasTieStart = true;
+        notes.set(index, rightMost);
+    }
+
+    public void setTieEnd(){
+        Note leftMost = notes.get(0);
+        leftMost.hasTieEnd = true;
+        notes.set(0, leftMost);
+    }
+
+    public boolean setAccidental(ElementType eleAcc){
+        Accidental acc;
+        if(eleAcc == ElementType.Flat){
+            acc = Accidental.Flat;
+        }
+        else if(eleAcc == ElementType.Sharp){
+            acc = Accidental.Sharp;
+        }
+        else if(eleAcc == ElementType.Natural){
+            acc = Accidental.Natural;
+        }
+        else{
+            return false;
+        }
+        Note leftMost = notes.get(0);
+        leftMost.accidental = acc;
+        notes.set(0, leftMost);
+        return true;
     }
 
     public void sortCircles() {

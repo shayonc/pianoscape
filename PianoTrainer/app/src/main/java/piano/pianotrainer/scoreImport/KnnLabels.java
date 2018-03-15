@@ -41,6 +41,7 @@ public final class KnnLabels {
     public static final int WHOLE_NOTE  = 45;
     //two whole notes positioned vertically
     public static final int WHOLE_NOTE_2  = 46;
+    public static final int NOTE_STEM_INV  = 47;
 
 
 

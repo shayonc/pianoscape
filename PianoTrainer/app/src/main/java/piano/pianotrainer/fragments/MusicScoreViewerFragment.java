@@ -47,6 +47,7 @@ import piano.pianotrainer.scoreModels.ElementType;
 import piano.pianotrainer.scoreModels.Measure;
 import piano.pianotrainer.scoreModels.Note;
 import piano.pianotrainer.scoreModels.NoteGroup;
+import piano.pianotrainer.scoreModels.Pitch;
 import piano.pianotrainer.scoreModels.Score;
 import piano.pianotrainer.scoreModels.Staff;
 import piano.pianotrainer.fragments.ScoreImportToXmlParser;
@@ -60,7 +61,7 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
 
     private static final String STATE_CURRENT_PAGE_INDEX = "current_page_index";
 
-    private static final String SCORE_NAME = "handel_sonatina_shifted44";
+    private static final String SCORE_NAME = "mario_starman";
 
     private static final String FILENAME = SCORE_NAME + ".pdf";
 
@@ -406,6 +407,7 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
                     addTrainingImages("training_set/slur", KnnLabels.TIE);
                     addTrainingImages("training_set/dynamics_f", KnnLabels.DYNAMICS_F);
                     addTrainingImages("training_set/dot_set", KnnLabels.DOT);
+                    addTrainingImages("training_set/notesteminv", KnnLabels.NOTE_STEM_INV);
 
                     //Train
                     scoreProc.trainKnn();
@@ -450,13 +452,7 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
                         Staff staff = new Staff(true);
                         score.addStaff(staff);
                         List<Rect> objects = staffObjects.get(i);
-
-                        //Measure curMeasure = new Measure();
-                        //staff.addMeasure(curMeasure);
-
                         boolean firstVertBar = false;
-                        int numElemsInMeasure = 0;
-
                         Boolean[] isNoteGroup2 = sonatina_symbols.get(i);
                         Map<Integer, Rect> dotsInStaff = new LinkedHashMap<>();
 
@@ -464,116 +460,117 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
                             Rect obj = objects.get(j);
                             isTreble = scoreProc.inTrebleCleff(obj.top, obj.bottom, i);
                             curLabel = knnResults.get(i).get(j);
-                            // TODO: add symbol detection here
-                            if (curLabel == KnnLabels.BAR) {
-                                if (!firstVertBar) {
+                            if(!firstVertBar){
+                                if(curLabel == KnnLabels.BAR){
                                     firstVertBar = true;
-                                    // curMeasure = new Measure();
-                                }
-                                else {
-                                    Log.d(TAG, "hit new bar");
-                                    //dot integration and handling accidental/ties
-                                    Log.d(TAG, String.format("Staff %d Measure %d with info %s",i,
-                                            staff.getNumMeasures(), curMeasure.info()));
-                                    curMeasure.checkNeighbours();
-                                    staff.addMeasure(curMeasure);
-                                    curMeasure = new Measure();
                                 }
                             }
-                            else if(curLabel == KnnLabels.G_CLEF){
-                                curMeasure.addClef(ElementType.TrebleClef, obj);
-                            }
-                            else if (scoreProc.isNoteGroup(obj)){
-//                                if ((i == 1 && j == 15) || (i == 3 && j == 32) || (i == 4 && j == 13)) {
-//                                    int hello = 0;
-//                                    int hello2 = hello*2;
-//                                }
-
-                                NoteGroup notegroup = scoreProc.classifyNoteGroup(objects.get(j), i, isTreble);
-                                //TODO: figure out null notegroups
-                                if(notegroup == null){
-                                    Log.d(TAG, String.format("null notegroup on rect at %d,%d", i, j));
-//                                    cnvs.drawRect(obj, paintB);
-                                }
-                                else{
-                                    curMeasure.addNoteGroup(obj, notegroup, isTreble);
-                                    String s = "[";
-
-                                    for (Note note : notegroup.notes) {
-                                        s += (note.pitch.toString() + Integer.toString(note.scale) + ",");
+                            else{
+                                // TODO: add symbol detection here
+                                if (curLabel == KnnLabels.BAR) {
+                                    if (!firstVertBar) {
+                                        firstVertBar = true;
                                     }
-                                    s += "]";
-                                    canvasDrawings.put(staffObjects.get(i).get(j), new ArrayList<String>());
-                                    canvasDrawings.get(staffObjects.get(i).get(j)).add(s);
-//                                    cnvs.drawText(s, staffObjects.get(i).get(j).left, staffObjects.get(i).get(j).top, paintTxt);
-                                    s = "[";
-                                    for (Note note : notegroup.notes) {
-                                        s += (Double.toString(note.weight) + ",");
-                                    }
+                                    else {
+                                        Log.d(TAG, String.format("hit new bar on staff %d measure %d",i, staff.getNumMeasures()));
+                                        //dot integration and handling accidental/ties
+                                        curMeasure.checkNeighbours();
+                                        curMeasure.setKeySigPitch(scoreProc.getPitchScaleFromKeySig(curMeasure.getKeySigCenters(), curMeasure.getKeySigIsTreble(), i));
 
-                                    s += "]";
-                                    canvasDrawings.get(staffObjects.get(i).get(j)).add(s);
-//                                    cnvs.drawText(s, staffObjects.get(i).get(j).left, staffObjects.get(i).get(j).bottom, paintTxt);
+                                        Log.d(TAG, String.format("Staff %d Measure %d with info %s",i,
+                                                staff.getNumMeasures(), curMeasure.info()));
+                                        staff.addMeasure(curMeasure);
+                                        curMeasure = new Measure();
+                                    }
                                 }
 
-                            }
-                            else {
-                                // Ekteshaf: place your knn testing for each object here
-                                //general symbols
-//                                if (!scoreProc.isNoteGroup(obj) && isNoteGroup2[j]) {
-////                                    boolean res = scoreProc.isNoteGroup(obj);
-////                                    boolean hello = !res;
-//                                    Log.d(TAG, String.format("NOT notegroup on rect at %d,%d", i, j));
-//                                }
-                                if(curLabel == KnnLabels.G_CLEF){
+                                else if(curLabel == KnnLabels.G_CLEF){
+                                    Log.d(TAG, "Frag found treble clef");
                                     curMeasure.addClef(ElementType.TrebleClef, obj);
                                 }
+                                else if (scoreProc.isNoteGroup(obj)){
+                                    NoteGroup notegroup = scoreProc.classifyNoteGroup(objects.get(j), i, isTreble);
+                                    //TODO: figure out null notegroups
+                                    if(notegroup == null){
+                                        Log.d(TAG, String.format("null notegroup on rect at %d,%d", i, j));
+//                                    cnvs.drawRect(obj, paintB);
+                                    }
+                                    else{
+                                        curMeasure.addNoteGroup(obj, notegroup, isTreble);
+//                                    String s = "[";
+//
+//                                    for (Note note : notegroup.notes) {
+//                                        s += (note.pitch.toString() + Integer.toString(note.scale) + ",");
+//                                    }
+//                                    s += "]";
+//                                    canvasDrawings.put(staffObjects.get(i).get(j), new ArrayList<String>());
+//                                    canvasDrawings.get(staffObjects.get(i).get(j)).add(s);
+////                                    cnvs.drawText(s, staffObjects.get(i).get(j).left, staffObjects.get(i).get(j).top, paintTxt);
+//                                    s = "[";
+//                                    for (Note note : notegroup.notes) {
+//                                        s += (Double.toString(note.weight) + ",");
+//                                    }
+//
+//                                    s += "]";
+//                                    canvasDrawings.get(staffObjects.get(i).get(j)).add(s);
+//                                    cnvs.drawText(s, staffObjects.get(i).get(j).left, staffObjects.get(i).get(j).bottom, paintTxt);
+                                    }
 
-                                else if(curLabel == KnnLabels.F_CLEF){
-                                    curMeasure.addClef(ElementType.BassClef, obj);
+                                }
+                                else {
+                                    // Ekteshaf: place your knn testing for each object here
+                                    //general symbols not usually confused with clefs
+                                    if(curLabel == KnnLabels.F_CLEF){
+                                        curMeasure.addClef(ElementType.BassClef, obj);
+                                    }
+
+                                    else if(SymbolMapper.isRest(curLabel)){
+                                        curMeasure.addRest(obj, SymbolMapper.classifyRest(knnResults.get(i).get(j), isTreble));
+                                    }
+                                    //accidentals
+                                    else if(curLabel == KnnLabels.FLAT_ACC){
+                                        curMeasure.addToClefLists(isTreble, obj, ElementType.Flat);
+                                        Log.d(TAG, String.format("Flat: added rounded yPos %.2f", scoreProc.getCenterYOfFlat(obj, ElementType.Flat, i)));
+                                        curMeasure.addAccidentalCenter(obj, scoreProc.getCenterYOfFlat(obj, ElementType.Flat, i));
+                                    }
+                                    else if(curLabel == KnnLabels.SHARP_ACC){
+                                        curMeasure.addToClefLists(isTreble, obj, ElementType.Sharp);
+                                        curMeasure.addAccidentalCenter(obj, scoreProc.getCenterYOfFlat(obj, ElementType.Sharp, i));
+                                    }
+                                    else if(curLabel == KnnLabels.NATURAL_ACC){
+                                        curMeasure.addToClefLists(isTreble, obj, ElementType.Natural);
+                                        curMeasure.addAccidentalCenter(obj, scoreProc.getCenterYOfFlat(obj, ElementType.Natural, i));
+                                    }
+                                    //time sig
+                                    else if(SymbolMapper.isTimeSig(curLabel)){
+                                        curMeasure.setTimeSig(SymbolMapper.getUpperTimeSig(curLabel), SymbolMapper.getLowerTimeSig(curLabel),
+                                                isTreble, obj);
+                                    }
+                                    //other symbols
+                                    else if(curLabel == KnnLabels.DOT){
+                                        curMeasure.addToClefLists(isTreble, obj, ElementType.Dot);
+                                        //save dot index for dot integration at the end
+                                        dotsInStaff.put(j, obj);
+                                        Log.d(TAG, String.format("Dot added at pos loop ij %d,%d",i,j));
+                                    }
+                                    else if(curLabel == KnnLabels.WHOLE_NOTE){
+                                        Note whole = new Note();
+                                        whole.weight = 1.0;
+                                        whole.clef = isTreble ? 0 : 1;
+                                        List<Note> wholeNoteList = new ArrayList<Note>();
+                                        //add
+                                        NoteGroup wNg = new NoteGroup(wholeNoteList);
+                                        curMeasure.addNoteGroup(obj, wNg, isTreble);
+                                        Log.d(TAG, String.format("Whole note added at pos %d,%d",i,j));
+                                    }
+                                    else if(curLabel == KnnLabels.TIE){
+                                        curMeasure.addToClefLists(isTreble, obj, ElementType.Tie);
+                                    }
+                                    //TODO: wholenote2
                                 }
 
-                                else if(SymbolMapper.isRest(curLabel)){
-                                    curMeasure.addRest(obj, SymbolMapper.classifyRest(knnResults.get(i).get(j), isTreble));
-                                }
-                                //accidentals
-                                else if(curLabel == KnnLabels.FLAT_ACC){
-                                    curMeasure.addToClefLists(isTreble, obj, ElementType.Flat);
-                                    Log.d(TAG, String.format("Flat: added rounded yPos %.2f", scoreProc.getCenterYOfFlat(obj, ElementType.Flat, i)));
-                                    curMeasure.addAccidentalCenter(obj, scoreProc.getCenterYOfFlat(obj, ElementType.Flat, i));
-                                }
-                                else if(curLabel == KnnLabels.SHARP_ACC){
-                                    curMeasure.addToClefLists(isTreble, obj, ElementType.Sharp);
-                                    curMeasure.addAccidentalCenter(obj, scoreProc.getCenterYOfFlat(obj, ElementType.Sharp, i));
-                                }
-                                else if(curLabel == KnnLabels.NATURAL_ACC){
-                                    curMeasure.addToClefLists(isTreble, obj, ElementType.Natural);
-                                    curMeasure.addAccidentalCenter(obj, scoreProc.getCenterYOfFlat(obj, ElementType.Natural, i));
-                                }
-                                //time sig
-                                else if(SymbolMapper.isTimeSig(curLabel)){
-                                    curMeasure.setTimeSig(SymbolMapper.getUpperTimeSig(curLabel), SymbolMapper.getLowerTimeSig(curLabel),
-                                                            isTreble, obj);
-                                }
-                                //other symbols
-                                else if(curLabel == KnnLabels.DOT){
-                                    curMeasure.addToClefLists(isTreble, obj, ElementType.Dot);
-                                    //save dot index for dot integration at the end
-                                    dotsInStaff.put(j, obj);
-                                    Log.d(TAG, String.format("Dot added at pos %d,%d",i,j));
-                                }
-                                else if(curLabel == KnnLabels.WHOLE_NOTE){
-                                    Note whole = new Note();
-                                    whole.weight = 1.0;
-                                    whole.clef = isTreble ? 0 : 1;
-                                    List<Note> wholeNoteList = new ArrayList<Note>();
-                                    //add
-                                    NoteGroup wNg = new NoteGroup(wholeNoteList);
-                                    curMeasure.addNoteGroup(obj, wNg, isTreble);
-                                    Log.d(TAG, String.format("Whole note added at pos %d,%d",i,j));
-                                }
-                                //TODO: wholenote2
                             }
+
                         }
 
                     }

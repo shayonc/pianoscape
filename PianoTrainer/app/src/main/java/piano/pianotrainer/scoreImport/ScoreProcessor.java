@@ -507,18 +507,34 @@ public class ScoreProcessor {
 
         Rect curRect;
         boolean passed = true;
+        int testLabel;
         for(int i = 0; i < staffObjects.size(); i++){
             knnResults.add(new ArrayList<Integer>());
             for(int j = 0; j < staffObjects.get(i).size(); j++){
                 curRect = staffObjects.get(i).get(j);
-                //for very thin bars susceptible to noise..
+                testLabel = testKnnMat(extractFromNoStaffImg(curRect));
                 if(isBarLine(curRect)){
-                    Log.d(TAG, String.format("Bar: %d, %d", i, j));
                     knnResults.get(i).add(KnnLabels.BAR);
                 }
                 else{
-                    knnResults.get(i).add(testKnnMat(extractFromNoStaffImg(curRect)));
+                    knnResults.get(i).add(testLabel);
                 }
+
+                //for very thin bars susceptible to noise..
+//                if(isBarLine(curRect)){
+//                    Log.d(TAG, String.format("Bar: %d, %d", i, j));
+//                    knnResults.get(i).add(KnnLabels.BAR);
+//                }
+//                else{
+//                    testLabel = testKnnMat(extractFromNoStaffImg(curRect));
+//                    if(testLabel != 44){
+//                        knnResults.get(i).add(testLabel);
+//                    }
+//                    else{
+//                        knnResults.get(i).add(92);
+//                    }
+//
+//                }
             }
         }
         return true;
@@ -572,7 +588,7 @@ public class ScoreProcessor {
                     curRect = staffObjects.get(i).get(j);
                     //length bigger than width by a big factor say its barline
                     //we still need this additional check for thick lines - which are not susceptible to noise
-                    if(isRectLong(curRect) && isLongerThanStafflineDiff(curRect)){
+                    if(isRectLong(curRect) && isLongerThanStafflineDiff(curRect) && isBarLine(curRect)){
                         curStaffResults = knnResults.get(i);
                         curStaffResults.set(j, KnnLabels.BAR);
                         knnResults.set(i, curStaffResults);

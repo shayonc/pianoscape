@@ -7,6 +7,6 @@ package piano.pianotrainer.scoreModels;
 public enum Accidental {
     None,
     Flat,
-    Sharp,
-    Natural
+    Natural,
+    Sharp
 }

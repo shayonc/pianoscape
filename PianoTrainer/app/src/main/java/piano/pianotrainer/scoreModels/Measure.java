@@ -26,6 +26,7 @@ public class Measure {
     //accCenterPos - stores when we process an accidental and is used as a getter for keySigCenters
     Map<Rect, Double> accCenterPos;    //Map of center position of accidentals which is calculated with CV
     List<Double> keySigCentres;         //Store the centers which a seperate function can map to pitch and scale of accidental
+    List<Boolean> isKeySigTreble;
     // the dynamics of the measure. The values are represented in the following way:
     // pp : -3
     // p  : -2
@@ -56,22 +57,36 @@ public class Measure {
         bassRects = new ArrayList<>();
         accCenterPos = new LinkedHashMap<>();
         keySigCentres = new ArrayList<Double>();
+        isKeySigTreble = new ArrayList<Boolean>();
     }
 
     public String info(){
         String s = String.format("Size: te:%d, tr:%d, be:%d, br:%d", trebleElementTypes.size(), trebleRects.size(), bassElementTypes.size(), bassRects.size());
         int counterTreble = 0;
         int counterBass = 0;
+        boolean hasTrebleClef = false;
+        boolean hasBassClef = false;
+        s += "TrebleElements: ";
         for(ElementType elementType : trebleElementTypes){
             if(elementType == ElementType.Dot){
                 counterTreble++;
             }
+            if(elementType == ElementType.TrebleClef){
+                hasTrebleClef = true;
+            }
+            s += elementType.toString() + ",";
         }
+        s += "BassElements: ";
         for(ElementType elementType : bassElementTypes){
             if(elementType == ElementType.Dot){
                 counterBass++;
             }
+            if(elementType == ElementType.BassClef){
+                hasBassClef = true;
+            }
+            s += elementType.toString() + ",";
         }
+        s += String.format("Treble Clef? %s Bass Clef? %s", hasTrebleClef ? "Yes" : "No", hasBassClef ? "Yes" : "No");
         s += String.format("Total dots t,b: %d,%d", counterTreble, counterBass);
         s += String.format("Time sig: %d / %d", upperTimeSig, lowerTimeSig);
         s += String.format("# Notegroups: %d, Rests: %d, Accs: %d, KeySigs: %d", noteGroups.size(),
@@ -117,8 +132,9 @@ public class Measure {
     public void integrateDot(int dotIndex, List<Rect> clefRects){
         Rect dotRect = clefRects.get(dotIndex);
         Rect noteGroupRect = clefRects.get(dotIndex - 1);
+        Log.d("MeasureDot", String.format("Integrating dot at %d with rect %d", dotRect.centerX(), noteGroupRect.centerX()));
         NoteGroup curNoteGroup = noteGroups.get(noteGroupRect);
-        boolean added = curNoteGroup.addDot(dotRect);
+        boolean added = curNoteGroup.addDot(noteGroupRect, dotRect);
         Log.d(TAG, String.format("integrated dot success? %b", added));
     }
 
@@ -129,58 +145,114 @@ public class Measure {
     public void addAccidentalCenter(Rect rect, double centerY){
         accCenterPos.put(rect, centerY);
     }
+
+    public void setKeySigPitch(Map<Pitch,Integer> keySigPitches){
+        this.keySigs = keySigPitches;
+    }
+
+    public List<Boolean> getKeySigIsTreble(){
+        return isKeySigTreble;
+    }
+
+    public List<Double> getKeySigCenters(){
+        return keySigCentres;
+    }
+
     //measure corrections
     public void checkNeighbours(){
         ElementType curType;
         Rect curRect;
+        NoteGroup tmpNg;
         for(int i = 1; i < trebleElementTypes.size(); i++){
             curRect = trebleRects.get(i);
             curType = trebleElementTypes.get(i);
             if(curType == ElementType.Dot){
                 if(trebleElementTypes.get(i - 1) == ElementType.NoteGroup){
-                    Log.d(TAG, "integrating dot...");
+                    Log.d("MeasureTreble", String.format("integrating dot with ng index %d",i));
                     integrateDot(i, trebleRects);
                 }
                 else{
-                    Log.d(TAG, String.format("Dot detected at pos %d with prev ele type %d", i, trebleElementTypes.get(i - 1).ordinal()));
+                    Log.d("MeasureTreble", String.format("Dot detected at pos %d with prev ele type %s", i, trebleElementTypes.get(i - 1).toString()));
                 }
                 // ignore the rest - by exclusion unhandled dots are ignored
             }
             else if(isEleTypeAccidental(curType)){
-                if(trebleElementTypes.get(i - 1) == ElementType.NoteGroup){
+                //adjacent accs are apparent of key sigs assumption
+                if(i < trebleElementTypes.size() - 1 && trebleElementTypes.get(i + 1) == ElementType.NoteGroup && !isEleTypeAccidental(trebleElementTypes.get(i-1))){
                     //add logic here to tie notegroup/note to acc
-                    Log.d(TAG, "Acc neighbour is a notegroup");
+                    tmpNg = noteGroups.get(trebleRects.get(i+1));
+                    tmpNg.setAccidental(curType);
+                    noteGroups.put(trebleRects.get(i+1), tmpNg);
+                    Log.d("MeasureTreble", String.format("Set Acc of treble index %d to note on treble index ", i));
                 }
-                else if(trebleElementTypes.get(i - 1) == ElementType.TrebleClef){
-                    if(isEleTypeAccidental(trebleElementTypes.get(i + 1))){
-                        Log.d(TAG, String.format("KEY SIG at treble index %d", i));
-                        //adds the center value to the list which will be processed to map to pitch/scale
-                        keySigCentres.add(accCenterPos.get(curRect));
-                        keySigCentres.add(accCenterPos.get(trebleRects.get(i+1)));
-                    }
+                //by exclusion this case handles keysigs
+                else{
+                    Log.d("MeasureTreble", String.format("KEY SIG at treble index %d", i));
+                    //adds the center value to the list which will be processed to map to pitch/scale
+                    keySigCentres.add(accCenterPos.get(curRect));
+                    isKeySigTreble.add(true);
+                    //add clef
+                }
+            }
+            else if(curType == ElementType.Tie){
+                //left neighbour
+                if(trebleElementTypes.get(i - 1) == ElementType.NoteGroup){
+                    //add tie boolean to left notegroup right most
+                    tmpNg = noteGroups.get(trebleRects.get(i-1));
+                    tmpNg.setTieStart();
+                }
+                //right neighbour
+                if(i < trebleElementTypes.size() - 1 && trebleElementTypes.get(i + 1) == ElementType.NoteGroup){
+                    //add tie boolean in right notegroups left most
+                    tmpNg = noteGroups.get(trebleRects.get(i+1));
+                    tmpNg.setTieEnd();
                 }
             }
         }
         for(int j = 1; j < bassElementTypes.size(); j++){
-            if(bassElementTypes.get(j) == ElementType.Dot){
+            curRect = bassRects.get(j);
+            curType = bassElementTypes.get(j);
+            if(curType == ElementType.Dot){
                 if(bassElementTypes.get(j - 1) == ElementType.NoteGroup){
+                    Log.d("MeasureBass", String.format("integrating bass dot with ng index %d",j));
                     integrateDot(j, bassRects);
                 }
                 else{
-                    Log.d(TAG, String.format("Dot detected at pos %d with prev ele type %d", j, bassElementTypes.get(j - 1).ordinal()));
+                    Log.d("MeasureBass", String.format("Dot detected at bass pos %d with prev ele type %s", j, bassElementTypes.get(j - 1).toString()));
                 }
                 // ignore the rest - by exclusion unhandled dots are ignored
             }
-//            else if(isEleTypeAccidental(trebleElementTypes.get(i))){
-//                if(trebleElementTypes.get(i - 1) == ElementType.NoteGroup){
-//                    //add logic here to tie notegroup/note to acc
-//                }
-//                else if(trebleElementTypes.get(i - 1) == ElementType.TrebleClef || trebleElementTypes.get(i - 1) == ElementType.BassClef){
-//                    if(isEleTypeAccidental(trebleElementTypes.get(i + 1))){
-//                        // set key signature since its inbetween a clef and another accidental (ignored edge case of varying accs for now)
-//                    }
-//                }
-//            }
+            else if(isEleTypeAccidental(curType)){
+                //adjacent accs are apparent of key sigs assumption
+                if(j < bassElementTypes.size() - 1 && bassElementTypes.get(j + 1) == ElementType.NoteGroup && !isEleTypeAccidental(bassElementTypes.get(j-1))){
+                    //add logic here to tie notegroup/note to acc
+                    tmpNg = noteGroups.get(bassRects.get(j+1));
+                    tmpNg.setAccidental(curType);
+                    noteGroups.put(bassRects.get(j+1), tmpNg);
+                    Log.d("MeasureBass", String.format("Set Acc of bass index %d to note on bass index ", j));
+                }
+                //by exclusion this case handles keysigs
+                else{
+                    Log.d("MeasureBass", String.format("KEY SIG at bass index %d", j));
+                    //adds the center value to the list which will be processed to map to pitch/scale
+                    keySigCentres.add(accCenterPos.get(curRect));
+                    isKeySigTreble.add(false);
+                }
+            }
+            else if(curType == ElementType.Tie){
+                //left neighbour
+                if(bassElementTypes.get(j - 1) == ElementType.NoteGroup){
+                    //add tie boolean to left notegroup right most
+                    tmpNg = noteGroups.get(bassRects.get(j-1));
+                    tmpNg.setTieStart();
+                }
+                //right neighbour
+                if(j < bassElementTypes.size() - 1 && bassElementTypes.get(j + 1) == ElementType.NoteGroup){
+                    //add tie boolean in right notegroups left most
+                    tmpNg = noteGroups.get(bassRects.get(j+1));
+                    tmpNg.setTieEnd();
+                }
+            }
         }
     }
 

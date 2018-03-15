@@ -16,5 +16,6 @@ public enum ElementType {
     Dot,
     Flat,
     Sharp,
-    Natural;
+    Natural,
+    Tie;
 }
