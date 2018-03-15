@@ -86,6 +86,12 @@ public class HomeActivity extends AppCompatActivity {
         setContentView(R.layout.activity_home);
 
         filename = GetFirstFilename();
+<<<<<<< HEAD
+=======
+
+
+
+>>>>>>> 16ac05b... remove textview
         context = getApplicationContext();
 
         // initialize paths

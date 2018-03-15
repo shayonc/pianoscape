@@ -51,6 +51,19 @@
                 app:backgroundTint="@color/colorPrimary"
                 app:srcCompat="@android:drawable/ic_menu_add" /> <!--center horizontal gravity-->
 
+
+        <Button
+            android:id="@+id/button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Button" />
+
+        <Button
+            android:id="@+id/button_import"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|right"
+            android:text="Import" />
         </RelativeLayout>
 
     </FrameLayout>
