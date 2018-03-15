@@ -125,12 +125,13 @@ public class NoteReceiver extends MidiReceiver {
         boolean skipping = true;
         //((MainActivity)mLogger).showCorrectNotes(Integer.toString(totalNotes));
         while(skipping && !lastNote) {
-            if (notes.get(curNote).size() <= 2) {
+
+            if (notes.get(curNote).size() == 2) {
                 if(notes.get(curNote).size() == 2 && notes.get(curNote).get(0).rest && notes.get(curNote).get(1).rest){
                     curNoteAdd(1);
                     restCount++;
                 }
-                else if(notes.get(curNote).get(0).rest){
+                else if( notes.get(curNote).size() == 1 && notes.get(curNote).get(0).rest){
                     curNoteAdd(1);
                     restCount++;
                 }
@@ -238,7 +239,7 @@ public class NoteReceiver extends MidiReceiver {
                 }
             }
             if (correctListExists && correctList.get(curNote - 1) != -1) { correctList.set(curNote - 1, 1); }
-            ((MainActivity)mLogger).openSummaryPage(correctCounter, notes.size() - restCount);
+            ((MainActivity)mLogger).openSummaryPage(correctCounter, totalNotes - restCount);
         }
         if(!songOver){
             List<uk.co.dolphin_com.sscore.playdata.Note> curArray = notes.get(curNote);
