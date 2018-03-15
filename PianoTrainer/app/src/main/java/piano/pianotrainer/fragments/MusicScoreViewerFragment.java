@@ -63,7 +63,7 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
 
     private static final String STATE_CURRENT_PAGE_INDEX = "current_page_index";
 
-    private static final String SCORE_NAME = "handel_sonatina_shifted44";
+    private static final String SCORE_NAME = "scarborough_fair";
 
     private static final String FILENAME = SCORE_NAME + ".pdf";
 
@@ -450,6 +450,7 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
                     int curLabel;
                     Boolean isTreble;
                     Measure curMeasure = new Measure();
+                    Map<Pitch, Accidental> keySigFirstMeasure = new HashMap<Pitch, Accidental>();
                     for (int i = 0; i < staffObjects.size(); i++) {
                         Staff staff = new Staff(true);
                         score.addStaff(staff);
@@ -487,7 +488,12 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
                                             accCounter++;
                                         }
                                         curMeasure.setKeySigPitch(keySigsPitchAccMap);
-
+                                        if(staff.getNumMeasures() == 0){
+                                            keySigFirstMeasure = curMeasure.keySigs;
+                                        }
+                                        else{
+                                            curMeasure.keySigs = keySigFirstMeasure;
+                                        }
                                         Log.d(TAG, String.format("Staff %d Measure %d with info %s",i,
                                                 staff.getNumMeasures(), curMeasure.info()));
                                         staff.addMeasure(curMeasure);

@@ -61,6 +61,9 @@ public class NoteGroup {
     }
 
     public void setTieStart(){
+        if(notes.size() == 0){
+            return;
+        }
         int index = notes.size() - 1;
         Note rightMost = notes.get(index);
         rightMost.hasTieStart = true;
@@ -68,6 +71,9 @@ public class NoteGroup {
     }
 
     public void setTieEnd(){
+        if(notes.size() == 0){
+            return;
+        }
         Note leftMost = notes.get(0);
         leftMost.hasTieEnd = true;
         notes.set(0, leftMost);
