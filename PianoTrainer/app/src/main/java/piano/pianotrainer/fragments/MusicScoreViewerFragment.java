@@ -500,7 +500,7 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
                                     curMeasure.addClef(ElementType.TrebleClef, obj);
                                 }
                                 //time sig
-                                else if(SymbolMapper.isTimeSig(curLabel) && i == 0 && j >= 2){
+                                else if(SymbolMapper.isTimeSig(curLabel) && i == 0 && staff.getNumMeasures() == 0){
                                     curMeasure.setTimeSig(SymbolMapper.getUpperTimeSig(curLabel), SymbolMapper.getLowerTimeSig(curLabel),
                                             isTreble, obj);
                                 }
