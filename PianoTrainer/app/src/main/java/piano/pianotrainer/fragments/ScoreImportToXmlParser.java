@@ -22,6 +22,7 @@ import android.util.Log;
 
 import android.graphics.Rect;
 
+import piano.pianotrainer.scoreModels.Accidental;
 import piano.pianotrainer.scoreModels.Score;
 import piano.pianotrainer.scoreModels.Measure;
 import piano.pianotrainer.scoreModels.NoteGroup;
@@ -36,6 +37,7 @@ public class ScoreImportToXmlParser {
     static int divsPerBeat = 4;
     int upperTimeSig;
     int lowerTimeSig;
+
 
     //store appContext which is helpful for accessing internal file storage if we go that route
     private Context appContext;
@@ -153,11 +155,11 @@ public class ScoreImportToXmlParser {
         }
 
         //populate voices based on clefs and positions. First do treble, back up, then bass
-        parseStaff(trebleNotes, trebleRests, trebleNotesRects, trebleRestsRects, 1, 2);
+        parseStaff(trebleNotes, trebleRests, trebleNotesRects, trebleRestsRects, 1, 2, measure);
         xmlBuffer.append("      <backup>\n" +
                 "        <duration>" + divsPerBeat*upperTimeSig + "</duration>\n" +
                 "      </backup>\n");
-        parseStaff(bassNotes, bassRests, bassNotesRects, bassRestsRects, 6, 1);
+        parseStaff(bassNotes, bassRests, bassNotesRects, bassRestsRects, 6, 1, measure);
 
         // END OF MEASURE
         xmlBuffer.append("    </measure>\n");
@@ -166,7 +168,7 @@ public class ScoreImportToXmlParser {
     /* Takes in lists of notes and rests with their positions and voice to start at.
      * Used for treble/bass staves. */
     private void parseStaff(List<NoteGroup> noteGroups, List<Rest> rests,
-                            List<Rect> groupRects, List<Rect> restRects, int voice0, int staff){
+                            List<Rect> groupRects, List<Rect> restRects, int voice0, int staff, Measure measure){
         int restPos = 0;
         int notePos = 0;
         int[] voiceCounter = new int[5];    // keeps track of where to add forwards for voices.
@@ -197,14 +199,67 @@ public class ScoreImportToXmlParser {
                     if (note.circleCenter.x < previousX + maxOffset) {
                         xmlBuffer.append("        <chord/>\n");
                     }
+                    // Pitch and octave
                     xmlBuffer.append("        <pitch>\n" +
                             "          <step>" + note.pitch + "</step>\n" +
-                            "          <octave>" + note.scale + "</octave>\n" +
-                            "        </pitch>\n");
-                    xmlBuffer.append("        <duration>" + (int)(note.weight*divsPerBeat*lowerTimeSig) + "</duration>\n" +
-                            "        <voice>" + voice0 + "</voice>\n" +
-                            "        <type>" + getNoteType(note.weight) + "</type>\n" +
-                            "        <staff>" + staff + "</staff>\n" +
+                            "          <octave>" + note.scale + "</octave>\n");
+                    // alters
+                    int alter = 0;
+                    String accidental = "";
+                    if (measure.keySigs.get(note.pitch) == Accidental.Sharp) {
+                        alter = 1;
+                    } else if (measure.keySigs.get(note.pitch) == Accidental.Flat) {
+                        alter = -1;
+                    }
+                    if (note.accidental == Accidental.Sharp) {
+                        alter++;
+                        accidental = "sharp";
+                    } else if (note.accidental == Accidental.Flat) {
+                        alter--;
+                        accidental = "flat";
+                    } else if (note.accidental == Accidental.Natural) {
+                        alter = 0;
+                        accidental = "natural";
+                    }
+                    if (alter != 0) {
+                        xmlBuffer.append("          <alter>" + alter + "</alter>\n");
+                    }
+                    xmlBuffer.append("        </pitch>\n");
+                    // Duration
+                    xmlBuffer.append("        <duration>" + (int)(note.weight*divsPerBeat*lowerTimeSig) + "</duration>\n");
+                    // Ties
+                    if (note.hasTieStart) {
+                        xmlBuffer.append("        <tie type=\"start\"/>\n");
+                    }
+                    if (note.hasTieEnd) {
+                        xmlBuffer.append("        <tie type=\"stop\"/>\n");
+                    }
+                    // Voice and notetype
+                    xmlBuffer.append("        <voice>" + voice0 + "</voice>\n");
+                    xmlBuffer.append("        <type>" + getNoteType(note.weight) + "</type>\n");
+                    // dots
+                    if (note.hasDot) {
+                        xmlBuffer.append("        <dot/>\n");
+                    }
+                    // Accidental notation
+                    if (accidental != "") {
+                        xmlBuffer.append("        <accidental>" + accidental + "</accidental>\n");
+                    }
+                    // Other Notations
+                    xmlBuffer.append("        <notations>\n");
+                    if (note.hasTieStart) {     // Ties
+                        xmlBuffer.append("          <tied type=\"start\"/>\n");
+                    }
+                    if (note.hasTieEnd) {
+                        xmlBuffer.append("          <tied type=\"stop\"/>\n");
+                    }
+                    if (note.hasStaccato) {     // Staccato
+                        xmlBuffer.append("        <articulations>\n");
+                        xmlBuffer.append("          <staccato/>\n");
+                        xmlBuffer.append("        </articulations>\n");
+                    }
+                    xmlBuffer.append("        </notations>\n");
+                    xmlBuffer.append("        <staff>" + staff + "</staff>\n" +
                             "      </note>\n");
                 }
                 notePos++;
