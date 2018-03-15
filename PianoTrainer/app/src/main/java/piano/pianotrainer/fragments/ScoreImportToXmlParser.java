@@ -199,6 +199,9 @@ public class ScoreImportToXmlParser {
                 boolean beam2Started = false;
                 for(int i = 0; i < noteGroups.get(notePos).notes.size(); i++) {
                     Note note = noteGroups.get(notePos).notes.get(i);
+                    if (note.weight == 0) {
+                        continue;
+                    }
                     boolean isChord = false;
                     xmlBuffer.append("      <note>\n");
 
@@ -342,7 +345,7 @@ public class ScoreImportToXmlParser {
         if (weight ==   0.0625) {return "16th";}
         if (weight ==   0.03125) {return "32nd";}
         //else
-        return "quarter";
+        return weight + "";
     }
 
     // Write XML to new file
