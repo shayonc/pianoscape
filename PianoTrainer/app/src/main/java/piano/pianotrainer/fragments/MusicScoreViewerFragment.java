@@ -76,7 +76,7 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
     private PDFHelper mPdfHelper;
     //used for loading saved page index from save states before we re-init PDF Helper object
     private int mPageIndexSaved;
-
+    private String filename;
     private ScoreProcessor scoreProc;
     public int objectIndex = 0;
 
@@ -94,7 +94,9 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
     //store appContext which is helpful for accessing internal file storage if we go that route
     private Context appContext;
 
-    public MusicScoreViewerFragment() {
+    public MusicScoreViewerFragment(String filename) {
+        this.filename = filename;
+        Log.d("MusicScoreViewerFrag", filename);
     }
 
     // The onCreate method is called when the Fragment instance is being created, or re-created.

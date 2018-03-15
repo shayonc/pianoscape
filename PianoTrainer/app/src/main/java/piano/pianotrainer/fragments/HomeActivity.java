@@ -2,7 +2,10 @@ package piano.pianotrainer.fragments;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.sqlite.SQLiteDatabase;
@@ -17,9 +20,12 @@ import android.support.v4.app.DialogFragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
+import android.text.InputType;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.GridView;
 import android.widget.Toast;
 import android.widget.AdapterView;
@@ -47,7 +53,7 @@ public class HomeActivity extends AppCompatActivity {
             Log.d(TAG,"OpenCV loaded");
         }
     }
-
+    private String m_Text = "";
     private Context context;
     private XMLMusicParser xmlparser;
     private String filename = "";
@@ -151,6 +157,45 @@ public class HomeActivity extends AppCompatActivity {
             }
             }
         });
+
+        Button buttonImport = (Button) findViewById(R.id.button_import);
+        buttonImport.setOnClickListener(new View.OnClickListener() {
+            public void onClick(final View v) {
+
+                try {
+
+                    AlertDialog.Builder builder = new AlertDialog.Builder(HomeActivity.this);
+                    builder.setTitle("Enter filename");
+
+// Set up the input
+                    final EditText input = new EditText(HomeActivity.this);
+// Specify the type of input expected; this, for example, sets the input as a password, and will mask the text
+                    input.setInputType(InputType.TYPE_CLASS_TEXT);
+                    builder.setView(input);
+
+// Set up the buttons
+                    builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            m_Text = input.getText().toString();
+                            importMusicScore(v, m_Text);
+
+                        }
+                    });
+                    builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.cancel();
+                        }
+                    });
+
+                    builder.show();
+                }
+                catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
     }
     public void loadMusicFileList() {
         try {
@@ -219,6 +264,14 @@ public class HomeActivity extends AppCompatActivity {
             ie.printStackTrace();
         }
         return null;
+
+    }
+
+    /** Called when the user taps the Send button */
+    public void importMusicScore(View view, String filename) {
+        Intent intent = new Intent(this, MusicScoreImportActivity.class);
+        intent.putExtra("filename", filename);
+        startActivity(intent);
     }
 
     /* Checks if external storage is available for read and write */

@@ -37,9 +37,10 @@ public class MusicScoreImportActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_music_score_import);
+        String filename = getIntent().getStringExtra("filename");
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
-                    .add(R.id.container, new MusicScoreViewerFragment(),
+                    .add(R.id.container, new MusicScoreViewerFragment(filename),
                             FRAGMENT_MUSIC_SCORE_VIEWER_BASIC)
                     .commit();
             setTitle("Score Preview");
