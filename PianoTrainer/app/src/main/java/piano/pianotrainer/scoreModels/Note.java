@@ -55,7 +55,7 @@ public class Note {
             Log.d("Note", "2nd case Dot");
         }
         else{
-            Log.d("Note", String.format("dot append failed with xdistance of %d", xDistance));
+            Log.d("Note", String.format("dot append failed with xdistance of %.2f", xDistance));
             return false;
         }
         return true;

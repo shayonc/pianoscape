@@ -28,8 +28,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import org.opencv.android.Utils;
-import org.opencv.core.Mat;
-import org.opencv.core.RotatedRect;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -43,6 +41,7 @@ import piano.pianotrainer.scoreImport.KnnLabels;
 import piano.pianotrainer.scoreImport.PDFHelper;
 import piano.pianotrainer.scoreImport.ScoreProcessor;
 import piano.pianotrainer.scoreImport.SymbolMapper;
+import piano.pianotrainer.scoreModels.Accidental;
 import piano.pianotrainer.scoreModels.ElementType;
 import piano.pianotrainer.scoreModels.Measure;
 import piano.pianotrainer.scoreModels.Note;
@@ -50,7 +49,6 @@ import piano.pianotrainer.scoreModels.NoteGroup;
 import piano.pianotrainer.scoreModels.Pitch;
 import piano.pianotrainer.scoreModels.Score;
 import piano.pianotrainer.scoreModels.Staff;
-import piano.pianotrainer.fragments.ScoreImportToXmlParser;
 
 public class MusicScoreViewerFragment extends Fragment implements View.OnClickListener{
     /**
@@ -61,7 +59,7 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
 
     private static final String STATE_CURRENT_PAGE_INDEX = "current_page_index";
 
-    private static final String SCORE_NAME = "mario_starman";
+    private static final String SCORE_NAME = "twinkle_twinkle_little_star";
 
     private static final String FILENAME = SCORE_NAME + ".pdf";
 
@@ -475,7 +473,16 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
                                         Log.d(TAG, String.format("hit new bar on staff %d measure %d",i, staff.getNumMeasures()));
                                         //dot integration and handling accidental/ties
                                         curMeasure.checkNeighbours();
-                                        curMeasure.setKeySigPitch(scoreProc.getPitchScaleFromKeySig(curMeasure.getKeySigCenters(), curMeasure.getKeySigIsTreble(), i));
+
+                                        Map<Pitch, Integer> keySigPitchScaleMap = scoreProc.getPitchScaleFromKeySig(curMeasure.getKeySigCenters(),
+                                                                                                                curMeasure.getKeySigIsTreble(), i);
+                                        Map<Pitch, Accidental> keySigsPitchAccMap = new HashMap<Pitch, Accidental>();
+                                        int accCounter = 0;
+                                        for(Pitch keyPitch : keySigPitchScaleMap.keySet()){
+                                            keySigsPitchAccMap.put(keyPitch, curMeasure.getKeySigPitchAccList().get(accCounter));
+                                            accCounter++;
+                                        }
+                                        curMeasure.setKeySigPitch(keySigsPitchAccMap);
 
                                         Log.d(TAG, String.format("Staff %d Measure %d with info %s",i,
                                                 staff.getNumMeasures(), curMeasure.info()));

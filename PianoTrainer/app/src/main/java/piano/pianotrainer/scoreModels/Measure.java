@@ -12,8 +12,6 @@ import org.json.JSONObject;
 
 import java.util.*;
 
-import static android.content.ContentValues.TAG;
-
 
 public class Measure {
     String TAG = "Measure";
@@ -27,6 +25,7 @@ public class Measure {
     Map<Rect, Double> accCenterPos;    //Map of center position of accidentals which is calculated with CV
     List<Double> keySigCentres;         //Store the centers which a seperate function can map to pitch and scale of accidental
     List<Boolean> isKeySigTreble;
+    List<Accidental> keySigPitchAccList;
     // the dynamics of the measure. The values are represented in the following way:
     // pp : -3
     // p  : -2
@@ -58,6 +57,11 @@ public class Measure {
         accCenterPos = new LinkedHashMap<>();
         keySigCentres = new ArrayList<Double>();
         isKeySigTreble = new ArrayList<Boolean>();
+        keySigPitchAccList = new ArrayList<Accidental>();
+    }
+
+    public List<Accidental> getKeySigPitchAccList(){
+        return keySigPitchAccList;
     }
 
     public String info(){
@@ -146,7 +150,7 @@ public class Measure {
         accCenterPos.put(rect, centerY);
     }
 
-    public void setKeySigPitch(Map<Pitch,Integer> keySigPitches){
+    public void setKeySigPitch(Map<Pitch,Accidental> keySigPitches){
         this.keySigs = keySigPitches;
     }
 
@@ -156,6 +160,21 @@ public class Measure {
 
     public List<Double> getKeySigCenters(){
         return keySigCentres;
+    }
+
+    public Accidental eleToAcc(ElementType e){
+        if(e == ElementType.Flat){
+            return Accidental.Flat;
+        }
+        else if(e == ElementType.Sharp){
+            return Accidental.Sharp;
+        }
+        else if(e == ElementType.Natural){
+            return Accidental.Natural;
+        }
+        else{
+            return Accidental.None;
+        }
     }
 
     //measure corrections
@@ -191,6 +210,7 @@ public class Measure {
                     //adds the center value to the list which will be processed to map to pitch/scale
                     keySigCentres.add(accCenterPos.get(curRect));
                     isKeySigTreble.add(true);
+                    keySigPitchAccList.add(eleToAcc(curType));
                     //add clef
                 }
             }
@@ -237,6 +257,7 @@ public class Measure {
                     //adds the center value to the list which will be processed to map to pitch/scale
                     keySigCentres.add(accCenterPos.get(curRect));
                     isKeySigTreble.add(false);
+                    keySigPitchAccList.add(eleToAcc(curType));
                 }
             }
             else if(curType == ElementType.Tie){
