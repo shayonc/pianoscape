@@ -22,6 +22,8 @@ public class Note {
     public boolean hasStaccato;
     public Point circleCenter;
     public double circleRadius;
+    public boolean hasTieStart;
+    public boolean hasTieEnd;
 
     public Note(double weight, boolean hasDot, Accidental accidental, Pitch pitch, int clef, int linePosition, boolean hasStaccato) {
         this.weight = weight;

@@ -21,7 +21,7 @@ public class Measure {
     public Map<Rect, Rest> rests;            // maps position % with a rest
     public int upperTimeSig;                      // number of basic pulses that make up the measure's total weight
     public int lowerTimeSig;                  // the weight of a basic pulse in the measure
-    Map<Pitch, Integer> keySigs;        // maps the pitch with its staff line/space
+    public Map<Pitch, Accidental> keySigs;        // maps the pitch with its staff line/space
     List<List<NoteGroup>> ties;         // list of ties. Each tie is represented by a list of notegroups
     //accCenterPos - stores when we process an accidental and is used as a getter for keySigCenters
     Map<Rect, Double> accCenterPos;    //Map of center position of accidentals which is calculated with CV
@@ -47,7 +47,7 @@ public class Measure {
         this.dynamics = 0;
         noteGroups = new LinkedHashMap<>();
         rests = new LinkedHashMap<>();
-        keySigs = new LinkedHashMap<Pitch, Integer>();
+        keySigs = new LinkedHashMap<Pitch, Accidental>();
         ties = new ArrayList<List<NoteGroup>>();
         dynamics = 0;
         trebleElementTypes = new ArrayList<>();
@@ -205,7 +205,7 @@ public class Measure {
         addToClefLists(isTreble, r, ElementType.TimeSig);
     }
 
-    public void addKeySig(Pitch pitch, int adjustment) {
+    public void addKeySig(Pitch pitch, Accidental adjustment) {
         keySigs.put(pitch, adjustment);
     }
 
