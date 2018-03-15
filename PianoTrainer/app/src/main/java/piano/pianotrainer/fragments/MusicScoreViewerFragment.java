@@ -63,7 +63,7 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
 
     private static final String STATE_CURRENT_PAGE_INDEX = "current_page_index";
 
-    private static final String SCORE_NAME = "amazing_grace";
+    private static final String SCORE_NAME = "twelve_pieces";
 
     private static final String FILENAME = SCORE_NAME + ".pdf";
 
