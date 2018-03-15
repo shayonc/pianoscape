@@ -182,6 +182,7 @@ public class Measure {
         ElementType curType;
         Rect curRect;
         NoteGroup tmpNg;
+        boolean tieStarted = false;
         for(int i = 1; i < trebleElementTypes.size(); i++){
             curRect = trebleRects.get(i);
             curType = trebleElementTypes.get(i);
@@ -220,15 +221,17 @@ public class Measure {
                     //add tie boolean to left notegroup right most
                     tmpNg = noteGroups.get(trebleRects.get(i-1));
                     tmpNg.setTieStart();
+                    tieStarted = true;
                 }
                 //right neighbour
-                if(i < trebleElementTypes.size() - 1 && trebleElementTypes.get(i + 1) == ElementType.NoteGroup){
+                if(tieStarted && i < trebleElementTypes.size() - 1 && trebleElementTypes.get(i + 1) == ElementType.NoteGroup){
                     //add tie boolean in right notegroups left most
                     tmpNg = noteGroups.get(trebleRects.get(i+1));
                     tmpNg.setTieEnd();
                 }
             }
         }
+        tieStarted = false;
         for(int j = 1; j < bassElementTypes.size(); j++){
             curRect = bassRects.get(j);
             curType = bassElementTypes.get(j);
@@ -266,9 +269,10 @@ public class Measure {
                     //add tie boolean to left notegroup right most
                     tmpNg = noteGroups.get(bassRects.get(j-1));
                     tmpNg.setTieStart();
+                    tieStarted = true;
                 }
                 //right neighbour
-                if(j < bassElementTypes.size() - 1 && bassElementTypes.get(j + 1) == ElementType.NoteGroup){
+                if(tieStarted && j < bassElementTypes.size() - 1 && bassElementTypes.get(j + 1) == ElementType.NoteGroup){
                     //add tie boolean in right notegroups left most
                     tmpNg = noteGroups.get(bassRects.get(j+1));
                     tmpNg.setTieEnd();
