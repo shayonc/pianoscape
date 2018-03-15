@@ -157,11 +157,11 @@ public class ScoreImportToXmlParser {
         }
 
         //populate voices based on clefs and positions. First do treble, back up, then bass
-        parseStaff(trebleNotes, trebleRests, trebleNotesRects, trebleRestsRects, 1, 1, measure);
+        parseStaff(trebleNotes, trebleRests, trebleNotesRects, trebleRestsRects, 1, 2, measure);
         xmlBuffer.append("      <backup>\n" +
                 "        <duration>" + divsPerBeat*4*upperTimeSig/lowerTimeSig + "</duration>\n" +
                 "      </backup>\n");
-        parseStaff(bassNotes, bassRests, bassNotesRects, bassRestsRects, 6, 2, measure);
+        parseStaff(bassNotes, bassRests, bassNotesRects, bassRestsRects, 6, 1, measure);
 
         // END OF MEASURE
         xmlBuffer.append("    </measure>\n");
@@ -330,7 +330,68 @@ public class ScoreImportToXmlParser {
                         }
                         xmlBuffer.append("        </notations>\n");
                     }
-                    xmlBuffer.append("      </note>\n");
+                    // Pitch and octave
+                    xmlBuffer.append("        <pitch>\n" +
+                            "          <step>" + note.pitch + "</step>\n" +
+                            "          <octave>" + note.scale + "</octave>\n");
+                    // alters
+                    int alter = 0;
+                    String accidental = "";
+                    if (measure.keySigs.get(note.pitch) == Accidental.Sharp) {
+                        alter = 1;
+                    } else if (measure.keySigs.get(note.pitch) == Accidental.Flat) {
+                        alter = -1;
+                    }
+                    if (note.accidental == Accidental.Sharp) {
+                        alter++;
+                        accidental = "sharp";
+                    } else if (note.accidental == Accidental.Flat) {
+                        alter--;
+                        accidental = "flat";
+                    } else if (note.accidental == Accidental.Natural) {
+                        alter = 0;
+                        accidental = "natural";
+                    }
+                    if (alter != 0) {
+                        xmlBuffer.append("          <alter>" + alter + "</alter>\n");
+                    }
+                    xmlBuffer.append("        </pitch>\n");
+                    // Duration
+                    xmlBuffer.append("        <duration>" + (int)(note.weight*divsPerBeat*lowerTimeSig) + "</duration>\n");
+                    // Ties
+                    if (note.hasTieStart) {
+                        xmlBuffer.append("        <tie type=\"start\"/>\n");
+                    }
+                    if (note.hasTieEnd) {
+                        xmlBuffer.append("        <tie type=\"stop\"/>\n");
+                    }
+                    // Voice and notetype
+                    xmlBuffer.append("        <voice>" + voice0 + "</voice>\n");
+                    xmlBuffer.append("        <type>" + getNoteType(note.weight) + "</type>\n");
+                    // dots
+                    if (note.hasDot) {
+                        xmlBuffer.append("        <dot/>\n");
+                    }
+                    // Accidental notation
+                    if (accidental != "") {
+                        xmlBuffer.append("        <accidental>" + accidental + "</accidental>\n");
+                    }
+                    // Other Notations
+                    xmlBuffer.append("        <notations>\n");
+                    if (note.hasTieStart) {     // Ties
+                        xmlBuffer.append("          <tied type=\"start\"/>\n");
+                    }
+                    if (note.hasTieEnd) {
+                        xmlBuffer.append("          <tied type=\"stop\"/>\n");
+                    }
+                    if (note.hasStaccato) {     // Staccato
+                        xmlBuffer.append("        <articulations>\n");
+                        xmlBuffer.append("          <staccato/>\n");
+                        xmlBuffer.append("        </articulations>\n");
+                    }
+                    xmlBuffer.append("        </notations>\n");
+                    xmlBuffer.append("        <staff>" + staff + "</staff>\n" +
+                            "      </note>\n");
                 }
                 notePos++;
             }
