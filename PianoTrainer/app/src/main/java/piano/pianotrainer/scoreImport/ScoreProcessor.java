@@ -1314,11 +1314,11 @@ public class ScoreProcessor {
                         // note head is on bottom
                         if (entry.getKey().x1 < note.circleCenter.x) {
                             // line is on left
-                            roi = new Rect(rect.left+(rect.width()/2), rect.top, rect.right, rect.bottom-(rect.height()/2));
+                            roi = new Rect(rect.left, rect.top, rect.right-((3*rect.width())/5), rect.bottom);
                         }
                         else {
                             // line is on right
-                            roi = new Rect(rect.left, rect.top, rect.right-(rect.width()/2), rect.bottom-(rect.height()/2));
+                            roi = new Rect(rect.left+((3*rect.width())/5), rect.top, rect.right, rect.bottom);
                         }
                     }
                     org.opencv.core.Rect cvRoi = new org.opencv.core.Rect(roi.left, roi.top, roi.width(), roi.height());
@@ -1326,7 +1326,7 @@ public class ScoreProcessor {
                     int whiteCount = Core.countNonZero(roiMat);
                     double roiArea = (roi.width()*roi.height());
                     double whiteRatio = ((double)whiteCount) / roiArea;
-                    if (whiteRatio < 0.8) {
+                    if (whiteRatio < 0.9) {
                         note.weight = 0.125;
                     }
 //                    }
