@@ -128,7 +128,7 @@ public class ScoreImportToXmlParser {
 
         int trebleCounter = 0;
         for (Map.Entry<Rect, NoteGroup> entry : measure.noteGroups.entrySet()) {
-            if(entry.getValue().clef == 1) {
+            if(entry.getValue().clef == 0) {
                 trebleNotes.add(entry.getValue());
                 trebleNotesRects.add(entry.getKey());
                 Log.d("XMLParser", String.format("trebleNotes num %d, xPos: %d", trebleCounter, entry.getKey().left));
@@ -155,11 +155,11 @@ public class ScoreImportToXmlParser {
         }
 
         //populate voices based on clefs and positions. First do treble, back up, then bass
-        parseStaff(trebleNotes, trebleRests, trebleNotesRects, trebleRestsRects, 1, 2, measure);
+        parseStaff(trebleNotes, trebleRests, trebleNotesRects, trebleRestsRects, 1, 1, measure);
         xmlBuffer.append("      <backup>\n" +
                 "        <duration>" + divsPerBeat*upperTimeSig + "</duration>\n" +
                 "      </backup>\n");
-        parseStaff(bassNotes, bassRests, bassNotesRects, bassRestsRects, 6, 1, measure);
+        parseStaff(bassNotes, bassRests, bassNotesRects, bassRestsRects, 6, 2, measure);
 
         // END OF MEASURE
         xmlBuffer.append("    </measure>\n");
@@ -245,22 +245,25 @@ public class ScoreImportToXmlParser {
                     if (accidental != "") {
                         xmlBuffer.append("        <accidental>" + accidental + "</accidental>\n");
                     }
+                    // Staff
+                    xmlBuffer.append("        <staff>" + staff + "</staff>\n");
                     // Other Notations
-                    xmlBuffer.append("        <notations>\n");
-                    if (note.hasTieStart) {     // Ties
-                        xmlBuffer.append("          <tied type=\"start\"/>\n");
+                    if (note.hasTieStart || note.hasTieEnd || note.hasStaccato) {
+                        xmlBuffer.append("        <notations>\n");
+                        if (note.hasTieStart) {     // Ties
+                            xmlBuffer.append("          <tied type=\"start\"/>\n");
+                        }
+                        if (note.hasTieEnd) {
+                            xmlBuffer.append("          <tied type=\"stop\"/>\n");
+                        }
+                        if (note.hasStaccato) {     // Staccato
+                            xmlBuffer.append("        <articulations>\n");
+                            xmlBuffer.append("          <staccato/>\n");
+                            xmlBuffer.append("        </articulations>\n");
+                        }
+                        xmlBuffer.append("        </notations>\n");
                     }
-                    if (note.hasTieEnd) {
-                        xmlBuffer.append("          <tied type=\"stop\"/>\n");
-                    }
-                    if (note.hasStaccato) {     // Staccato
-                        xmlBuffer.append("        <articulations>\n");
-                        xmlBuffer.append("          <staccato/>\n");
-                        xmlBuffer.append("        </articulations>\n");
-                    }
-                    xmlBuffer.append("        </notations>\n");
-                    xmlBuffer.append("        <staff>" + staff + "</staff>\n" +
-                            "      </note>\n");
+                    xmlBuffer.append("      </note>\n");
                 }
                 notePos++;
             }

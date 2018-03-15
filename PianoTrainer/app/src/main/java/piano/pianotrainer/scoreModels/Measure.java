@@ -303,6 +303,7 @@ public class Measure {
     }
 
     public void addNoteGroup(Rect rect, NoteGroup notegroup, boolean isTreble) {
+        notegroup.clef = isTreble ? 0 : 1;
         noteGroups.put(rect, notegroup);
         addToClefLists(isTreble, rect, ElementType.NoteGroup);
     }
