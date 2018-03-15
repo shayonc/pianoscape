@@ -179,6 +179,9 @@ public class Measure {
 
     //measure corrections
     public void checkNeighbours(){
+        if(trebleElementTypes.size() == 0 || bassElementTypes.size() == 0){
+            return;
+        }
         ElementType curType;
         Rect curRect;
         NoteGroup tmpNg;

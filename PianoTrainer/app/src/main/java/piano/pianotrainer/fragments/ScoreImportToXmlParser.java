@@ -159,7 +159,7 @@ public class ScoreImportToXmlParser {
         //populate voices based on clefs and positions. First do treble, back up, then bass
         parseStaff(trebleNotes, trebleRests, trebleNotesRects, trebleRestsRects, 1, 1, measure);
         xmlBuffer.append("      <backup>\n" +
-                "        <duration>" + divsPerBeat*upperTimeSig + "</duration>\n" +
+                "        <duration>" + divsPerBeat*4*upperTimeSig/lowerTimeSig + "</duration>\n" +
                 "      </backup>\n");
         parseStaff(bassNotes, bassRests, bassNotesRects, bassRestsRects, 6, 2, measure);
 
@@ -183,7 +183,7 @@ public class ScoreImportToXmlParser {
                 // Assuming always uses voice0 (will require change here if increasing complexity)
                 xmlBuffer.append("      <note>\n" +
                         "        <rest/>\n" +
-                        "        <duration>" + (int)(rests.get(restPos).weight*divsPerBeat*lowerTimeSig) + "</duration>\n" +
+                        "        <duration>" + (int)(rests.get(restPos).weight*divsPerBeat*4*upperTimeSig/lowerTimeSig) + "</duration>\n" +
                         "        <voice>" + voice0 + "</voice>\n" +
                         "        <type>" + getNoteType(rests.get(restPos).weight) + "</type>\n" +
                         "        <staff>" + staff + "</staff>\n" +
@@ -193,7 +193,7 @@ public class ScoreImportToXmlParser {
                 restPos++;
             } else {    // Else working with notegroup
                 double previousX = -100;
-                double maxOffset = 1;
+                double maxOffset = 7;
                 for(Note note : noteGroups.get(notePos).notes) {
                     xmlBuffer.append("      <note>\n");
 
@@ -201,6 +201,7 @@ public class ScoreImportToXmlParser {
                     if (note.circleCenter.x < previousX + maxOffset) {
                         xmlBuffer.append("        <chord/>\n");
                     }
+                    previousX = note.circleCenter.x;
                     // Pitch and note key properties
                     xmlBuffer.append("        <pitch>\n");
                     xmlBuffer.append("          <step>" + note.pitch + "</step>\n");
@@ -228,7 +229,7 @@ public class ScoreImportToXmlParser {
                     xmlBuffer.append("          <octave>" + note.scale + "</octave>\n");
                     xmlBuffer.append("        </pitch>\n");
                     // Duration
-                    xmlBuffer.append("        <duration>" + (int)(note.weight*divsPerBeat*lowerTimeSig) + "</duration>\n");
+                    xmlBuffer.append("        <duration>" + (int)(note.weight*divsPerBeat*4*upperTimeSig/lowerTimeSig) + "</duration>\n");
                     // Ties
                     if (note.hasTieStart) {
                         xmlBuffer.append("        <tie type=\"start\"/>\n");
@@ -240,7 +241,7 @@ public class ScoreImportToXmlParser {
                     xmlBuffer.append("        <voice>" + voice0 + "</voice>\n");
                     xmlBuffer.append("        <type>" + getNoteType(note.weight) + "</type>\n");
                     // dots
-                    if (note.hasDot) {
+                    if (note.hasDot && !note.hasStaccato) {
                         xmlBuffer.append("        <dot/>\n");
                     }
                     // Accidental notation

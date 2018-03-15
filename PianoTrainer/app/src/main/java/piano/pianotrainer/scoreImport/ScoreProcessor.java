@@ -737,6 +737,7 @@ public class ScoreProcessor {
                 temp -= 3;
                 if (temp < 0) temp += 7;
                 int pitchIndex = temp % 7;
+
                 pitch = Pitch.values()[pitchIndex];
             }
             else if (i > 5 && i < 10) {
@@ -1479,6 +1480,9 @@ public class ScoreProcessor {
             if (temp < 0) temp += 7;
             int pitchIndex = temp % 7;
             note.pitch = Pitch.values()[pitchIndex];
+        }
+        if (note.pitch == Pitch.A || note.pitch == Pitch.B) {
+            note.scale--;
         }
     }
 
