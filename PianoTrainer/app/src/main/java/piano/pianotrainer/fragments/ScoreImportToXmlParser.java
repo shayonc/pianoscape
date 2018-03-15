@@ -194,12 +194,18 @@ public class ScoreImportToXmlParser {
             } else {    // Else working with notegroup
                 double previousX = -100;
                 double maxOffset = 7;
-                for(Note note : noteGroups.get(notePos).notes) {
+                // beam states
+                boolean beam1Started = false;
+                boolean beam2Started = false;
+                for(int i = 0; i < noteGroups.get(notePos).notes.size(); i++) {
+                    Note note = noteGroups.get(notePos).notes.get(i);
+                    boolean isChord = false;
                     xmlBuffer.append("      <note>\n");
 
                     //If X pos really close to previous, add as chord.
                     if (note.circleCenter.x < previousX + maxOffset) {
                         xmlBuffer.append("        <chord/>\n");
+                        isChord = true;
                     }
                     previousX = note.circleCenter.x;
                     // Pitch and note key properties
@@ -250,6 +256,61 @@ public class ScoreImportToXmlParser {
                     }
                     // Staff
                     xmlBuffer.append("        <staff>" + staff + "</staff>\n");
+
+                    // Beam Information (large section, support up to 16th notes)
+                    // Look ahead for chords, and keep going until end
+
+                    if (isChord) {
+                        // Do nothing, only let parent nodes handle beam things.
+                    } else {    // else if parent node, look for next parent node
+                        Note nextParentNote = note;
+                        boolean nextParentNodeNull = false;
+                        double xPrev = note.circleCenter.x;
+                        double xDiff = 0;
+                        int noteTracker = i;
+                        // get next parent note that isn't a chord
+                        while (xDiff < 7) {
+                            noteTracker++;
+                            if (noteTracker >= noteGroups.get(notePos).notes.size()) {
+                                nextParentNodeNull = true;
+                                break;
+                            }
+                            nextParentNote = noteGroups.get(notePos).notes.get(noteTracker);
+                            xDiff = nextParentNote.circleCenter.x - xPrev;
+                            xPrev = nextParentNote.circleCenter.x;
+                        }
+                        if (!nextParentNodeNull) {  // If this is not the last parent node...
+                            if (!beam1Started) {    // If first beam hasn;t started, start.
+                                xmlBuffer.append("        <beam number=\"1\">begin</beam>\n");
+                                beam1Started = true;
+                            } else {    // Otherwise, continue it.
+                                xmlBuffer.append("        <beam number=\"1\">continue</beam>\n");
+                            }
+                            // Augment beam 2 depending on states.
+                            if (note.weight == 0.0625 && !beam2Started) {
+                                xmlBuffer.append("        <beam number=\"2\">begin</beam>\n");
+                                beam2Started = true;
+                            } else if (note.weight == 0.0625 && beam2Started) {
+                                xmlBuffer.append("        <beam number=\"2\">continue</beam>\n");
+                            } else if (note.weight != 0.0625 && beam2Started) {
+                                xmlBuffer.append("        <beam number=\"2\">end</beam>\n");
+                                beam2Started = false;
+                            }
+                        } else {
+                            if (i == 0) {
+                                //DN, it's a parent that occupies a single note.
+                            } else {
+                                xmlBuffer.append("        <beam number=\"1\">end</beam>\n");
+                                if (beam2Started) {
+                                    xmlBuffer.append("        <beam number=\"2\">end</beam>\n");
+                                }
+                            }
+                        }
+                    }
+
+
+
+
                     // Other Notations
                     if (note.hasTieStart || note.hasTieEnd || note.hasStaccato) {
                         xmlBuffer.append("        <notations>\n");
