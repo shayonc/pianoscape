@@ -1303,22 +1303,32 @@ public class ScoreProcessor {
                         // note head is on top
                         if (entry.getKey().x1 < note.circleCenter.x) {
                             // line is on left
-                            roi = new Rect(rect.left+(rect.width()/2), rect.top+(rect.height()/2), rect.right, rect.bottom);
+                            roi = new Rect(rect.left+(rect.width()/4), rect.bottom-(2*staffLineDiff), rect.right, rect.bottom);
                         }
                         else {
                             // line is on right
-                            roi = new Rect(rect.left, rect.top+(rect.height()/2), rect.right-(rect.width()/2), rect.bottom);
+                            roi = new Rect(rect.left, rect.bottom-(2*staffLineDiff), rect.right-(rect.width()/4), rect.bottom);
                         }
                     }
                     else {
                         // note head is on bottom
                         if (entry.getKey().x1 < note.circleCenter.x) {
                             // line is on left
-                            roi = new Rect(rect.left, rect.top, rect.right-((3*rect.width())/5), rect.bottom);
+                            if (entry.getKey().x1 < (rect.width()/4)) {
+                                roi = new Rect(rect.left+(rect.width()/4), rect.top, rect.right, rect.top+(2*staffLineDiff));
+                            }
+                            else {
+                                roi = new Rect(rect.left, rect.top, rect.right-((3*rect.width())/5), rect.top+(2*staffLineDiff));
+                            }
                         }
                         else {
                             // line is on right
-                            roi = new Rect(rect.left+((3*rect.width())/5), rect.top, rect.right, rect.bottom);
+                            if (entry.getKey().x1 > ((3*rect.width())/4)) {
+                                roi = new Rect(rect.left, rect.top, rect.right-(rect.width()/4), rect.top+(2*staffLineDiff));
+                            }
+                            else {
+                                roi = new Rect(rect.left+((3*rect.width())/5), rect.top, rect.right, rect.top+(2*staffLineDiff));
+                            }
                         }
                     }
                     org.opencv.core.Rect cvRoi = new org.opencv.core.Rect(roi.left, roi.top, roi.width(), roi.height());
