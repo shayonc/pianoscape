@@ -94,9 +94,11 @@ public class ScoreImportToXmlParser {
             lowerTimeSig = measure.lowerTimeSig;
             xmlBuffer.append("      <attributes>\n" +
                     "        <divisions>" + divsPerBeat + "</divisions>\n" +
-                    "        <key>\n" +
-                    "          <fifths>0</fifths>\n" +
-                    "        </key>\n" +
+                    "        <key>\n");
+            // Key signature, assuming only looking at flat keys.
+            int numKeys = -measure.keySigs.size();
+            xmlBuffer.append("          <fifths>" + numKeys + "</fifths>\n");
+            xmlBuffer.append("        </key>\n" +
                     "        <time>\n" +
                     "          <beats>" + measure.upperTimeSig + "</beats>\n" +
                     "          <beat-type>" + measure.lowerTimeSig + "</beat-type>\n" +
@@ -199,10 +201,9 @@ public class ScoreImportToXmlParser {
                     if (note.circleCenter.x < previousX + maxOffset) {
                         xmlBuffer.append("        <chord/>\n");
                     }
-                    // Pitch and octave
-                    xmlBuffer.append("        <pitch>\n" +
-                            "          <step>" + note.pitch + "</step>\n" +
-                            "          <octave>" + note.scale + "</octave>\n");
+                    // Pitch and note key properties
+                    xmlBuffer.append("        <pitch>\n");
+                    xmlBuffer.append("          <step>" + note.pitch + "</step>\n");
                     // alters
                     int alter = 0;
                     String accidental = "";
@@ -224,6 +225,7 @@ public class ScoreImportToXmlParser {
                     if (alter != 0) {
                         xmlBuffer.append("          <alter>" + alter + "</alter>\n");
                     }
+                    xmlBuffer.append("          <octave>" + note.scale + "</octave>\n");
                     xmlBuffer.append("        </pitch>\n");
                     // Duration
                     xmlBuffer.append("        <duration>" + (int)(note.weight*divsPerBeat*lowerTimeSig) + "</duration>\n");
