@@ -35,6 +35,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.*;
 
 import piano.pianotrainer.R;
@@ -77,6 +79,9 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
     //used for loading saved page index from save states before we re-init PDF Helper object
     private int mPageIndexSaved;
     private String filename;
+    private String rawName;
+    private String path;
+
     private ScoreProcessor scoreProc;
     public int objectIndex = 0;
 
@@ -94,9 +99,12 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
     //store appContext which is helpful for accessing internal file storage if we go that route
     private Context appContext;
 
-    public MusicScoreViewerFragment(String filename) {
+    public MusicScoreViewerFragment(String path, String filename) {
         this.filename = filename;
-        Log.d("MusicScoreViewerFrag", filename);
+        this.path = path;
+        Log.d("sdasd", path);
+        Log.d("sdasd", filename);
+//        this.rawName = filename.substring(0, filename.lastIndexOf('.'));
     }
 
     // The onCreate method is called when the Fragment instance is being created, or re-created.
@@ -172,11 +180,13 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
      */
     private void openRenderer(Context context) throws IOException {
         // In this sample, we read a PDF from the assets directory.
-        File file = new File(context.getCacheDir(), FILENAME);
+        try {
+            URI uri = new URI(path);
+            File file = new File(uri.getPath());
         if (!file.exists()) {
             // Since PdfRenderer cannot handle the compressed asset file directly, we copy it into
             // the cache directory.
-            InputStream asset = context.getAssets().open(FILENAME);
+            InputStream asset = getContentResolver().openInputStream(uri);
             FileOutputStream output = new FileOutputStream(file);
             final byte[] buffer = new byte[1024];
             int size;
@@ -186,13 +196,20 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
             asset.close();
             output.close();
         }
-        mFileDescriptor = ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY);
-        // This is the PdfRenderer we use to render the PDF.
-        if (mFileDescriptor != null) {
-            //EC mPdfRenderer = new PdfRenderer(mFileDescriptor);
-            mPdfHelper = new PDFHelper(mFileDescriptor);
-            mPdfHelper.setCurPage(mPageIndexSaved);
+            Log.d("MSVF", file.getPath());
+            Log.d("MSVF", file.getAbsolutePath());
+            mFileDescriptor = ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY);
+            // This is the PdfRenderer we use to render the PDF.
+            if (mFileDescriptor != null) {
+                //EC mPdfRenderer = new PdfRenderer(mFileDescriptor);
+                mPdfHelper = new PDFHelper(mFileDescriptor);
+                mPdfHelper.setCurPage(mPageIndexSaved);
+            }
         }
+        catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
+
     }
 
     private void showObject(int index) {
