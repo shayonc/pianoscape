@@ -9,7 +9,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.sqlite.SQLiteDatabase;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
@@ -45,7 +44,6 @@ import piano.pianotrainer.scoreImport.PDFHelper;
 
 public class HomeActivity extends AppCompatActivity {
     private static final String TAG = "HomeActivity";
-    private static final int PICKFILE_RESULT_CODE = 123;
 
     static{
         if(!OpenCVLoader.initDebug()){
@@ -88,12 +86,6 @@ public class HomeActivity extends AppCompatActivity {
         setContentView(R.layout.activity_home);
 
         filename = GetFirstFilename();
-<<<<<<< HEAD
-=======
-
-
-
->>>>>>> 16ac05b... remove textview
         context = getApplicationContext();
 
         // initialize paths
@@ -171,7 +163,6 @@ public class HomeActivity extends AppCompatActivity {
             public void onClick(final View v) {
 
                 try {
-<<<<<<< HEAD
 
                     AlertDialog.Builder builder = new AlertDialog.Builder(HomeActivity.this);
                     builder.setTitle("Enter filename");
@@ -199,38 +190,6 @@ public class HomeActivity extends AppCompatActivity {
                     });
 
                     builder.show();
-=======
-                    Intent chooseFile = new Intent(Intent.ACTION_GET_CONTENT);
-                    chooseFile.setType("application/pdf");
-                    chooseFile = Intent.createChooser(chooseFile, "Choose a file");
-                    startActivityForResult(chooseFile, PICKFILE_RESULT_CODE);
-//                    AlertDialog.Builder builder = new AlertDialog.Builder(HomeActivity.this);
-//                    builder.setTitle("Enter filename ex. mario_starman");
-//
-//// Set up the input
-//                    final EditText input = new EditText(HomeActivity.this);
-//// Specify the type of input expected; this, for example, sets the input as a password, and will mask the text
-//                    input.setInputType(InputType.TYPE_CLASS_TEXT);
-//                    builder.setView(input);
-//
-//// Set up the buttons
-//                    builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-//                        @Override
-//                        public void onClick(DialogInterface dialog, int which) {
-//                            m_Text = input.getText().toString();
-//                            importMusicScore(v, m_Text);
-//
-//                        }
-//                    });
-//                    builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-//                        @Override
-//                        public void onClick(DialogInterface dialog, int which) {
-//                            dialog.cancel();
-//                        }
-//                    });
-//
-//                    builder.show();
->>>>>>> eecf945... GUI changes
                 }
                 catch (Exception e) {
                     e.printStackTrace();
@@ -309,10 +268,9 @@ public class HomeActivity extends AppCompatActivity {
     }
 
     /** Called when the user taps the Send button */
-    public void importMusicScore(String path, String filename) {
+    public void importMusicScore(View view, String filename) {
         Intent intent = new Intent(this, MusicScoreImportActivity.class);
         intent.putExtra("filename", filename);
-        intent.putExtra("path", path);
         startActivity(intent);
     }
 
@@ -361,20 +319,6 @@ public class HomeActivity extends AppCompatActivity {
             return true;
         } catch (PackageManager.NameNotFoundException e) {
             return false;
-        }
-    }
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == PICKFILE_RESULT_CODE && resultCode == Activity.RESULT_OK){
-            Uri content_describer = data.getData();
-            File myFile = new File(content_describer.getPath());
-            String src = myFile.getPath();
-            Log.d("34234353454", myFile.getPath());
-//            String filename = content_describer.getLastPathSegment();
-            importMusicScore(content_describer.toString(), myFile.getName());
-
         }
     }
 }

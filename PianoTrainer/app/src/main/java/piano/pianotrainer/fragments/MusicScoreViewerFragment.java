@@ -81,6 +81,8 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
     private String filename;
     private String rawName;
     private String path;
+    private String realPath;
+    Context context;
 
     private ScoreProcessor scoreProc;
     public int objectIndex = 0;
@@ -181,23 +183,26 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
     private void openRenderer(Context context) throws IOException {
         // In this sample, we read a PDF from the assets directory.
         try {
-            URI uri = new URI(path);
-            File file = new File(uri.getPath());
-        if (!file.exists()) {
-            // Since PdfRenderer cannot handle the compressed asset file directly, we copy it into
-            // the cache directory.
-            InputStream asset = getContentResolver().openInputStream(uri);
-            FileOutputStream output = new FileOutputStream(file);
-            final byte[] buffer = new byte[1024];
-            int size;
-            while ((size = asset.read(buffer)) != -1) {
-                output.write(buffer, 0, size);
-            }
-            asset.close();
-            output.close();
-        }
-            Log.d("MSVF", file.getPath());
-            Log.d("MSVF", file.getAbsolutePath());
+            Uri uri= Uri.parse(path);
+            realPath = getPath(getActivity(), uri);
+            File file = new File(realPath);
+            String fullFilename = realPath.substring(realPath.lastIndexOf("/")+1);
+            this.rawName = fullFilename.substring(0, fullFilename.lastIndexOf('.'));
+
+//        if (!file.exists()) {
+//            // Since PdfRenderer cannot handle the compressed asset file directly, we copy it into
+//            // the cache directory.
+//            InputStream asset = getContentResolver().openInputStream(uri);
+//            FileOutputStream output = new FileOutputStream(file);
+//            final byte[] buffer = new byte[1024];
+//            int size;
+//            while ((size = asset.read(buffer)) != -1) {
+//                output.write(buffer, 0, size);
+//            }
+//            asset.close();
+//            output.close();
+//        }
+
             mFileDescriptor = ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY);
             // This is the PdfRenderer we use to render the PDF.
             if (mFileDescriptor != null) {
@@ -350,7 +355,11 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
 
                 ProgressDialog pr;
 
+<<<<<<< HEAD
                 File file = new File(getActivity().getCacheDir(), FILENAME);
+=======
+                File file = new File(realPath);
+>>>>>>> e42905d... doesnt work for google drive
                 ParcelFileDescriptor pfd = null;
                 PdfRenderer pdfRenderer = null;
                 try {
