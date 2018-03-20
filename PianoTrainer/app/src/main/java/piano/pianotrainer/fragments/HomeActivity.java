@@ -140,31 +140,24 @@ public class HomeActivity extends AppCompatActivity {
         FloatingActionButton importMxlFab = findViewById(R.id.importMxlFab);
         importMxlFab.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v) {
-            try {
-                PackageManager pm = context.getPackageManager();
-                boolean installed = isPackageInstalled("com.asus.filemanager", pm);
-                Intent LaunchIntent;
-                if (installed) {
-                    LaunchIntent = getPackageManager().getLaunchIntentForPackage("com.asus.filemanager");
-
-                } else {
-                    LaunchIntent = getPackageManager().getLaunchIntentForPackage("com.estrongs.android.pop");
-                }
-                startActivity(LaunchIntent);
-                Toast toast;
-                toast = Toast.makeText(getApplicationContext(), R.string.folder_info ,Toast.LENGTH_LONG);
-                toast.show();
-            }
-            catch (Exception e) {
-                e.printStackTrace();
-            }
-            }
-        });
-
-        Button buttonImport = (Button) findViewById(R.id.button_import);
-        buttonImport.setOnClickListener(new View.OnClickListener() {
-            public void onClick(final View v) {
-
+//            try {
+//                PackageManager pm = context.getPackageManager();
+//                boolean installed = isPackageInstalled("com.asus.filemanager", pm);
+//                Intent LaunchIntent;
+//                if (installed) {
+//                    LaunchIntent = getPackageManager().getLaunchIntentForPackage("com.asus.filemanager");
+//
+//                } else {
+//                    LaunchIntent = getPackageManager().getLaunchIntentForPackage("com.estrongs.android.pop");
+//                }
+//                startActivity(LaunchIntent);
+//                Toast toast;
+//                toast = Toast.makeText(getApplicationContext(), R.string.folder_info ,Toast.LENGTH_LONG);
+//                toast.show();
+//            }
+//            catch (Exception e) {
+//                e.printStackTrace();
+//            }
                 try {
 
                     AlertDialog.Builder builder = new AlertDialog.Builder(HomeActivity.this);
@@ -197,8 +190,51 @@ public class HomeActivity extends AppCompatActivity {
                 catch (Exception e) {
                     e.printStackTrace();
                 }
+
             }
         });
+
+//        Button buttonImport = (Button) findViewById(R.id.button_import);
+//        buttonImport.setOnClickListener(new View.OnClickListener() {
+//            public void onClick(final View v) {
+//
+//                try {
+//                    Intent chooseFile = new Intent(Intent.ACTION_GET_CONTENT);
+//                    chooseFile.setType("application/pdf");
+//                    chooseFile = Intent.createChooser(chooseFile, "Choose a file");
+//                    startActivityForResult(chooseFile, PICKFILE_RESULT_CODE);
+////                    AlertDialog.Builder builder = new AlertDialog.Builder(HomeActivity.this);
+////                    builder.setTitle("Enter filename ex. mario_starman");
+////
+////// Set up the input
+////                    final EditText input = new EditText(HomeActivity.this);
+////// Specify the type of input expected; this, for example, sets the input as a password, and will mask the text
+////                    input.setInputType(InputType.TYPE_CLASS_TEXT);
+////                    builder.setView(input);
+////
+////// Set up the buttons
+////                    builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+////                        @Override
+////                        public void onClick(DialogInterface dialog, int which) {
+////                            m_Text = input.getText().toString();
+////                            importMusicScore(v, m_Text);
+////
+////                        }
+////                    });
+////                    builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+////                        @Override
+////                        public void onClick(DialogInterface dialog, int which) {
+////                            dialog.cancel();
+////                        }
+////                    });
+////
+////                    builder.show();
+//                }
+//                catch (Exception e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//        });
     }
     public void loadMusicFileList() {
         try {
@@ -347,7 +383,7 @@ public class HomeActivity extends AppCompatActivity {
             }
             else if (resultCode == Activity.RESULT_CANCELED) {
                 //Write your code if there's no result
-                Snackbar popup = Snackbar.make(findViewById(android.R.id.content), "An unexpected error occured.", Snackbar.LENGTH_LONG);
+                Snackbar popup = Snackbar.make(findViewById(android.R.id.content), "Score importing canceled.", Snackbar.LENGTH_LONG);
                 popup.show();
             }
         }
