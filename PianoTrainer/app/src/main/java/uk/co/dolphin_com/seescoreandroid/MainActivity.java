@@ -90,7 +90,7 @@ public class MainActivity extends Activity implements ScopeLogger {
     private static final double kDefaultTempoScaling = 1.0;
     private static final float kMinZoom = 0.2F;
     private static final float kMaxZoom = 2.0F;
-    private static final float initialZoom = 0.5F;
+    private static final float initialZoom = 0.7F;
     private static final int initialZoomSliderVal = (int)(100 * (initialZoom - kMinZoom) / (kMaxZoom-kMinZoom));
     private static final int kPlayLoopRepeats = 7;
     private String filename = "";
@@ -229,7 +229,7 @@ public class MainActivity extends Activity implements ScopeLogger {
         currentScore = null;
         currentBar = 0;
         loopStart = loopEnd = -1;
-        magnification = 0.5F;
+        magnification = 0.7F;
         isTransposing = false;
         if (reloadAssetsFiles)
             clearInternalDir();
