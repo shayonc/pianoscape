@@ -42,15 +42,17 @@ public class ImageAdapter extends BaseAdapter {
 
         // create a new ImageView for each item referenced by the Adapter
         public View getView(int position, View convertView, ViewGroup parent) {
-//            ImageView imageView;
-            View grid;
+            View grid = convertView;
+            if (convertView == null) {
             LayoutInflater inflater = (LayoutInflater) mContext
                     .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            if (convertView == null) {
+
                 // if it's not recycled, initialize some attributes
-                grid = new View(mContext);
+//                grid = new View(mContext);
                 grid = inflater.inflate(R.layout.grid_layout, null);
-                TextView textView = (TextView) grid.findViewById(R.id.grid_text);
+            }
+
+            TextView textView = (TextView) grid.findViewById(R.id.grid_text);
                 ImageView imageView = (ImageView)grid.findViewById(R.id.grid_image);
                 String imageCaption = musicFileList.get(position).getFilename();
                 if (musicFileList.get(position).getDateModified() != null) {
@@ -66,9 +68,9 @@ public class ImageAdapter extends BaseAdapter {
                 layoutParams.width = 300;
                 layoutParams.height = 300;
                 imageView.setLayoutParams(layoutParams);
-            } else {
-                grid = (View) convertView;
-            }
+//            else {
+//                grid = (View) convertView;
+//            }
             return grid;
         }
 }
