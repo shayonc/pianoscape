@@ -49,7 +49,7 @@
                 android:clickable="true"
                 app:elevation="10dp"
                 app:backgroundTint="@color/colorPrimary"
-                app:srcCompat="@android:drawable/ic_menu_add" /> <!--center horizontal gravity-->
+                android:src="@drawable/ic_note_add_white_24dp"/> <!--center horizontal gravity-->
 
 
         <!--<Button-->
