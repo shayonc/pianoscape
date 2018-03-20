@@ -291,7 +291,7 @@ public class MainActivity extends Activity implements ScopeLogger {
                         | View.SYSTEM_UI_FLAG_FULLSCREEN
                         | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
         this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_main_v2);
 
         mLog = (TextView) findViewById(R.id.log);
         mScroller = (ScrollView) findViewById(R.id.scroll);
@@ -467,9 +467,9 @@ public class MainActivity extends Activity implements ScopeLogger {
     private void setPlayButtonImage(PlayPause playPause) {
         ImageButton playButton = (ImageButton) findViewById(R.id.playButton);
         if (playPause == PlayPause.pause)
-            playButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_media_pause));
+            playButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_pause_white_24dp));
         else
-            playButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_media_play));
+            playButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_play_arrow_white_24dp));
     }
 
     /** update the play-pause button image according to the player state */

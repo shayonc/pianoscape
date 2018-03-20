@@ -1,0 +1,231 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="uk.co.dolphin_com.seescoreandroid.MainActivity" >
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingBottom="@dimen/activity_vertical_margin"
+        android:paddingLeft="@dimen/activity_horizontal_margin"
+        android:paddingRight="@dimen/activity_horizontal_margin"
+        android:paddingTop="@dimen/activity_vertical_margin"
+        android:background="@color/colorPrimary">
+        <TextView
+            android:id="@+id/titleLabel"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentTop="true"
+            android:maxLines="1"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:text="Title"
+            android:textColor="#FFFFFF">
+        </TextView>
+
+        <!--<TextView-->
+            <!--android:layout_width="0dp"-->
+            <!--android:la-->
+            <!--android:layout_height="match_parent" />-->
+        <Spinner
+            android:id="@+id/spinner_senders"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_above="@+id/scrollView1"
+            android:layout_alignEnd="@+id/transposeLabel"
+            android:entries="@array/senders"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            />
+        <TextView
+            android:id="@+id/transposeLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:maxLines="1"/>
+    </LinearLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:paddingBottom="@dimen/activity_vertical_margin"
+        android:paddingLeft="@dimen/activity_horizontal_margin"
+        android:paddingRight="@dimen/activity_horizontal_margin"
+        android:paddingTop="@dimen/activity_vertical_margin">
+
+        <!--<ScrollView-->
+            <!--android:id="@+id/scrollView1"-->
+            <!--android:layout_width="match_parent"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:layout_alignParentLeft="true"-->
+            <!--android:layout_alignParentRight="true"-->
+            <!--android:layout_alignWithParentIfMissing="false"-->
+            <!--android:layout_below="@+id/titleLabel"-->
+            <!--android:layout_alignParentEnd="false"-->
+            <!--android:layout_alignParentStart="false"-->
+            <!--android:layout_centerHorizontal="true"-->
+            <!--android:layout_above="@+id/playButton">-->
+        <!--</ScrollView>-->
+
+        <!--<ScrollView-->
+            <!--android:id="@+id/scrollViewCursor"-->
+            <!--android:layout_width="match_parent"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:layout_alignParentLeft="true"-->
+            <!--android:layout_alignParentRight="true"-->
+            <!--android:layout_alignWithParentIfMissing="false"-->
+            <!--android:layout_below="@+id/titleLabel"-->
+            <!--android:layout_alignParentEnd="false"-->
+            <!--android:layout_alignParentStart="false"-->
+            <!--android:layout_centerHorizontal="true"-->
+            <!--android:layout_above="@+id/playButton">-->
+        <!--</ScrollView>-->
+
+        <ScrollView
+            android:id="@+id/scrollView1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentRight="true"
+            android:layout_alignWithParentIfMissing="false"
+            android:layout_alignParentEnd="false"
+            android:layout_alignParentStart="false"
+            android:layout_centerHorizontal="true"/>
+
+        <ScrollView
+            android:id="@+id/scrollViewCursor"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentRight="true"
+            android:layout_alignWithParentIfMissing="false"
+            android:layout_alignParentEnd="false"
+            android:layout_alignParentStart="false"
+            android:layout_centerHorizontal="true"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:text="99"
+            android:textSize="50sp"
+            android:textStyle="bold"
+            android:visibility="visible"
+            android:textColor="#80ff0000"
+            android:layout_centerHorizontal="true"
+            android:id="@+id/beatText"
+            android:singleLine="false"
+            android:maxLines="10"
+            android:background="#00000000" />
+
+    </RelativeLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:background="@color/colorPrimary">
+        <TextView
+            android:id="@+id/versionLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:singleLine="true"
+            android:textStyle="normal"
+            android:text=""
+            android:textColor="#FFFFFF"
+            android:gravity="center"
+            />
+
+        <TextView
+            android:id="@+id/zoomLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical"
+            android:paddingLeft="16dp"
+            android:text="@string/zoom_text"
+            android:textColor="#FFFFFF"
+            android:textAppearance="?android:attr/textAppearanceSmall" />
+
+        <SeekBar
+            android:id="@+id/zoomSlider"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:layout_height="match_parent"
+            android:layout_marginEnd="1dp"
+            android:clickable="true"
+            android:max="100"
+            android:progress="50" />
+
+        <TextView
+            android:id="@+id/zoomText"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical"
+            android:singleLine="true"
+            android:text="1.0"
+            android:textColor="#FFFFFF"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:textStyle="normal"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:text=""
+            android:id="@+id/tempoLabel"
+            android:textStyle="normal"
+            android:singleLine="true"
+            android:focusable="false"
+            android:inputType="none"
+            />
+
+        <SeekBar
+            android:id="@+id/tempoSlider"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:max="100"
+            android:progress="50"
+            android:visibility="invisible" />
+
+        <TextView
+            android:id="@+id/tempoText"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical"
+            android:singleLine="true"
+            android:visibility="invisible"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:textStyle="normal" />
+
+        <ImageButton
+            android:id="@+id/playButton"
+            android:layout_width="wrap_content"
+            android:layout_height="50dp"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            android:onClick="play_pause"
+            android:background="@color/colorPrimary"
+            android:src="@drawable/ic_play_arrow_white_24dp" />
+
+        <ImageButton
+            android:id="@+id/stopButton"
+            android:layout_width="wrap_content"
+            android:layout_height="50dp"
+            android:paddingRight="16dp"
+            android:onClick="stop_play"
+            android:background="@color/colorPrimary"
+            android:src="@drawable/ic_stop_white_24dp" />
+        <CheckBox
+            android:id="@+id/metronomeSwitch"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:text=""
+            android:visibility="invisible"/>
+    </LinearLayout>
+
+</LinearLayout>
