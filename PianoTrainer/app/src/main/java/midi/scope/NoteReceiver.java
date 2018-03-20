@@ -126,7 +126,7 @@ public class NoteReceiver extends MidiReceiver {
         //((MainActivity)mLogger).showCorrectNotes(Integer.toString(totalNotes));
         while(skipping && !lastNote) {
 
-            if (notes.get(curNote).size() == 2) {
+            if (notes.get(curNote).size() == 2 || notes.get(curNote).size() == 1) {
                 if(notes.get(curNote).size() == 2 && notes.get(curNote).get(0).rest && notes.get(curNote).get(1).rest){
                     curNoteAdd(1);
                     restCount++;
