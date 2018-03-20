@@ -14,19 +14,19 @@
         android:background="@android:color/white"
         android:scaleType="fitCenter"
         android:contentDescription="@null"/>
-    <TextView
-        android:id="@+id/debug_view"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        />
+    <!--<TextView-->
+        <!--android:id="@+id/debug_view"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="0dp"-->
+        <!--android:layout_weight="1"-->
+        <!--/>-->
     <Button
         android:id="@+id/import_sheet"
         style="?android:attr/buttonBarButtonStyle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:background="@android:color/holo_blue_light"
+        android:background="#242930"
         android:text="@string/import_str"
         android:textSize="20sp"
         android:textColor="@android:color/background_light" />

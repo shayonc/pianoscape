@@ -43,6 +43,7 @@ import piano.pianotrainer.R;
 import piano.pianotrainer.scoreImport.ImageUtils;
 import piano.pianotrainer.scoreImport.KnnLabels;
 import piano.pianotrainer.scoreImport.PDFHelper;
+import piano.pianotrainer.scoreImport.ScoreProcessingTask;
 import piano.pianotrainer.scoreImport.ScoreProcessor;
 import piano.pianotrainer.scoreImport.SymbolMapper;
 import piano.pianotrainer.scoreModels.Accidental;
@@ -100,6 +101,7 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
 
     //store appContext which is helpful for accessing internal file storage if we go that route
     private Context appContext;
+    private ProgressDialog dialog;
 
     public MusicScoreViewerFragment(String path, String filename) {
         this.filename = filename;
@@ -131,7 +133,7 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
         super.onViewCreated(view, savedInstanceState);
         // Retain view references.
         mImageView = (ImageView) view.findViewById(R.id.image);
-        mDebugView = (TextView) view.findViewById(R.id.debug_view);
+//        mDebugView = (TextView) view.findViewById(R.id.debug_view);
 //        mButtonPrevious = (Button) view.findViewById(R.id.previous);
         mButtonImport = (Button) view.findViewById(R.id.import_sheet);
 //        mButtonNext = (Button) view.findViewById(R.id.next);
@@ -220,7 +222,7 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
     private void showObject(int index) {
         Bitmap bmpObject = scoreProc.getStaffObject(0, index);
         mImageView.setImageBitmap(bmpObject);
-        mDebugView.setText(String.format("Object -> Width: %d, Height: %d", bmpObject.getWidth(), bmpObject.getHeight()));
+//        mDebugView.setText(String.format("Object -> Width: %d, Height: %d", bmpObject.getWidth(), bmpObject.getHeight()));
     }
 
     /**
@@ -289,48 +291,6 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
 //            }
 //    }
 
-    public boolean addTrainingImages( String fileDir, int label){
-        Resources res = getResources();
-        AssetManager am = res.getAssets();
-        Bitmap curBmp;
-        InputStream inputstream;
-        Bitmap tmpBmp;
-        try{
-            String fileList[] = am.list(fileDir);
-
-            if (fileList != null)
-            {
-                for ( int i = 0;i<fileList.length;i++)
-                {
-                    inputstream=appContext.getAssets().open(fileDir + "/" +fileList[i]);
-                    curBmp = BitmapFactory.decodeStream(inputstream);
-                    Log.d("",fileList[i]);
-                    if(fileDir.contains("g_clef") && i == 0){
-                        scoreProc.addSample(curBmp, label, true);
-                        tmpBmp = Bitmap.createBitmap(scoreProc.tmpImg.width(),scoreProc.tmpImg.height(),Bitmap.Config.ARGB_8888);
-                        Utils.matToBitmap(scoreProc.tmpImg, tmpBmp);
-                        ImageUtils.saveImageToExternal(tmpBmp, "resizedClef.bmp");
-                        ImageUtils.saveImageToExternal(curBmp, "originalClef.bmp");
-                    }
-                    else{
-                        scoreProc.addSample(curBmp, label, false);
-                    }
-                }
-                return true;
-            }
-            else{
-                Log.d("","NULL filelist!!");
-                return false;
-            }
-        }
-
-        catch(IOException exc){
-            Log.d("","IOException caught!");
-            return false;
-        }
-
-    }
-
     @Override
     public void onClick(View view) {
         switch (view.getId()) {
@@ -352,14 +312,7 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
 //            }
             case R.id.import_sheet: {
                 // import sheet workflow
-
-                ProgressDialog pr;
-
-<<<<<<< HEAD
-                File file = new File(getActivity().getCacheDir(), FILENAME);
-=======
                 File file = new File(realPath);
->>>>>>> e42905d... doesnt work for google drive
                 ParcelFileDescriptor pfd = null;
                 PdfRenderer pdfRenderer = null;
                 try {
@@ -693,6 +646,16 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
                     mDebugView.setText("pfd or pdfRenderer not instantiated.");
                 }
                 break;
+                dialog = new ProgressDialog(getActivity());
+                dialog.setMessage("Importing Score");
+                dialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+                dialog.setIndeterminate(false);
+                dialog.setProgress(0);
+                dialog.setMax(100);
+                dialog.show();
+
+                ScoreProcessingTask task = new ScoreProcessingTask(getActivity(), dialog);
+                task.execute(SCORE_NAME, realPath, rawName);
             }
         }
     }

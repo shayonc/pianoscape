@@ -28,4 +28,7 @@
     <string name="music_score_name_with_index">Music Score (%1$d/%2$d)</string>
     <string name="info">Info</string>
     <string name="import_str">Import</string>
+    <string name="import_error">File cannot be imported. PDF is not in an appropriate format.</string>
+    <string name="import_success">Score converted into Music XML format successfully.</string>
+    <string name="import_error2">"File cannot be imported. Grand staffs were not found."</string>
 </resources>

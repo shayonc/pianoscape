@@ -15,6 +15,7 @@ import android.os.Environment;
 import java.io.File;
 import android.os.FileObserver;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.content.ContextCompat;
@@ -44,6 +45,8 @@ import piano.pianotrainer.scoreImport.PDFHelper;
 
 public class HomeActivity extends AppCompatActivity {
     private static final String TAG = "HomeActivity";
+    private static final int PICKFILE_RESULT_CODE = 123;
+    private static final int SCORE_IMPORT_RESULT_CODE = 1;
 
     static{
         if(!OpenCVLoader.initDebug()){
@@ -271,7 +274,9 @@ public class HomeActivity extends AppCompatActivity {
     public void importMusicScore(View view, String filename) {
         Intent intent = new Intent(this, MusicScoreImportActivity.class);
         intent.putExtra("filename", filename);
-        startActivity(intent);
+        intent.putExtra("path", path);
+        startActivityForResult(intent, SCORE_IMPORT_RESULT_CODE);
+//        startActivity(intent);
     }
 
     /* Checks if external storage is available for read and write */
@@ -319,6 +324,32 @@ public class HomeActivity extends AppCompatActivity {
             return true;
         } catch (PackageManager.NameNotFoundException e) {
             return false;
+        }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == PICKFILE_RESULT_CODE && resultCode == Activity.RESULT_OK){
+            Uri content_describer = data.getData();
+            File myFile = new File(content_describer.getPath());
+            String src = myFile.getPath();
+//            String filename = content_describer.getLastPathSegment();
+            importMusicScore(content_describer.toString(), myFile.getName());
+
+        }
+        else if (requestCode == SCORE_IMPORT_RESULT_CODE) {
+            if(resultCode == Activity.RESULT_OK){
+                String result = data.getStringExtra("result");
+                Snackbar popup = Snackbar.make(findViewById(android.R.id.content), result, Snackbar.LENGTH_LONG);
+                popup.show();
+            }
+            else if (resultCode == Activity.RESULT_CANCELED) {
+                //Write your code if there's no result
+                Snackbar popup = Snackbar.make(findViewById(android.R.id.content), "An unexpected error occured.", Snackbar.LENGTH_LONG);
+                popup.show();
+            }
         }
     }
 }
