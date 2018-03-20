@@ -17,13 +17,13 @@
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:paddingLeft="16dp"
-            android:paddingRight="16dp">
+            android:paddingLeft="16dp">
 
             <android.support.v4.widget.SwipeRefreshLayout xmlns:android="http://schemas.android.com/apk/res/android"
                 android:id="@+id/swiperefresh"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
+                android:layout_height="match_parent"
+                android:paddingRight="16dp">
 
                 <GridView xmlns:android="http://schemas.android.com/apk/res/android"
                     android:id="@+id/gridview"
@@ -46,6 +46,7 @@
                 android:layout_alignParentBottom="true"
                 android:layout_alignParentRight="true"
                 android:layout_marginBottom="25dp"
+                android:layout_marginRight="10dp"
                 android:clickable="true"
                 app:elevation="10dp"
                 app:backgroundTint="@color/colorPrimary"
