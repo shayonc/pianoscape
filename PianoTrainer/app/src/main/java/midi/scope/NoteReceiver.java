@@ -246,9 +246,11 @@ public class NoteReceiver extends MidiReceiver {
             if(curArray.size() == 2 && curArray.get(0).rest && curArray.get(1).rest)
             {
                 player.moveCursor(notes.get(curNote + 1));
+                totalNotes++;
             }
             else if(curArray.size() == 1 && curArray.get(0).rest){
                 player.moveCursor(notes.get(curNote + 1));
+                totalNotes++;
             }
             else{
                 player.moveCursor(notes.get(curNote));

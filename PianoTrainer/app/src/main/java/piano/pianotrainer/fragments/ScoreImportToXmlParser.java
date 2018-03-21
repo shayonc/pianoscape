@@ -420,7 +420,7 @@ public class ScoreImportToXmlParser {
         File root = android.os.Environment.getExternalStorageDirectory();
         File dir = new File (root.getAbsolutePath() + File.separator + "Piano" +  File.separator + "XML_Output");
         dir.mkdirs();
-        File file = new File(dir, this.rawName+ "_converted" +".xml");
+        File file = new File(dir, this.rawName+ "-Converted" +".xml");
         try {
             FileOutputStream f = new FileOutputStream(file);
             PrintWriter pw = new PrintWriter(f);
