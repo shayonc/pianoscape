@@ -229,7 +229,7 @@ public class MainActivity extends Activity implements ScopeLogger {
         currentScore = null;
         currentBar = 0;
         loopStart = loopEnd = -1;
-        magnification = 0.7F;
+        magnification = 1.0F;
         isTransposing = false;
         if (reloadAssetsFiles)
             clearInternalDir();
