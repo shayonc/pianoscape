@@ -437,27 +437,27 @@ public class ScoreProcessingTask extends AsyncTask<String, Integer, Integer> {
             paintTxt.setColor(Color.RED);
             paintTxt.setTextSize(30);
 
-//            for(int i = 0; i < staffObjects.size(); i++){
-//                for(int j = 0; j < staffObjects.get(i).size(); j++){
-//                    if(knnResults.get(i).get(j)/10 == 0){
-//                        cnvs.drawRect(staffObjects.get(i).get(j), paintR);
-//                    }
-//                    if(knnResults.get(i).get(j)/10 == 1){
-//                        cnvs.drawRect(staffObjects.get(i).get(j), paintB);
-//                    }
-//                    if(knnResults.get(i).get(j)/10 == 2){
-//                        cnvs.drawRect(staffObjects.get(i).get(j), paintG);
-//                    }
-//                    if(knnResults.get(i).get(j)/10 == 3){
-//                        cnvs.drawRect(staffObjects.get(i).get(j), paintM);
-//                    }
-//                    if(knnResults.get(i).get(j)/10 == 4){
-//                        cnvs.drawRect(staffObjects.get(i).get(j), paintC);
-//                    }
-//                    cnvs.drawText(knnResults.get(i).get(j).toString(),
-//                            staffObjects.get(i).get(j).left, staffObjects.get(i).get(j).top, paintTxt);
-//                }
-//            }
+            for(int i = 0; i < staffObjects.size(); i++){
+                for(int j = 0; j < staffObjects.get(i).size(); j++){
+                    if(knnResults.get(i).get(j)/10 == 0){
+                        cnvs.drawRect(staffObjects.get(i).get(j), paintR);
+                    }
+                    if(knnResults.get(i).get(j)/10 == 1){
+                        cnvs.drawRect(staffObjects.get(i).get(j), paintB);
+                    }
+                    if(knnResults.get(i).get(j)/10 == 2){
+                        cnvs.drawRect(staffObjects.get(i).get(j), paintG);
+                    }
+                    if(knnResults.get(i).get(j)/10 == 3){
+                        cnvs.drawRect(staffObjects.get(i).get(j), paintM);
+                    }
+                    if(knnResults.get(i).get(j)/10 == 4){
+                        cnvs.drawRect(staffObjects.get(i).get(j), paintC);
+                    }
+                    cnvs.drawText(knnResults.get(i).get(j).toString(),
+                            staffObjects.get(i).get(j).left, staffObjects.get(i).get(j).top, paintTxt);
+                }
+            }
 
             for (Map.Entry<Rect, List<String>> entry : canvasDrawings.entrySet()) {
                 Rect rect = entry.getKey();
