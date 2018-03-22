@@ -228,7 +228,7 @@ public class NoteReceiver extends MidiReceiver {
             Log.d("NoteReceiverEnd", "Last note of song");
             lastNote = true;
         }
-        else if(totalNotes == 100 || curNote >= notes.size()/* notes.size()*/){
+        else if(totalNotes >= 90 || curNote >= notes.size()/* notes.size()*/){
             //end song
             songOver = true;
             Log.d("NoteReceiverEnd", "Should launch summary activity");
@@ -246,11 +246,9 @@ public class NoteReceiver extends MidiReceiver {
             if(curArray.size() == 2 && curArray.get(0).rest && curArray.get(1).rest)
             {
                 player.moveCursor(notes.get(curNote + 1));
-                totalNotes++;
             }
             else if(curArray.size() == 1 && curArray.get(0).rest){
                 player.moveCursor(notes.get(curNote + 1));
-                totalNotes++;
             }
             else{
                 player.moveCursor(notes.get(curNote));
