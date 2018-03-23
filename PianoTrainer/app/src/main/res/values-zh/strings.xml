@@ -19,4 +19,13 @@
     <string name="accuracy_text">準確率： </string>
     <string name="folder_info">請將.xml文件輸入至 /Piano/XMLFiles/ 資料夾</string>
     <string name="zoom_text">字體大小：</string>
+    <string name="next">下一頁</string>
+    <string name="previous">上一頁</string>
+    <string name="music_score_name_with_index">樂譜 (%1$d/%2$d)</string>
+    <string name="info">資料</string>
+    <string name="import_str">輸入</string>
+    <string name="import_error">文件無法導入。PDF格式不正確。</string>
+    <string name="import_success">樂譜成功轉換為Musicxml格式。</string>
+    <string name="import_error2">文件無法導入。找不到五線譜結構。</string>
+    <string name="score_preview">樂譜預覽</string>
 </resources>

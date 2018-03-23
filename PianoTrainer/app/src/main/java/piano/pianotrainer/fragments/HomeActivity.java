@@ -383,7 +383,7 @@ public class HomeActivity extends AppCompatActivity {
             }
             else if (resultCode == Activity.RESULT_CANCELED) {
                 //Write your code if there's no result
-                Snackbar popup = Snackbar.make(findViewById(android.R.id.content), "Score importing canceled.", Snackbar.LENGTH_LONG);
+                Snackbar popup = Snackbar.make(findViewById(android.R.id.content), R.string.score_cancelled, Snackbar.LENGTH_LONG);
                 popup.show();
             }
         }

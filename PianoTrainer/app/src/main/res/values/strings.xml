@@ -31,4 +31,6 @@
     <string name="import_error">File cannot be imported. PDF is not in an appropriate format.</string>
     <string name="import_success">Score converted into Music XML format successfully.</string>
     <string name="import_error2">"File cannot be imported. Grand staffs were not found."</string>
+    <string name="score_preview">Score Preview</string>
+    <string name="score_cancelled">"Score importing cancelled."</string>
 </resources>
