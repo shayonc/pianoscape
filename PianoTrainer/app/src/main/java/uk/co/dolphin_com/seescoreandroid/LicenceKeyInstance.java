@@ -2,11 +2,15 @@
  * SeeScore For Android
  * Dolphin Computing http://www.dolphin-com.co.uk
  */
-/* SeeScoreLib Key for evaluation
+/* SeeScoreLib Key for University of Waterloo, Canada
 
- IMPORTANT! This file is for evaluation only.
+ IMPORTANT! This file is for University of Waterloo, Canada only.
  It must be used only for the application for which it is licensed,
  and must not be released to any other individual or company.
+
+ Please keep it safe, and make sure you don't post it online or email it.
+ Keep it in a separate folder from your source code, so that when you backup the code
+ or store it in a source management system, the key is not included.
  */
 
 package uk.co.dolphin_com.seescoreandroid;
@@ -19,9 +23,10 @@ import uk.co.dolphin_com.sscore.SScoreKey;
 
 public class LicenceKeyInstance
 {
-    // licence keys: contents, transpose, play_data, item_colour, multipart, android, midi_out
-    private static final int[] keycap = {0X1044b4,0X0};
-    private static final int[] keycode = {0X25a648b9,0X47f07cfe,0Xab211079,0X7d9e2c97,0X1b81adef,0Xc966ff4,0X5ec23404,0X1fe52336,0X8394c0e5,0X7c6abe95,0X44066803,0Xe9c9c6fc,0X96bfd9,0X290d3fdc,0Xf0965ce};
+    // licence keys: draw, multipart, android, id2, embed_id
+    // The license key bytes below were replaced by dummy bytes.
+    private static final int[] keycap = {0X12345,0X0};
+    private static final int[] keycode = {0X12345678,0X12345678};
 
-    public static final SScoreKey SeeScoreLibKey = new SScoreKey("evaluation", keycap, keycode);
+    public static final SScoreKey SeeScoreLibKey = new SScoreKey("University of Waterloo, Canada", keycap, keycode);
 }
