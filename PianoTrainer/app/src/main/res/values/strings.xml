@@ -23,4 +23,9 @@
     <string name="accuracy_text">Accuracy: </string>
     <string name="folder_info">Please import an .xml file into the /Piano/XMLFiles folder.</string>
     <string name="zoom_text">Zoom:</string>
+    <string name="next">Next</string>
+    <string name="previous">Previous</string>
+    <string name="music_score_name_with_index">Music Score (%1$d/%2$d)</string>
+    <string name="info">Info</string>
+    <string name="import_str">Import</string>
 </resources>

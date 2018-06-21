@@ -1,1 +1,4 @@
 include ':app', ':MidiScope-debug', ':MidiTools-debug'
+include ':app'
+include ':openCVLibrary320'
+include ':openCVLibrary320'

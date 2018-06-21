@@ -5,6 +5,8 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.sqlite.SQLiteDatabase;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import java.io.File;
@@ -15,11 +17,16 @@ import android.support.v4.app.DialogFragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.GridView;
 import android.widget.Toast;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
+
+import org.opencv.android.OpenCVLoader;
+
 import java.io.IOException;
 import piano.pianotrainer.R;
 import piano.pianotrainer.adapters.ImageAdapter;
@@ -27,8 +34,19 @@ import piano.pianotrainer.model.MusicFile;
 import piano.pianotrainer.parser.XMLMusicParser;
 import java.util.ArrayList;
 import java.util.Date;
+import piano.pianotrainer.scoreImport.PDFHelper;
 
 public class HomeActivity extends AppCompatActivity {
+    private static final String TAG = "HomeActivity";
+
+    static{
+        if(!OpenCVLoader.initDebug()){
+            Log.d(TAG,"OpenCV not loaded");
+        }
+        else{
+            Log.d(TAG,"OpenCV loaded");
+        }
+    }
 
     private Context context;
     private XMLMusicParser xmlparser;
@@ -44,6 +62,8 @@ public class HomeActivity extends AppCompatActivity {
     private String directoryPath;
     private String xmlFilePath;
 
+
+
     // Storage Permissions
     private static final int REQUEST_EXTERNAL_STORAGE = 1;
     private static String[] PERMISSIONS_STORAGE = {
@@ -52,6 +72,7 @@ public class HomeActivity extends AppCompatActivity {
     };
 
     public static FileObserver observer;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -248,4 +269,3 @@ public class HomeActivity extends AppCompatActivity {
         }
     }
 }
-

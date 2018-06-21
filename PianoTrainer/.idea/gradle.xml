@@ -12,6 +12,7 @@
             <option value="$PROJECT_DIR$/MidiScope-debug" />
             <option value="$PROJECT_DIR$/MidiTools-debug" />
             <option value="$PROJECT_DIR$/app" />
+            <option value="$PROJECT_DIR$/openCVLibrary320" />
           </set>
         </option>
         <option name="resolveModulePerSourceSet" value="false" />
