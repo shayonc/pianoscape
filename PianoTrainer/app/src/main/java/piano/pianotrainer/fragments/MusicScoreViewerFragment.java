@@ -5,9 +5,11 @@ package piano.pianotrainer.fragments;
  */
 
 import android.app.ProgressDialog;
+import android.content.ContentUris;
 import android.content.Context;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -15,8 +17,13 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.pdf.PdfRenderer;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.ParcelFileDescriptor;
+import android.provider.DocumentsContract;
+import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -35,8 +42,9 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
+//import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URI;
 import java.util.*;
 
 import piano.pianotrainer.R;
@@ -46,11 +54,13 @@ import piano.pianotrainer.scoreImport.PDFHelper;
 import piano.pianotrainer.scoreImport.ScoreProcessingTask;
 import piano.pianotrainer.scoreImport.ScoreProcessor;
 import piano.pianotrainer.scoreImport.SymbolMapper;
+
 import piano.pianotrainer.scoreModels.Accidental;
 import piano.pianotrainer.scoreModels.ElementType;
 import piano.pianotrainer.scoreModels.Measure;
 import piano.pianotrainer.scoreModels.Note;
 import piano.pianotrainer.scoreModels.NoteGroup;
+
 import piano.pianotrainer.scoreModels.Pitch;
 import piano.pianotrainer.scoreModels.Score;
 import piano.pianotrainer.scoreModels.Staff;
@@ -66,9 +76,10 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
 
     private static final String STATE_CURRENT_PAGE_INDEX = "current_page_index";
 
+
     private static final String SCORE_NAME = "twelve_pieces";
 
-    private static final String FILENAME = SCORE_NAME + ".pdf";
+//    private static final String FILENAME = SCORE_NAME + ".pdf";
 
     private static final String IMGNAME = "final_" + SCORE_NAME + ".bmp";
 
@@ -106,9 +117,6 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
     public MusicScoreViewerFragment(String path, String filename) {
         this.filename = filename;
         this.path = path;
-        Log.d("sdasd", path);
-        Log.d("sdasd", filename);
-//        this.rawName = filename.substring(0, filename.lastIndexOf('.'));
     }
 
     // The onCreate method is called when the Fragment instance is being created, or re-created.
@@ -179,6 +187,126 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
         }
     }
 
+    public static String getPath(final Context context, final Uri uri) {
+
+        final boolean isKitKat = Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT;
+
+        // DocumentProvider
+        if (isKitKat && DocumentsContract.isDocumentUri(context, uri)) {
+            // ExternalStorageProvider
+            if (isExternalStorageDocument(uri)) {
+                final String docId = DocumentsContract.getDocumentId(uri);
+                final String[] split = docId.split(":");
+                final String type = split[0];
+
+                if ("primary".equalsIgnoreCase(type)) {
+                    return Environment.getExternalStorageDirectory() + "/" + split[1];
+                }
+
+                // TODO handle non-primary volumes
+            }
+            // DownloadsProvider
+            else if (isDownloadsDocument(uri)) {
+
+                final String id = DocumentsContract.getDocumentId(uri);
+                final Uri contentUri = ContentUris.withAppendedId(
+                        Uri.parse("content://downloads/public_downloads"), Long.valueOf(id));
+
+                return getDataColumn(context, contentUri, null, null);
+            }
+            // MediaProvider
+            else if (isMediaDocument(uri)) {
+                final String docId = DocumentsContract.getDocumentId(uri);
+                final String[] split = docId.split(":");
+                final String type = split[0];
+
+                Uri contentUri = null;
+                if ("image".equals(type)) {
+                    contentUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+                } else if ("video".equals(type)) {
+                    contentUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
+                } else if ("audio".equals(type)) {
+                    contentUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
+                }
+
+                final String selection = "_id=?";
+                final String[] selectionArgs = new String[] {
+                        split[1]
+                };
+
+                return getDataColumn(context, contentUri, selection, selectionArgs);
+            }
+        }
+        // MediaStore (and general)
+        else if ("content".equalsIgnoreCase(uri.getScheme())) {
+            return getDataColumn(context, uri, null, null);
+        }
+        // File
+        else if ("file".equalsIgnoreCase(uri.getScheme())) {
+            return uri.getPath();
+        }
+
+        return null;
+    }
+
+    /**
+     * Get the value of the data column for this Uri. This is useful for
+     * MediaStore Uris, and other file-based ContentProviders.
+     *
+     * @param context The context.
+     * @param uri The Uri to query.
+     * @param selection (Optional) Filter used in the query.
+     * @param selectionArgs (Optional) Selection arguments used in the query.
+     * @return The value of the _data column, which is typically a file path.
+     */
+    public static String getDataColumn(Context context, Uri uri, String selection,
+                                       String[] selectionArgs) {
+
+        Cursor cursor = null;
+        final String column = "_data";
+        final String[] projection = {
+                column
+        };
+
+        try {
+            cursor = context.getContentResolver().query(uri, projection, selection, selectionArgs,
+                    null);
+            if (cursor != null && cursor.moveToFirst()) {
+                final int column_index = cursor.getColumnIndexOrThrow(column);
+                return cursor.getString(column_index);
+            }
+        } finally {
+            if (cursor != null)
+                cursor.close();
+        }
+        return null;
+    }
+
+
+    /**
+     * @param uri The Uri to check.
+     * @return Whether the Uri authority is ExternalStorageProvider.
+     */
+    public static boolean isExternalStorageDocument(Uri uri) {
+        return "com.android.externalstorage.documents".equals(uri.getAuthority());
+    }
+
+    /**
+     * @param uri The Uri to check.
+     * @return Whether the Uri authority is DownloadsProvider.
+     */
+    public static boolean isDownloadsDocument(Uri uri) {
+        return "com.android.providers.downloads.documents".equals(uri.getAuthority());
+    }
+
+    /**
+     * @param uri The Uri to check.
+     * @return Whether the Uri authority is MediaProvider.
+     */
+    public static boolean isMediaDocument(Uri uri) {
+        return "com.android.providers.media.documents".equals(uri.getAuthority());
+    }
+
     /**
      * Sets up a {@link android.graphics.pdf.PdfRenderer} and related resources.
      */
@@ -213,7 +341,7 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
                 mPdfHelper.setCurPage(mPageIndexSaved);
             }
         }
-        catch (URISyntaxException e) {
+        catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -312,340 +440,6 @@ public class MusicScoreViewerFragment extends Fragment implements View.OnClickLi
 //            }
             case R.id.import_sheet: {
                 // import sheet workflow
-                File file = new File(realPath);
-                ParcelFileDescriptor pfd = null;
-                PdfRenderer pdfRenderer = null;
-                try {
-                    pfd = ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY);
-                    pdfRenderer = new PdfRenderer(pfd);
-                }
-                catch(Exception e) {
-                    mDebugView.setText("pfd not instantiated.");
-                }
-
-                if (pfd != null && pdfRenderer != null) {
-                    PDFHelper pdfHelper = new PDFHelper(pfd);
-                    pdfHelper.setCurPage(mPageIndexSaved);
-
-                    //Bitmap curPageBitmap = pdfHelper.toBinImg(pdfHelper.getCurPage().getIndex());
-                    PdfRenderer.Page curPage = pdfRenderer.openPage(pdfHelper.getCurPage().getIndex());
-
-                    mDebugView.setText(String.format("width: %d, height: %d", curPage.getWidth(), curPage.getHeight()));
-                    Bitmap bitmap = Bitmap.createBitmap(curPage.getWidth()*4, curPage.getHeight()*4,
-                            Bitmap.Config.ARGB_8888);
-                    curPage.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY);
-
-                    //image processing
-                    //loads the Mat object of the image
-                    // TODO: get from user
-                    String scoreTitle = "Twinkle Twinkle Little Star";
-                    scoreProc = new ScoreProcessor(bitmap);
-                    Score score = new Score(scoreTitle);
-
-                    //Threshold so Mat will only have 0s and 255s
-                    scoreProc.binarize();
-                    scoreProc.removeStaffLines();
-                    scoreProc.refineStaffLines();
-
-                    boolean grandStaff = scoreProc.isGrandStaff();
-                    if (!grandStaff) {
-                        // TODO: return error to user in a dialog
-                        mDebugView.setText("Grand staffs not found.");
-                        break;
-                    }
-
-                    int numPulses = 0;
-                    double basicPulse = 0;
-                    List<List<Rect>> staffObjects = scoreProc.detectObjects();
-
-                    // Generating hard-coded symbols data
-                    List<Boolean[]> sonatina_symbols = scoreProc.getSonatinaNoteGroups();
-                    Map<Rect, List<String>> canvasDrawings = new LinkedHashMap<>();
-
-                    //TRAINING SETS FOR SYMBOLS
-                    //load the training images and train symbol detection
-                    addTrainingImages("training_set/g_clef", KnnLabels.G_CLEF);
-                    addTrainingImages("training_set/f_clef", KnnLabels.F_CLEF);
-                    addTrainingImages("training_set/brace", KnnLabels.BRACE);
-
-                    addTrainingImages("training_set/time_four_four", KnnLabels.TIME_44);
-                    addTrainingImages("training_set/time_three_four", KnnLabels.TIME_34);
-                    addTrainingImages("training_set/time_six_eight", KnnLabels.TIME_68);
-                    addTrainingImages("training_set/time_two_two", KnnLabels.TIME_22);
-                    addTrainingImages("training_set/time_two_four", KnnLabels.TIME_24);
-                    addTrainingImages("training_set/common_time", KnnLabels.TIME_C);
-                    //Rests
-                    //TODO: Distinguish whole/half or ignore (85%)
-                    addTrainingImages("training_set/whole_half_rest", KnnLabels.WHOLE_HALF_REST);
-                    addTrainingImages("training_set/quarter_rest", KnnLabels.QUARTER_REST);
-                    addTrainingImages("training_set/eight_rest", KnnLabels.EIGHTH_REST);
-                    addTrainingImages("training_set/one_16th_rest", KnnLabels.ONE_SIXTEENTH_REST);
-                    addTrainingImages("training_set/whole_note", KnnLabels.WHOLE_NOTE);
-                    addTrainingImages("training_set/whole_note_2", KnnLabels.WHOLE_NOTE_2);
-                    //accidentals
-                    addTrainingImages("training_set/sharp", KnnLabels.SHARP_ACC);
-                    addTrainingImages("training_set/natural", KnnLabels.NATURAL_ACC);
-                    addTrainingImages("training_set/flat", KnnLabels.FLAT_ACC);
-                    //others
-                    addTrainingImages("training_set/slur", KnnLabels.TIE);
-                    addTrainingImages("training_set/dynamics_f", KnnLabels.DYNAMICS_F);
-                    addTrainingImages("training_set/dot_set", KnnLabels.DOT);
-                    addTrainingImages("training_set/notesteminv", KnnLabels.NOTE_STEM_INV);
-
-                    //Train
-                    scoreProc.trainKnn();
-                    //test all
-                    scoreProc.testMusicObjects();
-
-
-                    List<List<Integer>> knnResults = scoreProc.getKnnResults();
-                    scoreProc.dotFilter();
-
-                    Paint paintR=new Paint();
-                    paintR.setStyle(Paint.Style.STROKE);
-                    paintR.setColor(Color.RED);
-
-                    Paint paintB=new Paint();
-                    paintB.setStyle(Paint.Style.STROKE);
-                    paintB.setColor(Color.BLUE);
-
-                    Paint paintG =new Paint();
-                    paintG.setStyle(Paint.Style.STROKE);
-                    paintG.setColor(Color.GREEN);
-
-                    Paint paintM =new Paint();
-                    paintM.setStyle(Paint.Style.STROKE);
-                    paintM.setColor(Color.MAGENTA);
-
-                    Paint paintC =new Paint();
-                    paintC.setStyle(Paint.Style.STROKE);
-                    paintC.setColor(Color.CYAN);
-
-                    Paint paintY =new Paint();
-                    paintY.setStyle(Paint.Style.STROKE);
-                    paintY.setColor(Color.YELLOW);
-
-
-
-
-                    int curLabel;
-                    Boolean isTreble;
-                    Measure curMeasure = new Measure();
-                    Map<Pitch, Accidental> keySigFirstMeasure = new HashMap<Pitch, Accidental>();
-                    for (int i = 0; i < staffObjects.size(); i++) {
-                        Staff staff = new Staff(true);
-                        score.addStaff(staff);
-                        List<Rect> objects = staffObjects.get(i);
-                        boolean firstVertBar = false;
-                        Boolean[] isNoteGroup2 = sonatina_symbols.get(i);
-                        Map<Integer, Rect> dotsInStaff = new LinkedHashMap<>();
-
-                        for (int j = 0; j < objects.size(); j++) {
-                            Rect obj = objects.get(j);
-                            isTreble = scoreProc.inTrebleCleff(obj.top, obj.bottom, i);
-                            curLabel = knnResults.get(i).get(j);
-                            if(!firstVertBar){
-                                if(curLabel == KnnLabels.BAR){
-                                    firstVertBar = true;
-                                }
-                            }
-                            else{
-                                // TODO: add symbol detection here
-                                if (curLabel == KnnLabels.BAR) {
-                                    if (!firstVertBar) {
-                                        firstVertBar = true;
-                                    }
-                                    else {
-                                        Log.d(TAG, String.format("hit new bar on staff %d measure %d",i, staff.getNumMeasures()));
-                                        //dot integration and handling accidental/ties
-                                        curMeasure.checkNeighbours();
-
-                                        Map<Pitch, Integer> keySigPitchScaleMap = scoreProc.getPitchScaleFromKeySig(curMeasure.getKeySigCenters(),
-                                                                                                                curMeasure.getKeySigIsTreble(), i);
-                                        Map<Pitch, Accidental> keySigsPitchAccMap = new HashMap<Pitch, Accidental>();
-                                        int accCounter = 0;
-                                        for(Pitch keyPitch : keySigPitchScaleMap.keySet()){
-                                            keySigsPitchAccMap.put(keyPitch, curMeasure.getKeySigPitchAccList().get(accCounter));
-                                            accCounter++;
-                                        }
-                                        curMeasure.setKeySigPitch(keySigsPitchAccMap);
-                                        if(staff.getNumMeasures() == 0){
-                                            keySigFirstMeasure = curMeasure.keySigs;
-                                        }
-                                        else{
-                                            curMeasure.keySigs = keySigFirstMeasure;
-                                        }
-                                        Log.d(TAG, String.format("Staff %d Measure %d with info %s",i,
-                                                staff.getNumMeasures(), curMeasure.info()));
-                                        staff.addMeasure(curMeasure);
-                                        curMeasure = new Measure();
-                                    }
-                                }
-
-                                else if(curLabel == KnnLabels.G_CLEF){
-                                    Log.d(TAG, "Frag found treble clef");
-                                    curMeasure.addClef(ElementType.TrebleClef, obj);
-                                }
-                                //time sig
-                                else if(SymbolMapper.isTimeSig(curLabel) && i == 0 && staff.getNumMeasures() == 0){
-                                    curMeasure.setTimeSig(SymbolMapper.getUpperTimeSig(curLabel), SymbolMapper.getLowerTimeSig(curLabel),
-                                            isTreble, obj);
-                                }
-                                else if (scoreProc.isNoteGroup(obj)){
-                                    NoteGroup notegroup = scoreProc.classifyNoteGroup(objects.get(j), i, isTreble);
-                                    //TODO: figure out null notegroups
-                                    if(notegroup == null){
-                                        Log.d(TAG, String.format("null notegroup on rect at %d,%d", i, j));
-//                                    cnvs.drawRect(obj, paintB);
-                                    }
-                                    else{
-                                        curMeasure.addNoteGroup(obj, notegroup, isTreble);
-                                        String s = "[";
-
-                                        for (Note note : notegroup.notes) {
-                                            s += (note.pitch.toString() + Integer.toString(note.scale) + ",");
-                                        }
-                                        s += "]";
-                                        canvasDrawings.put(staffObjects.get(i).get(j), new ArrayList<String>());
-                                        canvasDrawings.get(staffObjects.get(i).get(j)).add(s);
-    //                                    cnvs.drawText(s, staffObjects.get(i).get(j).left, staffObjects.get(i).get(j).top, paintTxt);
-                                        s = "[";
-                                        for (Note note : notegroup.notes) {
-                                            s += (Double.toString(note.weight) + ",");
-                                        }
-
-                                        s += "]";
-                                        canvasDrawings.get(staffObjects.get(i).get(j)).add(s);
-//                                        cnvs.drawText(s, staffObjects.get(i).get(j).left, staffObjects.get(i).get(j).bottom, paintTxt);
-                                    }
-
-                                }
-                                else {
-                                    // Ekteshaf: place your knn testing for each object here
-                                    //general symbols not usually confused with clefs
-                                    if(curLabel == KnnLabels.F_CLEF){
-                                        curMeasure.addClef(ElementType.BassClef, obj);
-                                    }
-
-                                    else if(SymbolMapper.isRest(curLabel)){
-                                        curMeasure.addRest(obj, SymbolMapper.classifyRest(knnResults.get(i).get(j), isTreble));
-                                    }
-                                    //accidentals
-                                    else if(curLabel == KnnLabels.FLAT_ACC){
-                                        curMeasure.addToClefLists(isTreble, obj, ElementType.Flat);
-                                        Log.d(TAG, String.format("Flat: added rounded yPos %.2f", scoreProc.getCenterYOfFlat(obj, ElementType.Flat, i)));
-                                        curMeasure.addAccidentalCenter(obj, scoreProc.getCenterYOfFlat(obj, ElementType.Flat, i));
-                                    }
-                                    else if(curLabel == KnnLabels.SHARP_ACC){
-                                        curMeasure.addToClefLists(isTreble, obj, ElementType.Sharp);
-                                        curMeasure.addAccidentalCenter(obj, scoreProc.getCenterYOfFlat(obj, ElementType.Sharp, i));
-                                    }
-                                    else if(curLabel == KnnLabels.NATURAL_ACC){
-                                        curMeasure.addToClefLists(isTreble, obj, ElementType.Natural);
-                                        curMeasure.addAccidentalCenter(obj, scoreProc.getCenterYOfFlat(obj, ElementType.Natural, i));
-                                    }
-                                    //other symbols
-                                    else if(curLabel == KnnLabels.DOT){
-                                        curMeasure.addToClefLists(isTreble, obj, ElementType.Dot);
-                                        //save dot index for dot integration at the end
-                                        dotsInStaff.put(j, obj);
-                                        Log.d(TAG, String.format("Dot added at pos loop ij %d,%d",i,j));
-                                    }
-                                    else if(curLabel == KnnLabels.WHOLE_NOTE){
-                                        Note whole = new Note();
-                                        whole.weight = 1.0;
-                                        whole.clef = isTreble ? 0 : 1;
-                                        List<Note> wholeNoteList = new ArrayList<Note>();
-                                        //add
-                                        NoteGroup wNg = new NoteGroup(wholeNoteList);
-                                        curMeasure.addNoteGroup(obj, wNg, isTreble);
-                                        Log.d(TAG, String.format("Whole note added at pos %d,%d",i,j));
-                                    }
-                                    else if(curLabel == KnnLabels.TIE){
-                                        curMeasure.addToClefLists(isTreble, obj, ElementType.Tie);
-                                    }
-                                    //TODO: wholenote2
-                                }
-
-                            }
-
-                        }
-
-
-                    }
-
-
-
-//                    Bitmap testBmp = Bitmap.createBitmap(scoreProc.noStaffLinesImg.width(),scoreProc.noStaffLinesImg.height(),Bitmap.Config.ARGB_8888);
-//                    Utils.matToBitmap(scoreProc.noStaffLinesImg, testBmp);
-//
-//                    Canvas cnvs = new Canvas(testBmp);
-//                    //...setting paint objects with brute force >_>
-
-//                    mImageView.setImageBitmap(testBmp);
-
-//                    Canvas cnvs = new Canvas(bitmap);
-//                    Paint paint=new Paint();
-//                    paint.setStyle(Paint.Style.STROKE);
-//                    paint.setColor(Color.RED);
-//                    for(List<Rect> rectList : staffObjects){
-//                        for(Rect symbolRect : rectList){
-//                            cnvs.drawRect(symbolRect, paint);
-//                        }
-//                    }
-//                    Bitmap testBmp = Bitmap.createBitmap(scoreProc.noStaffLinesImg.width(),scoreProc.noStaffLinesImg.height(),Bitmap.Config.ARGB_8888);
-//                    Utils.matToBitmap(scoreProc.noStaffLinesImg, testBmp);
-
-                    Bitmap finalBmp = Bitmap.createBitmap(scoreProc.colorFinalImg.width(),scoreProc.colorFinalImg.height(),Bitmap.Config.ARGB_8888);
-                    Utils.matToBitmap(scoreProc.colorFinalImg, finalBmp);
-                    Canvas cnvs = new Canvas(finalBmp);
-                    Paint paintTxt =new Paint();
-                    paintTxt.setStyle(Paint.Style.FILL);
-                    paintTxt.setColor(Color.RED);
-                    paintTxt.setTextSize(30);
-
-                    for(int i = 0; i < staffObjects.size(); i++){
-                        for(int j = 0; j < staffObjects.get(i).size(); j++){
-                            if(knnResults.get(i).get(j)/10 == 0){
-                                cnvs.drawRect(staffObjects.get(i).get(j), paintR);
-                            }
-                            if(knnResults.get(i).get(j)/10 == 1){
-                                cnvs.drawRect(staffObjects.get(i).get(j), paintB);
-                            }
-                            if(knnResults.get(i).get(j)/10 == 2){
-                                cnvs.drawRect(staffObjects.get(i).get(j), paintG);
-                            }
-                            if(knnResults.get(i).get(j)/10 == 3){
-                                cnvs.drawRect(staffObjects.get(i).get(j), paintM);
-                            }
-                            if(knnResults.get(i).get(j)/10 == 4){
-                                cnvs.drawRect(staffObjects.get(i).get(j), paintC);
-                            }
-                            cnvs.drawText(knnResults.get(i).get(j).toString(),
-                                    staffObjects.get(i).get(j).left, staffObjects.get(i).get(j).top, paintTxt);
-                        }
-                    }
-
-                    for (Map.Entry<Rect, List<String>> entry : canvasDrawings.entrySet()) {
-                        Rect rect = entry.getKey();
-                        List<String> s = entry.getValue();
-                        cnvs.drawText(s.get(0), rect.left, rect.top, paintTxt);
-                        cnvs.drawText(s.get(1), rect.left, rect.bottom, paintTxt);
-                    }
-
-                    mImageView.setImageBitmap(finalBmp);
-                    ImageUtils.saveImageToExternal(finalBmp, IMGNAME);
-                    scoreProc.exportRects(getActivity());
-
-                    ScoreImportToXmlParser parser = new ScoreImportToXmlParser();
-                    parser.loadScore(score, appContext);
-                    parser.parse();
-                    parser.writeXml();
-                }
-                else {
-                    mDebugView.setText("pfd or pdfRenderer not instantiated.");
-                }
-                break;
                 dialog = new ProgressDialog(getActivity());
                 dialog.setMessage("Importing Score");
                 dialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
