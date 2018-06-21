@@ -9,11 +9,13 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import java.io.File;
 import android.os.FileObserver;
+import android.support.design.widget.BottomNavigationView;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
@@ -28,11 +30,14 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.GridView;
+import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 
 import org.opencv.android.OpenCVLoader;
+
+import java.io.IOException;
 
 import java.io.IOException;
 import piano.pianotrainer.R;
@@ -70,7 +75,7 @@ public class HomeActivity extends AppCompatActivity {
     // Variables for helping with evaluation
     private String directoryPath;
     private String xmlFilePath;
-
+    private TextView mTextMessage;
 
 
     // Storage Permissions
@@ -89,11 +94,52 @@ public class HomeActivity extends AppCompatActivity {
         setContentView(R.layout.activity_home);
 
         filename = GetFirstFilename();
+
+
+
         context = getApplicationContext();
 
         // initialize paths
         this.directoryPath = getSdCardPath() + ROOT_FOLDER;
         this.xmlFilePath = getSdCardPath() + ROOT_FOLDER + File.separator + OUTPUT_FOLDER + File.separator;
+        //new sdk runtime permissions\
+
+        if (isExternalStorageWritable()) {
+            verifyStoragePermissions(HomeActivity.this);
+            int permissionCheck = ContextCompat.checkSelfPermission(HomeActivity.this,
+                    Manifest.permission.WRITE_CALENDAR);
+        }
+        else{
+            Log.d(TAG, "isExternalStorageWritable() returned false");
+        }
+
+//        Button button = (Button) findViewById(R.id.button);
+//        button.setOnClickListener(new View.OnClickListener() {
+//            public void onClick(View v) {
+//
+//                try {
+//                    if (isExternalStorageWritable()) {
+//                        verifyStoragePermissions(HomeActivity.this);
+//                        int permissionCheck = ContextCompat.checkSelfPermission(HomeActivity.this,
+//                                Manifest.permission.WRITE_CALENDAR);
+//
+//                        xmlparser = new XMLMusicParser(filename, OUTPUT_FOLDER);
+//                        xmlparser.parseMXL(); // parse the .mxl file
+//                        xmlparser.parseXML(); // parse the .xml file
+//
+//                    }
+//                    else  {
+//                        CharSequence text = "External storage not available for read and write.";
+//                        int duration = Toast.LENGTH_SHORT;
+//                        Toast toast = Toast.makeText(context, text, duration);
+//                        toast.show();
+//                    }
+//                }
+//                catch (IOException ie) {
+//                    ie.printStackTrace();
+//                }
+//            }
+//        });
 
         loadMusicFileList(); // load music file list
 
@@ -159,33 +205,10 @@ public class HomeActivity extends AppCompatActivity {
 //                e.printStackTrace();
 //            }
                 try {
-
-                    AlertDialog.Builder builder = new AlertDialog.Builder(HomeActivity.this);
-                    builder.setTitle("Enter filename");
-
-// Set up the input
-                    final EditText input = new EditText(HomeActivity.this);
-// Specify the type of input expected; this, for example, sets the input as a password, and will mask the text
-                    input.setInputType(InputType.TYPE_CLASS_TEXT);
-                    builder.setView(input);
-
-// Set up the buttons
-                    builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            m_Text = input.getText().toString();
-                            importMusicScore(v, m_Text);
-
-                        }
-                    });
-                    builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            dialog.cancel();
-                        }
-                    });
-
-                    builder.show();
+                    Intent chooseFile = new Intent(Intent.ACTION_GET_CONTENT);
+                    chooseFile.setType("application/pdf");
+                    chooseFile = Intent.createChooser(chooseFile, "Choose a file");
+                    startActivityForResult(chooseFile, PICKFILE_RESULT_CODE);
                 }
                 catch (Exception e) {
                     e.printStackTrace();
@@ -307,7 +330,7 @@ public class HomeActivity extends AppCompatActivity {
     }
 
     /** Called when the user taps the Send button */
-    public void importMusicScore(View view, String filename) {
+    public void importMusicScore(String path, String filename) {
         Intent intent = new Intent(this, MusicScoreImportActivity.class);
         intent.putExtra("filename", filename);
         intent.putExtra("path", path);
