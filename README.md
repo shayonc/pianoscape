@@ -11,7 +11,7 @@ The Evaluation system allows users to get real-time feedback on their playing pe
 
 This app was created for our Fourth-Year Engineering Design Project.
 
-![Pianoscape Home Screen](/Images/PianoScape.jpg?)
+<div style="text-align:center"><img src ="/Images/PianoScape.jpg" /></div>
 
 *Pianoscape Home Screen*
 
@@ -34,6 +34,6 @@ The OMR system uses an image processing pipeline designed by us. It currently su
 
 ● Note Relationships: Ties, Chords
 
-![OMR Engine's Image Processing Pipeline](/Images/imgproc_pipeline.png?)
+<div style="text-align:center"><img src ="/Images/imgproc_pipeline.png" /></div>
 
-*Pianoscape Home Screen*
+*OMR Engine's Image Processing Pipeline*
