@@ -1,4 +1,4 @@
-# PianoScape
+# Pianoscape
 
 *Langues: [English](README.en.md), [French](README.fr.md), [日本語](README.ja.md), [正體中文](README.zh-hant.md).*
 
