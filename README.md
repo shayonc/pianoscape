@@ -13,16 +13,27 @@ This app was created for our Fourth-Year Engineering Design Project.
 
 ![Pianoscape Home Screen](/Images/PianoScape.jpg?)
 
+*Pianoscape Home Screen*
+
 
 ## Optical Music Recognition
 
-The OMR system uses an image processing pipeline designed by us. It currently supports the following music elements:\n
-● Notes: Whole, Half, Quarter, Eighth, Sixteenth, Beamed, Dotted\n
-● Rests: Whole, Half, Quarter, Eighth, Sixteenth\n
-● Clefs: Treble, Bass\n
-● Accidentals and Key Signatures: Flat, Sharp, Natural\n
-● Time Signatures: All numbers between 1 to 9\n
-● Articulation Marks: Staccato\n
-● Note Relationships: Ties, Chords\n
+The OMR system uses an image processing pipeline designed by us. It currently supports the following music elements:
+
+● Notes: Whole, Half, Quarter, Eighth, Sixteenth, Beamed, Dotted
+
+● Rests: Whole, Half, Quarter, Eighth, Sixteenth
+
+● Clefs: Treble, Bass
+
+● Accidentals and Key Signatures: Flat, Sharp, Natural
+
+● Time Signatures: All numbers between 1 to 9
+
+● Articulation Marks: Staccato
+
+● Note Relationships: Ties, Chords
 
 ![OMR Engine's Image Processing Pipeline](/Images/imgproc_pipeline.png?)
+
+*Pianoscape Home Screen*
