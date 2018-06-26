@@ -1,6 +1,6 @@
 # Pianoscape
 
-*其他語言版本: [English](README.en.md), [French](README.fr.md), [日本語](README.ja.md), [正體中文](README.zh-hant.md).*
+Languages: [English](README.en.md), [French](README.fr.md), [日本語](README.ja.md), [正體中文](README.zh-hant.md).*
 
 ## Overview
 Pianoscape is a piano tutoring app (currently only on Android) that can be connected to a MIDI keyboard to assist in learning to play the piano. As students play the keyboard, the app tracks the key presses and presents feedback. It also displays music sheets of choice, and assists students in terms of playing the correct notes/chords. The app consists of two major components: the OMR system, and the Evaluation system.
