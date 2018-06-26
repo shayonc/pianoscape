@@ -12,8 +12,9 @@ The Evaluation system allows users to get real-time feedback on their playing pe
 These features would allow students to learn to play piano without taking part in expensive lessons from instructors. PianoScape would also aid students in practicing more effectively on their own, even if they choose to take lessons. This app was created for our Fourth-Year Engineering Design Project.
 
 <div style="text-align:center">
-    <img src ="/Images/Home-Screen.jpg" />
-    <img src ="/Images/Score-Selected.jpg" />
+    <img src ="/Images/Home-Screen.jpg" width="270" height="555"/>
+    -----------
+    <img src ="/Images/Score-Selected.jpg" width="270" height="555"/>
 </div>
 <div style="text-align:center">
     <img src ="/Images/Playing-Screen.jpg" />
